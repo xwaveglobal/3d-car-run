@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { glowTexture, logoTexture } from './textures.ts';
+import { glowTexture } from './textures.ts';
+import type { RoadStyle } from './western/looks.ts';
+import { propMaterial } from './western/atlas.ts';
+import { billboard as billboardGeo, route66 as route66Geo } from './western/props.ts';
+import { fadeMaterial } from './western/PropField.ts';
 import { GRAPHICS, ROAD, type GraphicsPreset } from '../config.ts';
 import { roadPixels, type RoadPixels } from './roadSurface.ts';
 import { addFarFade, wrapZ } from './envFx.ts';
@@ -36,7 +40,7 @@ function dataTex(data: Uint8Array, w: number, h: number, srgb: boolean) {
 }
 /** side wall: post spacing (m) and height (m) */
 const WALL_RIB = 4;
-const WALL_H = 1.25;
+const WALL_H = 0.62; // v1.0.0: a W-beam guardrail, not a glass wall
 const tmpWhite = new THREE.Color(0xffffff);
 
 export { wrapZ } from './envFx.ts';
@@ -154,7 +158,8 @@ export class Track {
     this.group.add(road);
 
     // deck underside / thickness
-    const deckMat = new THREE.MeshStandardMaterial({ color: 0x2a3146, roughness: 0.6, metalness: 0.6 });
+    const deckMat = new THREE.MeshStandardMaterial({ color: 0xb8a888, roughness: 0.9, metalness: 0.02 });
+    this.deckMat = deckMat;
     const deck = new THREE.Mesh(new THREE.BoxGeometry(9.4, 0.9, ROAD_LEN), deckMat);
     deck.position.set(0, -0.47, ROAD_NEAR - ROAD_LEN / 2);
     this.group.add(deck);
@@ -174,7 +179,8 @@ export class Track {
     this.railGlowMat = new THREE.MeshBasicMaterial({ color: 0x39b6ff, map: this.railTex, toneMapped: false });
     this.sideGlowMat = new THREE.MeshBasicMaterial({ color: 0x39b6ff, toneMapped: false });
     // v4.2: brushed steel (the old near-white rail glared against the night city)
-    const railBody = new THREE.MeshStandardMaterial({ color: 0x8e99ae, roughness: 0.38, metalness: 0.85 });
+    const railBody = new THREE.MeshStandardMaterial({ color: 0xb8b8b0, roughness: 0.5, metalness: 0.55 });
+    this.railBody = railBody;
     for (const s of [-1, 1]) {
       const rail = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.55, ROAD_LEN), railBody);
       rail.position.set(4.45 * s, 0.27, ROAD_NEAR - ROAD_LEN / 2);
@@ -182,14 +188,17 @@ export class Track {
       const strip = new THREE.Mesh(new THREE.PlaneGeometry(0.16, ROAD_LEN), this.railGlowMat);
       strip.rotation.set(-Math.PI / 2, 0, 0);
       strip.position.set(4.45 * s, 0.56, ROAD_NEAR - ROAD_LEN / 2);
+      strip.visible = false; // v1.0.0: no neon rail strips in the desert
       this.group.add(strip);
       const side = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_LEN, 0.12), this.sideGlowMat);
       side.rotation.y = (Math.PI / 2) * -s;
       side.position.set(4.63 * s, 0.3, ROAD_NEAR - ROAD_LEN / 2);
+      side.visible = false;
       this.group.add(side);
       const under = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_LEN, 0.1), this.sideGlowMat);
       under.rotation.y = (Math.PI / 2) * -s;
       under.position.set(4.71 * s, -0.6, ROAD_NEAR - ROAD_LEN / 2);
+      under.visible = false;
       this.group.add(under);
     }
 
@@ -201,19 +210,24 @@ export class Track {
       wc.width = 128;
       wc.height = 64;
       const w = wc.getContext('2d')!;
-      const grd = w.createLinearGradient(0, 0, 0, 64);
-      grd.addColorStop(0, 'rgba(40,70,120,0.55)');
-      grd.addColorStop(1, 'rgba(8,14,30,0.78)');
-      w.fillStyle = grd;
-      w.fillRect(0, 0, 128, 64);
-      w.fillStyle = 'rgba(255,255,255,0.95)'; // top light strip
-      w.fillRect(0, 2, 128, 4);
-      w.fillStyle = 'rgba(255,255,255,0.35)'; // mid dashed strip
-      w.fillRect(18, 34, 90, 2);
-      w.fillStyle = '#1b2234'; // steel post
-      w.fillRect(0, 0, 12, 64);
-      w.fillStyle = '#8a97b3';
-      w.fillRect(2, 0, 3, 64);
+      // v1.0.0: galvanised W-beam guardrail on timber posts (transparent above / below the beam)
+      w.clearRect(0, 0, 128, 64);
+      w.fillStyle = '#5a3a1e'; // timber post
+      w.fillRect(2, 18, 12, 46);
+      w.fillStyle = 'rgba(0,0,0,.25)';
+      w.fillRect(11, 18, 3, 46);
+      const beam = w.createLinearGradient(0, 8, 0, 34);
+      beam.addColorStop(0, '#f2f2ec');
+      beam.addColorStop(0.3, '#a8a8a2');
+      beam.addColorStop(0.5, '#e6e6de');
+      beam.addColorStop(0.7, '#9a9a94');
+      beam.addColorStop(1, '#d8d8d0');
+      w.fillStyle = beam;
+      w.fillRect(0, 8, 128, 26);
+      w.fillStyle = 'rgba(0,0,0,.18)';
+      w.fillRect(0, 20, 128, 2);
+      w.fillStyle = '#ffb030'; // amber reflector on each post
+      w.fillRect(5, 17, 6, 6);
       const wallTex = new THREE.CanvasTexture(wc);
       wallTex.colorSpace = THREE.SRGBColorSpace;
       wallTex.wrapS = THREE.RepeatWrapping;
@@ -223,11 +237,11 @@ export class Track {
       this.wallTexR.needsUpdate = true;
       for (const [s2, tex] of [[-1, this.wallTexL], [1, this.wallTexR]] as const) {
         tex.repeat.set(ROAD_LEN / WALL_RIB, 1);
-        const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff, transparent: true, depthWrite: false, side: THREE.DoubleSide });
+        const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0xffffff, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
         this.wallMats.push(mat);
         const wall = new THREE.Mesh(new THREE.PlaneGeometry(ROAD_LEN, WALL_H), mat);
         wall.rotation.y = (Math.PI / 2) * -s2;
-        wall.position.set(4.5 * s2, 0.55 + WALL_H / 2, ROAD_NEAR - ROAD_LEN / 2);
+        wall.position.set(4.5 * s2, 0.5 + WALL_H / 2, ROAD_NEAR - ROAD_LEN / 2);
         wall.renderOrder = 1;
         this.group.add(wall);
       }
@@ -242,7 +256,7 @@ export class Track {
     const headGeo = new RoundedBoxGeometry(0.5, 0.1, 0.24, 2, 0.04);
     headGeo.translate(-0.75, 3.5, 0);
     // lamp heads: a cool-white LED bar (tone-mapped: bright, no glare strobing past the camera)
-    const lampMat = new THREE.MeshBasicMaterial({ color: 0xcfe0f2 });
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0xffd9a0 });
     const n = Math.ceil(ROAD_LEN / this.lampSpacing) * 2;
     this.lampBodies = new THREE.InstancedMesh(bodyGeo, railBody, n);
     this.lampHeads = new THREE.InstancedMesh(headGeo, lampMat, n);
@@ -264,13 +278,30 @@ export class Track {
     );
     this.lampGlows.frustumCulled = false;
     this.group.add(this.lampGlows);
+    {
+      // v1.0.0: wooden telephone poles with a cross-arm and insulators (the desert highway look)
+      const pole = new THREE.CylinderGeometry(0.11, 0.15, 7.6, 6);
+      pole.translate(0, 3.8, 0);
+      const arm = new THREE.BoxGeometry(1.9, 0.14, 0.14);
+      arm.translate(0, 7.0, 0);
+      const arm2 = new THREE.BoxGeometry(1.3, 0.12, 0.12);
+      arm2.translate(0, 6.4, 0);
+      const ins = [-0.8, -0.3, 0.3, 0.8].map((x) => new THREE.CylinderGeometry(0.05, 0.05, 0.22, 5).translate(x, 7.18, 0).toNonIndexed());
+      const geo = mergeGeometries([pole.toNonIndexed(), arm.toNonIndexed(), arm2.toNonIndexed(), ...ins])!;
+      this.poleMat = new THREE.MeshStandardMaterial({ color: 0x6a4a2c, roughness: 0.95, metalness: 0, flatShading: true });
+      this.poles = new THREE.InstancedMesh(geo, this.poleMat, n);
+      this.poles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      this.poles.frustumCulled = false;
+      this.group.add(this.poles);
+    }
 
     // support pylons dropping into the cloud sea — instanced
-    const pylonGeo = new THREE.CylinderGeometry(1.1, 1.6, 40, 10);
-    pylonGeo.translate(0, -21, 0);
-    const capGeo = new THREE.BoxGeometry(6, 1.2, 2.4);
-    capGeo.translate(0, -1.4, 0);
-    const pylonMat = new THREE.MeshStandardMaterial({ color: 0x3a4460, roughness: 0.5, metalness: 0.6 });
+    // v1.0.0: sandstone bridge piers (shown on the bridge / coast worlds only)
+    const pylonGeo = new THREE.BoxGeometry(2.6, 66, 2.2);
+    pylonGeo.translate(0, -34, 0);
+    const capGeo = new THREE.BoxGeometry(9.6, 1.6, 2.8);
+    capGeo.translate(0, -1.6, 0);
+    const pylonMat = new THREE.MeshStandardMaterial({ color: 0xb89070, roughness: 0.95, metalness: 0, flatShading: true });
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x39b6ff, toneMapped: false });
     const r1 = new THREE.TorusGeometry(1.25, 0.08, 6, 24);
     r1.rotateX(Math.PI / 2);
@@ -299,34 +330,32 @@ export class Track {
 
     // roadside signs outside the barrier (never over the road): XWAVE logo boards and lane arrows
     {
-      const postMat = new THREE.MeshStandardMaterial({ color: 0x252c3e, roughness: 0.42, metalness: 0.8 });
-      const logoMat = new THREE.MeshBasicMaterial({ map: logoTexture(null, '#39b6ff'), transparent: true, toneMapped: false });
-      // posts + panel merged: one mesh (and one draw) per sign body, one for the logo
-      const postGeo = new THREE.BoxGeometry(0.16, 3.2, 0.16);
-      postGeo.translate(0, 1.6, 0);
-      const panelGeo = new THREE.BoxGeometry(2.6, 0.9, 0.1);
-      panelGeo.translate(0, 3.35, 0);
-      const bodyGeo2 = mergeGeometries([postGeo.clone().translate(-1.1, 0, 0), postGeo.clone().translate(1.1, 0, 0), panelGeo])!;
-      const logoGeo = new THREE.PlaneGeometry(2.3, 0.47);
       const n = Math.ceil(ROAD_LEN / SIGN_EVERY) * 2;
       this.signRange = (n / 2) * SIGN_EVERY;
+      const mat = fadeMaterial(propMaterial(), ROAD_NEAR - this.signRange);
+      const r66 = route66Geo();
+      const bb = billboardGeo();
       for (let i = 0; i < n; i++) {
         const side = i % 2 === 0 ? -1 : 1;
         const g = new THREE.Group();
-        g.add(new THREE.Mesh(bodyGeo2, postMat));
-        const logo = new THREE.Mesh(logoGeo, logoMat);
-        logo.position.set(0, 3.35, 0.056);
-        g.add(logo);
+        const shield = new THREE.Mesh(r66, mat);
+        shield.name = 'route66';
+        shield.position.y = -0.42;
+        const board = new THREE.Mesh(bb, mat);
+        board.name = 'billboard';
+        board.scale.setScalar(0.55);
+        board.position.set(side * 1.4, -0.42, 0);
+        g.add(shield, board);
         g.position.x = side * SIGN_X;
         g.rotation.y = side * 0.32; // turned slightly toward the driver
         this.group.add(g);
         this.signs.push({ g, base: Math.floor(i / 2) * SIGN_EVERY + (side > 0 ? SIGN_EVERY / 2 : 0) + 37 });
       }
-      for (const m of [postMat, logoMat]) addFarFade(m, ROAD_NEAR - this.signRange);
     }
     // no popping: recycled props appear out of the haze at the far end of their range
     addFarFade(railBody, ROAD_NEAR - this.lampRange);
     addFarFade(lampMat, ROAD_NEAR - this.lampRange);
+    addFarFade(this.poleMat, ROAD_NEAR - this.lampRange);
     const pylonRange = Math.ceil(ROAD_LEN / this.pylonSpacing) * this.pylonSpacing;
     addFarFade(pylonMat, ROAD_NEAR - pylonRange);
     addFarFade(ringMat, ROAD_NEAR - pylonRange);
@@ -334,6 +363,39 @@ export class Track {
   }
   private lampRange = 0;
   private ringMat: THREE.MeshBasicMaterial;
+  private deckMat!: THREE.MeshStandardMaterial;
+  private railBody!: THREE.MeshStandardMaterial;
+  private poleMat!: THREE.MeshStandardMaterial;
+  private poles!: THREE.InstancedMesh;
+  private style: RoadStyle | null = null;
+  private tone = new THREE.Color(0xffffff);
+  private toneK = 1;
+
+  /** v1.0.0 (3D Car Run): dress the road for a Western place (rails, poles, piers, signs, light pools) */
+  setStyle(st: RoadStyle) {
+    this.style = st;
+    this.tone.setHex(st.tone);
+    this.roadMat.color.copy(this.tone).multiplyScalar(this.toneK);
+    this.railBody.color.setHex(st.rail);
+    this.deckMat.color.setHex(st.deck);
+    this.roadU.uPool.value = st.pools;
+    this.applyVisibility();
+  }
+  private applyVisibility() {
+    const st = this.style;
+    const open = this.openAir;
+    const lamps = !!st && st.poles === 'lamps' && open;
+    const phone = !st ? false : st.poles === 'phone' && open;
+    this.lampBodies.visible = this.lampHeads.visible = lamps || (!st && open);
+    this.poles.visible = phone;
+    const piers = !!st && st.piers !== 'none';
+    this.pylonBodies.visible = piers;
+    this.pylonRings.visible = false;
+    for (const sg of this.signs) {
+      sg.g.visible = this.signsOn && open && !!st && st.signs !== 'none';
+      for (const c of sg.g.children) c.visible = !!st && c.name === st.signs;
+    }
+  }
 
   /** graphics preset: road shader detail, roadside signs, texture size / sharpness (no recompile) */
   setQuality(p: GraphicsPreset) {
@@ -354,8 +416,8 @@ export class Track {
       for (const t of old) t.dispose();
     }
     this.roadU.uDetail.value = p.roadDetail ? 1 : 0;
-    for (const s of this.signs) s.g.visible = p.cityExtras && this.openAir;
     this.signsOn = p.cityExtras;
+    if (this.poles) this.applyVisibility();
     for (const t of this.roadTexs)
       if (t.anisotropy !== p.anisotropy) {
         t.anisotropy = p.anisotropy;
@@ -371,14 +433,15 @@ export class Track {
     this.railGlowMat.color.copy(c);
     this.ringMat.color.copy(c);
     this.sideGlowMat.color.copy(c);
-    // walls take a light tint of the world's accent (strip + glass)
-    for (const m of this.wallMats) m.color.copy(c).lerp(tmpWhite, 0.55);
+    // v1.0.0: the guardrail keeps its own galvanised colour (no accent tint)
+    for (const m of this.wallMats) m.color.copy(tmpWhite);
   }
 
   /** Apply a world's readability profile (lane glow, road tone, reflections, rail glow). */
   applyReadability(r: { roadGlow: number; roadTone: number; roadEnv: number; rails: number }) {
     this.roadMat.emissiveIntensity = r.roadGlow;
-    this.roadMat.color.setScalar(r.roadTone);
+    this.toneK = r.roadTone;
+    this.roadMat.color.copy(this.tone).multiplyScalar(r.roadTone);
     this.roadMat.envMapIntensity = r.roadEnv;
     this.railGlowMat.color.copy(this.accent).multiplyScalar(r.rails);
     this.sideGlowMat.color.copy(this.accent).multiplyScalar(r.rails);
@@ -387,10 +450,8 @@ export class Track {
   /** Show/hide props that only make sense on the open sky highway. */
   setOpenAir(on: boolean) {
     this.openAir = on;
-    for (const s of this.signs) s.g.visible = on && this.signsOn;
-    this.lampBodies.visible = this.lampHeads.visible = on;
     this.lampGlows.visible = false; // glow halos removed (eye comfort)
-    this.pylonBodies.visible = this.pylonRings.visible = on;
+    this.applyVisibility();
   }
 
   /**
@@ -418,10 +479,13 @@ export class Track {
       if (sz > 1.001) this.m4.multiply(this.stretch.makeScale(1, 1, sz).premultiply(this.toHead).multiply(this.fromHead));
       this.lampHeads.setMatrixAt(i, this.m4);
       gp.setXYZ(i, l.side * (4.75 - 0.75), 3.4, z);
+      this.m4.makeTranslation(l.side * 5.9, -0.42, z);
+      this.poles.setMatrixAt(i, this.m4);
     });
     gp.needsUpdate = true;
     this.lampBodies.instanceMatrix.needsUpdate = true;
     this.lampHeads.instanceMatrix.needsUpdate = true;
+    this.poles.instanceMatrix.needsUpdate = true;
     const pn = this.pylonBodies.count;
     const pr = pn * this.pylonSpacing;
     for (let i = 0; i < pn; i++) {

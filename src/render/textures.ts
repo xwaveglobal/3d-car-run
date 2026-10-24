@@ -437,15 +437,23 @@ export function coinFaceTexture() {
     g.beginPath();
     g.arc(64, 64, 52, 0, Math.PI * 2);
     g.stroke();
-    // lightning bolt emblem
-    g.fillStyle = '#b35a00';
+    // v1.0.0: a raised five-point star (Western gold coin)
+    g.fillStyle = '#a85a08';
     g.beginPath();
-    g.moveTo(70, 22);
-    g.lineTo(42, 70);
-    g.lineTo(62, 70);
-    g.lineTo(54, 106);
-    g.lineTo(88, 54);
-    g.lineTo(67, 54);
+    for (let i = 0; i < 10; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 ? 17 : 40;
+      g.lineTo(64 + Math.cos(ang) * r, 66 + Math.sin(ang) * r);
+    }
+    g.closePath();
+    g.fill();
+    g.fillStyle = '#ffe680';
+    g.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const ang = -Math.PI / 2 + (i * Math.PI) / 5;
+      const r = i % 2 ? 14 : 34;
+      g.lineTo(62 + Math.cos(ang) * r, 63 + Math.sin(ang) * r);
+    }
     g.closePath();
     g.fill();
     return toTex(c);

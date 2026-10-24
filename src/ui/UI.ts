@@ -1,6 +1,7 @@
 import { COUNTRIES, countryName, flagOf } from '../meta/Country.ts';
 import './ui.css';
 import './western.css';
+import { HUD_EAGLE, HUD_LAUNCH, ITEM_NAME_W, SPECIAL_HOW_W, SPECIAL_LINE_W, SPECIAL_SHORT_W } from '../western/items.ts';
 import { ICON } from './icons.ts';
 import { copyText } from './ShareCard.ts';
 import { AVATAR_COUNT, avatarForName, avatarSvg, classCorner } from './avatars.ts';
@@ -194,12 +195,12 @@ export interface RunRewards {
 
 /** what each boost does (info card) */
 const BOOST_INFO: Record<ItemKey, { what: string; how: string; when: string }> = {
-  super: { what: 'A rocket hop that clears two rows of obstacles at once and rolls 360° at the top.', how: 'Equip it, then tap the purple ROADSTER button on the road (or R / Shift).', when: 'Cars blocking every lane, a wall right behind a wall.' },
-  hyper: { what: 'The mythic jump: 7.4 m high, a double roll and a golden trail — clears everything for a long stretch.', how: 'Equip it, then tap the gold HYPER button on the road. Fires before a Roadster Jump if you hold both.', when: 'A full road block with no way through, or to grab a coin trail in the sky.' },
-  escape: { what: 'Emergency rocket straight up: you cruise safely above the road, then glide back down.', how: 'Tap the red SOS button (or press E / Enter) at any moment.', when: 'You are about to crash and there is no time to swipe.' },
+  super: { what: 'A canyon launch that clears two rows of obstacles at once and rolls 360° at the top.', how: 'Equip it, then tap the LAUNCHER button on the road (or R / Shift).', when: 'Cars blocking every lane, a wall right behind a wall.' },
+  hyper: { what: 'The mythic Eagle Jump: 7.4 m high, a double roll and a golden trail — clears everything for a long stretch.', how: 'Equip it, then tap the gold EAGLE button on the road. Fires before a Canyon Launcher if you hold both.', when: 'A full road block with no way through, or to grab a coin trail in the sky.' },
+  escape: { what: 'Last Stand: a sandstorm vortex lifts you straight up, you cruise safely above the road, then glide back down.', how: 'Tap the red RESCUE button (or press E / Enter) at any moment.', when: 'You are about to crash and there is no time to swipe.' },
   shield: { what: 'Start the run inside a shield bubble that absorbs one hit.', how: 'Equip it before a run — it is active from the start until it pops.', when: 'Hard tracks and cups: one free mistake.' },
   turbo: { what: 'Start the run with a Turbo Boost: you blast forward and smash through obstacles for a few seconds.', how: 'Equip it before a run — it fires at the start line.', when: 'Score runs: a fast, safe opening.' },
-  magnet: { what: 'Start with the Coin Magnet active: coins from every lane fly to you.', how: 'Equip it before a run — active from the start.', when: 'Coin missions and 3-star coin targets.' },
+  magnet: { what: 'Start with the Gold Magnet active: coins from every lane fly to you.', how: 'Equip it before a run — active from the start.', when: 'Coin missions and 3-star coin targets.' },
   double: { what: 'Double EXP: every metre counts twice while it lasts.', how: 'Grab the ×2 on the road — it works at once.', when: 'Chasing your best EXP.' },
   life: { what: 'Start the run with one extra life (up to 4 hearts).', how: 'Equip it before a run.', when: 'Long tracks, Endless records and cups.' },
 };
@@ -249,16 +250,12 @@ const fmt = (n: number) => Math.floor(n).toLocaleString('en-US');
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string) => root.querySelector(sel) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const ITEM_ICON: Record<ItemKey, string> = { super: ICON.rocket, hyper: ICON.hyper, shield: ICON.shield, escape: ICON.sos, turbo: ICON.bolt, magnet: ICON.magnet, double: ICON.x2, life: ICON.heart };
-const ITEM_NAME: Record<ItemKey, string> = { super: 'Roadster Jump', hyper: 'HYPER JUMP', shield: 'Start Shield', escape: 'SOS Escape', turbo: 'Turbo Start', magnet: 'Coin Magnet', double: 'Double EXP', life: 'Extra Life' };
+const ITEM_NAME: Record<ItemKey, string> = { ...ITEM_NAME_W };
 /** what each v2 special does, in one line */
-const SPECIAL_LINE: Record<SpecialKey, string> = { escape: 'Rocket up before a crash', super: 'Hop a whole block', hyper: 'Fly over a long stretch' };
-const SPECIAL_SHORT: Record<SpecialKey, string> = { escape: 'SOS', super: 'Roadster', hyper: 'HYPER' };
+const SPECIAL_LINE: Record<SpecialKey, string> = { ...SPECIAL_LINE_W };
+const SPECIAL_SHORT: Record<SpecialKey, string> = { ...SPECIAL_SHORT_W };
 /** item card: one line, v2 rules */
-const SPECIAL_HOW: Record<SpecialKey, string> = {
-  escape: 'Tap SOS just before a crash: rocket up, glide down safely.',
-  super: 'Tap ROADSTER: hop over a whole block of obstacles.',
-  hyper: 'Tap HYPER: fly high over a long stretch.',
-};
+const SPECIAL_HOW: Record<SpecialKey, string> = { ...SPECIAL_HOW_W };
 /** icons of the teaser specials (unlock at AAA, try them in Bonus) */
 /** Bonus places: card colour + emoji */
 const BONUS_COLOR: Record<string, string> = { desert: '#ff9a3c', forest: '#3dbf6a', country: '#e8c040', sea: '#2fb6ff' };
@@ -476,17 +473,17 @@ export class UI {
 
     <section id="guide" class="screen overlay">
       <div class="panel modal guide">
-        <div class="mhead"><h2>ROADSTER JUMP</h2><button class="icon-btn sm" data-a="closemodal" aria-label="Close">${ICON.close}</button></div>
+        <div class="mhead"><h2>CANYON LAUNCHER</h2><button class="icon-btn sm" data-a="closemodal" aria-label="Close">${ICON.close}</button></div>
         <p class="tut-lead">The rocket jump that clears <b>two rows</b> of obstacles and rolls 360° in the sky.</p>
         <div class="gsteps">
           <button class="gstep" data-a="gstep"><img src="${guide1}" alt="" /><b><i>1</i> Spot the purple rocket</b><small>Appears after 250 m, floating in a lane. Swipe into its lane to grab it.</small>
-            <div class="gmore"><b>Details</b>The rocket pickup floats at driving height in one lane and turns up every few hundred metres after the first 250 m. Drive or hop into that lane to collect it — a purple flash ring confirms the pickup. You can carry up to 2. You can also start with one: equip <em>Roadster Jump</em> on the track screen (daily check-in day 5, cups and the shop give them).</div><em class="gtap">${ICON.info} tap for details</em></button>
-          <button class="gstep" data-a="gstep"><img src="${guide2}" alt="" /><b><i>2</i> The ROADSTER button appears</b><small>A purple ROADSTER button shows bottom-right with how many you hold.</small>
-            <div class="gmore"><b>Details</b>While you hold a charge, a round purple <em>ROADSTER</em> button sits above the red SOS button (it turns gold for a HYPER JUMP). A normal swipe UP is always just a small hop — only the button fires the rocket, so you never waste it by accident. Keyboard: <em>R</em> or <em>Shift</em>.</div><em class="gtap">${ICON.info} tap for details</em></button>
-          <button class="gstep" data-a="gstep"><img src="${guide3}" alt="" /><b><i>3</i> Tap ROADSTER to launch</b><small>Flies 5.6 m over cars blocking every lane, barrel roll at the top.</small>
-            <div class="gmore"><b>Details</b>When a car blockade (a semi truck + cars across all 3 lanes) appears, a toast warns you ~120 m ahead. Tap the button on the road: the car rockets 5.6 m up, clears both rows of cars, rolls 360° and lands safely — you are protected for the whole flight. Pressed in the air? It fires the moment your wheels touch the road. No rocket? Collect one, buy one, or use SOS.</div><em class="gtap">${ICON.info} tap for details</em></button>
+            <div class="gmore"><b>Details</b>The rocket pickup floats at driving height in one lane and turns up every few hundred metres after the first 250 m. Drive or hop into that lane to collect it — a purple flash ring confirms the pickup. You can carry up to 2. You can also start with one: equip <em>Canyon Launcher</em> on the track screen (daily check-in day 5, cups and the shop give them).</div><em class="gtap">${ICON.info} tap for details</em></button>
+          <button class="gstep" data-a="gstep"><img src="${guide2}" alt="" /><b><i>2</i> The LAUNCHER button appears</b><small>A LAUNCHER button shows bottom-right with how many you hold.</small>
+            <div class="gmore"><b>Details</b>While you hold a charge, a round purple <em>LAUNCHER</em> button sits above the red RESCUE button (it turns gold for a EAGLE JUMP). A normal swipe UP is always just a small hop — only the button fires the rocket, so you never waste it by accident. Keyboard: <em>R</em> or <em>Shift</em>.</div><em class="gtap">${ICON.info} tap for details</em></button>
+          <button class="gstep" data-a="gstep"><img src="${guide3}" alt="" /><b><i>3</i> Tap LAUNCHER to launch</b><small>Flies 5.6 m over cars blocking every lane, barrel roll at the top.</small>
+            <div class="gmore"><b>Details</b>When a car blockade (a semi truck + cars across all 3 lanes) appears, a toast warns you ~120 m ahead. Tap the button on the road: the car rockets 5.6 m up, clears both rows of cars, rolls 360° and lands safely — you are protected for the whole flight. Pressed in the air? It fires the moment your wheels touch the road. No rocket? Collect one, buy one, or use Last Stand.</div><em class="gtap">${ICON.info} tap for details</em></button>
         </div>
-        <div class="gmyth">${ICON.hyper}<div><b>Mythic HYPER JUMP</b><small>Win it in Cups, Day-7 check-in or the Shop: 7.4 m high, double roll, golden trail. Fires from the same button (gold).</small></div></div>
+        <div class="gmyth">${ICON.hyper}<div><b>Mythic EAGLE JUMP</b><small>Win it in Cups, Day-7 check-in or the Shop: 7.4 m high, double roll, golden trail. Fires from the same button (gold).</small></div></div>
         <button class="btn big" data-a="boosttrain" data-v="super">${ICON.play} Practice it</button>
       </div>
     </section>
@@ -556,7 +553,7 @@ export class UI {
 
     <section id="bag" class="screen overlay">
       <div class="panel modal bagm">
-        <div class="mhead"><h2>${BAG_ICON} MAGIC BAG</h2><button class="icon-btn sm" data-a="closeov" data-v="bag" aria-label="Close">${ICON.close}</button></div>
+        <div class="mhead"><h2>${BAG_ICON} SADDLE BAG</h2><button class="icon-btn sm" data-a="closeov" data-v="bag" aria-label="Close">${ICON.close}</button></div>
         <div data-k="bagbody"></div>
       </div>
     </section>
@@ -648,8 +645,8 @@ export class UI {
         <div class="powers" data-h="powers"></div>
         <div class="danger" data-k="danger" hidden><div class="dg-arrow" data-k="dgarrow"></div><div class="dg-txt" data-k="dgtxt">SWIPE</div></div>
       </div>
-      <button class="rocketbtn hit" data-a="rocket" data-k="rocketbtn" hidden aria-label="Roadster Jump">${ICON.rocket}<span data-k="rocketlbl" data-h="rocketlbl">ROADSTER</span><em data-k="rocketcnt" data-h="rocketcnt">1</em></button>
-      <button class="sos hit" data-a="sos" data-k="sosbtn" hidden aria-label="Sky Escape">${ICON.sos}<span>SOS</span><em data-k="soscnt" data-h="soscnt">1</em></button>
+      <button class="rocketbtn hit" data-a="rocket" data-k="rocketbtn" hidden aria-label="Canyon Launcher">${ICON.rocket}<span data-k="rocketlbl" data-h="rocketlbl">LAUNCHER</span><em data-k="rocketcnt" data-h="rocketcnt">1</em></button>
+      <button class="sos hit" data-a="sos" data-k="sosbtn" hidden aria-label="Last Stand">${ICON.sos}<span>RESCUE</span><em data-k="soscnt" data-h="soscnt">1</em></button>
       <div class="mission panel"><div class="t"><span data-h="mtext">—</span><span data-h="mprog"></span></div><div class="track"><i data-h="mbar"></i></div></div>
     </section>
 
@@ -1235,12 +1232,12 @@ export class UI {
     const rockets = run.hyperJumps + run.superJumps;
     if (rb.hidden !== rockets <= 0) rb.hidden = rockets <= 0;
     rb.classList.toggle('hyper', run.hyperJumps > 0);
-    this.hset('rocketlbl', this.rocketReady || rb.classList.contains('call') ? 'TAP!' : run.hyperJumps > 0 ? 'HYPER' : 'ROADSTER');
+    this.hset('rocketlbl', this.rocketReady || rb.classList.contains('call') ? 'TAP!' : run.hyperJumps > 0 ? HUD_EAGLE : HUD_LAUNCH);
     this.hset('rocketcnt', String(rockets));
     const sos = $(this.root, '[data-k="sosbtn"]');
     if (sos.hidden !== run.escapes <= 0) sos.hidden = run.escapes <= 0;
     this.hset('soscnt', String(run.escapes));
-    const colors: Record<string, string> = { coin2: '#ffd24a', shield: '#3d9bff', magnet: '#ff3b4e', turbo: '#b6ff2e', double: '#ffc21a', super: '#9b6bff', hyper: '#ffc21a', dash: '#2ee6c8' };
+    const colors: Record<string, string> = { coin2: '#ffd24a', shield: '#ffcf4a', magnet: '#e0402a', turbo: '#ff8a1a', double: '#e8c890', super: '#ffb02e', hyper: '#ffd84a', dash: '#ff6a3a' };
     const icons: Record<string, string> = { coin2: ICON.coin, shield: ICON.shield, magnet: ICON.magnet, turbo: BOLT, double: ICON.x2, super: ICON.rocket, hyper: ICON.hyper, dash: ICON.dash };
     const html = chips
       .map((c) => {
@@ -1682,7 +1679,7 @@ export class UI {
       $(this.root, '[data-k="rocketbtn"]').classList.remove('call');
       return;
     }
-    const keys: Record<string, string> = { left: '←', right: '→', up: '↑', down: '↓', sos: 'E / Enter · or tap SOS', rocket: 'R / Shift · or tap the ROADSTER button' };
+    const keys: Record<string, string> = { left: '←', right: '→', up: '↑', down: '↓', sos: 'E / Enter · or tap RESCUE', rocket: 'R / Shift · or tap the LAUNCHER button' };
     this.setAll('tutstep', `STEP ${step.index + 1} / ${step.total}`);
     this.setAll('tuttitle', step.title);
     this.setAll('tutsub', step.sub);
@@ -1714,7 +1711,7 @@ export class UI {
   tutDone(practice: SpecialKey | null) {
     this.setAll('tdtitle', practice ? `${SPECIAL_SHORT[practice].toUpperCase()} PRACTICE DONE` : 'TRAINING COMPLETE');
     $(this.root, '[data-k="tdlead"]').innerHTML = practice
-      ? `Nice! In a race, carry it in from your <b>Magic Bag</b> — 1 special per race.`
+      ? `Nice! In a race, carry it in from your <b>Saddle Bag</b> — 1 special per race.`
       : `You're ready! <b>Distance = EXP</b>, and EXP is your rank. Every new rank is guarded by a hard <b>rank gate</b>.`;
     this.hideEl('tdpath', !!practice);
     this.setAll('tdrace', practice ? 'Race' : 'Race Endless');
@@ -1830,7 +1827,7 @@ export class UI {
         <div class="nameedit"><input data-k="pnameinput" maxlength="14" value="${esc(o.name)}" aria-label="Pilot name" /><button class="btn sm blue" data-a="savepname">Save</button></div>
         <small>Tap the name to change it</small></div></div>
       <div class="avrow2"><div class="avstrip" data-k="pavstrip">${strip}</div><button class="btn sm purple" data-a="avrand" aria-label="Random avatar">🎲</button></div>
-      <button class="ctryrow bagrow" data-a="bag"><span class="fl">${BAG_ICON}</span><span><small>Magic Bag</small><b>Specials · 1 per race</b></span><em>Open</em></button>
+      <button class="ctryrow bagrow" data-a="bag"><span class="fl">${BAG_ICON}</span><span><small>Saddle Bag</small><b>Specials · 1 per race</b></span><em>Open</em></button>
       <button class="ctryrow" data-a="country"><span class="fl">${flagOf(o.country)}</span><span><small>Country</small><b>${esc(countryName(o.country || 'US'))}</b></span><em>Change</em></button>
       ${this.classCard(o.cls, o.bolts, o.next, o.k, o.need)}
       <div class="pstats two">
@@ -2154,8 +2151,8 @@ export class UI {
     const pr = $(this.root, '[data-k="passrow"]');
     pr.hidden = true; // v2: no XWAVE Pass (the shop sells only coins)
     pr.innerHTML = o.pass.active
-      ? `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>${o.pass.days} days left · 300 coins + 1 Roadster Jump every day</small></div><button class="btn sm gold" data-a="claimpass" ${o.pass.claimed ? 'disabled' : ''}>${o.pass.claimed ? 'Claimed' : 'Claim'}</button></div>`
-      : `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>300 coins + Roadster Jump every day · ×2 quest coins</small></div><button class="btn sm gold" data-a="buy" data-sku="xwave_pass">$4.99</button></div>`;
+      ? `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>${o.pass.days} days left · 300 coins + 1 Canyon Launcher every day</small></div><button class="btn sm gold" data-a="claimpass" ${o.pass.claimed ? 'disabled' : ''}>${o.pass.claimed ? 'Claimed' : 'Claim'}</button></div>`
+      : `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>300 coins + Canyon Launcher every day · ×2 quest coins</small></div><button class="btn sm gold" data-a="buy" data-sku="xwave_pass">$4.99</button></div>`;
     this.setAll('dreset', `resets in ${o.resetIn}`);
     $(this.root, '[data-k="qlist"]').innerHTML = o.quests
       .map((q) => `<div class="quest ${q.claimed ? 'claimed' : q.done ? 'done' : ''}">
@@ -2180,7 +2177,7 @@ export class UI {
       <div class="ch-top">${o.live ? '<em class="live">LIVE</em>' : '<em class="soon">NEXT</em>'}${classBadge(e.division)}<span class="label">${ICON.clock} ${o.live ? `ends in <b>${fmtLeft(e.end - o.now)}</b>` : `starts <b>${localTime(e.start)}</b> · in <b>${fmtLeft(e.start - o.now)}</b>`}</span></div>
       <div class="ch-name">${c.name}</div>
       <div class="ch-tag">Class ${e.division} division · ${c.tag}</div>
-      <div class="ch-prize">${ICON.hyper}<div><b>#1 wins HYPER JUMP ×${top.hyper}</b><small>+ ${fmt(top.coins)} coins + Gold trophy · run bolts ×2 while it is live</small></div></div>
+      <div class="ch-prize">${ICON.hyper}<div><b>#1 wins EAGLE JUMP ×${top.hyper}</b><small>+ ${fmt(top.coins)} coins + Gold trophy · run bolts ×2 while it is live</small></div></div>
       <div class="ch-stats"><div><span class="label">Your best</span><b>${o.best ? fmt(o.best) : '—'}</b></div><div><span class="label">Your rank</span><b>${o.rank ? `#${fmt(o.rank)}` : '—'}</b></div><div><span class="label">Racers</span><b>${fmt(o.total)}</b></div></div>
       <div class="ch-btns">${o.live ? `<button class="btn big" data-a="racecup">${ICON.play} Race now</button>` : `<button class="btn big ghost" disabled>${ICON.clock} Opens ${localTime(e.start)}</button>`}<button class="btn sm ghost" data-a="cupboard">${ICON.podium} ${o.boardOpen ? 'Hide' : 'Standings'}</button></div>`;
     const cb = $(this.root, '[data-k="cupboard"]');
@@ -2340,7 +2337,7 @@ export class UI {
       html = head(giftBox(46), 'REVISIT GIFT', 'art') +
         `<p class="p3t">Welcome back!<br/>Here's a gift for you!</p>
         <div class="pzbig">${coinPile(230, 126)}${amount(`x${fmt(Number(d.coins))}`, 'xl')}</div>
-        ${Number(d.shield) ? `<div class="pzplus">+ <span class="rchip shield">${ICON.shield}×${Number(d.shield)} Start Shield</span></div>` : ''}
+        ${Number(d.shield) ? `<div class="pzplus">+ <span class="rchip shield">${ICON.shield}×${Number(d.shield)} Sheriff Guard</span></div>` : ''}
         <button class="btn big gold" data-a="popa" data-v="gift">CLAIM</button>`;
     }
     $(this.root, '[data-k="popbody"]').innerHTML = html;
@@ -2497,7 +2494,7 @@ export class UI {
     b.classList.remove('wait');
     void b.offsetWidth;
     b.classList.add('wait');
-    this.toast(`${ICON.rocket} Save it! Tap ROADSTER when the button lights up`, '#9b6bff');
+    this.toast(`${ICON.rocket} Save it! Tap LAUNCHER when the button lights up`, '#9b6bff');
   }
 
   danger(hint: string | null) {
@@ -2510,7 +2507,7 @@ export class UI {
     if (hint === 'rocket') {
       d.className = 'danger rocket';
       $(this.root, '[data-k="dgarrow"]').innerHTML = ICON.rocket;
-      this.setAll('dgtxt', 'ROADSTER');
+      this.setAll('dgtxt', HUD_LAUNCH);
       d.hidden = false;
       return;
     }

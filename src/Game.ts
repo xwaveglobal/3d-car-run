@@ -1,5 +1,7 @@
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
+import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
+import { ROAD_STYLE } from './render/western/looks.ts';
 import * as THREE from 'three';
 import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, TYRE, RENDER, type SpeedLevel } from './config.ts';
 import { clamp, damp } from './core/math.ts';
@@ -21,7 +23,7 @@ import { Vehicle, SKINS, carVisibility, carsForRank } from './render/Vehicle.ts'
 import { CarShatter } from './render/Shatter.ts';
 import { Track } from './render/Track.ts';
 import { Scenery } from './render/Scenery.ts';
-import { type PropTheme, PROP_THEMES, ObstacleViews } from './render/ObstacleViews.ts';
+import { ObstacleViews } from './render/ObstacleViews.ts';
 import { PickupViews, POWER_COLORS } from './render/PickupViews.ts';
 import { READABILITY, COMFORT } from './render/Readability.ts';
 import { setObstacleContrast, OBSTACLE_FX } from './render/ObstacleViews.ts';
@@ -75,39 +77,10 @@ type State = 'loading' | 'menu' | 'garage' | 'missions' | 'tracks' | 'countdown'
 /** v1.0.0 (3D Car Run): Western place names — see src/western/themes.ts */
 const WORLD_NAMES: Record<WorldId, string> = Object.fromEntries(Object.entries(WORLD_THEME).map(([k, v]) => [k, v.name])) as Record<WorldId, string>;
 
-const POWER_LABEL: Record<Exclude<PickupKind, 'coin'>, string> = {
-  shield: 'SHIELD',
-  magnet: 'MAGNET',
-  turbo: 'TURBO BOOST',
-  double: 'DOUBLE EXP',
-  life: 'EXTRA LIFE',
-  super: 'ROADSTER JUMP',
-  dash: 'AIR DASH',
-  escape: 'SKY ESCAPE',
-  hyper: 'HYPER JUMP',
-  ghost: 'PHASE GHOST',
-  wall: 'WALL RUN',
-  rail: 'SKY RAIL',
-  tunnel: 'TUNNEL RIDER',
-  mystery: 'MYSTERY BOX',
-};
+/** v1.0.0: Western item names — src/western/items.ts */
+const POWER_LABEL: Record<Exclude<PickupKind, 'coin'>, string> = { ...ITEM_LABEL };
 
-const POWER_SUB: Record<Exclude<PickupKind, 'coin'>, string> = {
-  shield: '',
-  magnet: 'coins fly to you',
-  turbo: 'smash through obstacles',
-  double: 'EXP ×2 for a while',
-  life: '+1 heart',
-  super: 'tap ROADSTER to launch',
-  dash: 'flip across 2 lanes',
-  escape: 'tap SOS to fly up',
-  hyper: 'fires by itself',
-  ghost: 'through everything · AAA special',
-  wall: 'along the wall · AAA special',
-  rail: 'glide the sky rail · AAA special',
-  tunnel: 'ride the roof · AAA special',
-  mystery: 'a random reward',
-};
+const POWER_SUB: Record<Exclude<PickupKind, 'coin'>, string> = { ...ITEM_SUB };
 
 const POWER_ICON: Record<Exclude<PickupKind, 'coin'>, string> = {
   shield: ICON.shield,
@@ -596,6 +569,7 @@ export class Game {
     this.world.player.reset(1);
     this.scenery.setWorld('city', true);
     this.track.setAccent(this.scenery.accent);
+    this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
     this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
     this.ui.setLoading(0.92);
@@ -645,6 +619,7 @@ export class Game {
     this.vehicle.visibleBlink = true;
     this.scenery.setWorld('city', true);
     this.track.setAccent(this.scenery.accent);
+    this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
     this.track.setOpenAir(true);
     this.ui.tutorial(false);
@@ -1550,8 +1525,8 @@ export class Game {
     const k = eligible[Math.min(eligible.length - 1, Math.floor(rand() * eligible.length))];
     this.save.special = k;
     this.persist();
-    const name = { super: 'Roadster Jump', hyper: 'HYPER JUMP', escape: 'SOS' }[k];
-    this.ui.toast(`${POWER_ICON[k]} <b>MAGIC BAG: ${name.toUpperCase()} EQUIPPED</b>`, '#c24dff');
+    const name = { super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand' }[k];
+    this.ui.toast(`${POWER_ICON[k]} <b>SADDLE BAG: ${name.toUpperCase()} EQUIPPED</b>`, '#c24dff');
     return k;
   }
   private pickLabel() {
@@ -1589,7 +1564,7 @@ export class Game {
     if (this.bagPickMode || !this.save.special) this.save.special = key;
     this.persist();
     this.audio.play('power');
-    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Roadster', hyper: 'HYPER', escape: 'SOS' }[key]} · in your bag`, '#9b6bff');
+    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Launcher', hyper: 'Eagle', escape: 'Last Stand' }[key]} · in your bag`, '#9b6bff');
     this.ui.hideOverlay('bagbuy'); // after buying: back to the bag
     if (this.ui.isShown('bag')) this.ui.bagSync(this.save, this.bagPickMode);
     if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
@@ -1877,7 +1852,7 @@ export class Game {
       this.run.shieldHits = SHIELD_HITS;
       this.run.shieldT = this.run.durations().shield;
       this.run.superJumps = 1;
-      window.setTimeout(() => this.ui.toast(`${ICON.rocket} HEAD START · Shield + Roadster Jump`, '#9b6bff'), 2900);
+      window.setTimeout(() => this.ui.toast(`${ICON.rocket} HEAD START · Sheriff Guard + Canyon Launcher`, '#9b6bff'), 2900);
     }
     // v2: ONE special per race, picked before the start; it leaves the Magic Bag only when it is used
     this.carried = null;
@@ -1888,7 +1863,7 @@ export class Game {
     this.ui.trainHud = this.tutorialMode;
     // fresh race: redraw the HUD at once (never a frame of the previous race's numbers)
     this.ui.updateHud(this.run, this.world.speed, SPEED.max * SPEED.turboMul * LEVELS[level].speed, null);
-    this.obstacleViews.theme = (PROP_THEMES as string[]).includes(this.world.world) ? (this.world.world as PropTheme) : null;
+    this.obstacleViews.setWorld(this.world.world);
     if (!this.tutorialMode && !this.course?.bonus) {
       const k = this.save.special ?? null;
       if (k && this.save.items[k] > 0) {
@@ -1896,7 +1871,7 @@ export class Game {
         if (k === 'super') this.run.superJumps = 1;
         if (k === 'hyper') this.run.hyperJumps = 1;
         if (k === 'escape') this.run.escapes = 1;
-        const name = { super: 'Roadster Jump', hyper: 'HYPER JUMP', escape: 'SOS' }[k];
+        const name = { super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand' }[k];
         window.setTimeout(() => this.ui.toast(`${ICON.check} SPECIAL READY · ${name}`, '#9b6bff'), 3300);
       }
     }
@@ -1936,6 +1911,7 @@ export class Game {
     this.vehicle.visibleBlink = true;
     this.scenery.setWorld(this.course?.world ?? ((this.tutorialMode && this.trainWorld) || 'city'), true);
     this.track.setAccent(new THREE.Color(this.scenery.accent));
+    this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
     this.track.setOpenAir(this.scenery.openAir);
     this.startArch.visible = this.finishArch.visible = !!this.course;
@@ -2154,7 +2130,7 @@ export class Game {
     const c = this.vehicle.root.position;
     for (let k = 0; k < 4; k++) this.rings.spawn(this.tmpV.set(c.x, 0.1 + k * 0.6, 0), k % 2 ? 0xffffff : 0xff5a3c, 2.4 + k * 1.2, 0.6, true);
     this.particles.burst(c.x, c.y, 0, 50, 0xff5a3c, 10, 0.26, 0.6, { up: 3 });
-    this.ui.pop('SKY ESCAPE!', '#ff8a6a', 'SAFE ABOVE THE ROAD', -12);
+    this.ui.pop('LAST STAND!', '#ff8a6a', 'SAFE ABOVE THE ROAD', -12);
     this.ui.flash();
   }
 
@@ -2183,7 +2159,7 @@ export class Game {
     const col = hyper ? 0xffc21a : 0x9b6bff;
     for (let k = 0; k < (hyper ? 5 : 3); k++) this.rings.spawn(this.tmpV.set(c.x, 0.08 + k * 0.5, 0), k ? col : hyper ? 0xfff3a0 : 0x5ad1ff, 2.5 + k * 1.4, 0.55, true);
     this.particles.burst(c.x, 0.3, 0, hyper ? 70 : 40, col, hyper ? 12 : 9, 0.26, 0.6, { up: 4 });
-    this.ui.pop(hyper ? 'HYPER JUMP!' : 'ROADSTER JUMP!', hyper ? '#ffd24a' : '#c8a8ff', hyper ? 'MYTHIC' : '', -10);
+    this.ui.pop(hyper ? 'EAGLE JUMP!' : 'CANYON LAUNCHER!', hyper ? '#ffd24a' : '#c8a8ff', hyper ? 'MYTHIC' : '', -10);
   }
 
   private wirePlayerEvents() {
@@ -2669,7 +2645,7 @@ export class Game {
       }
       if (!this.blockadeWarned && a.dist - w.dist < 120 && charged) {
         this.blockadeWarned = true;
-        this.ui.toast(`${ICON.rocket} CAR BLOCKADE AHEAD · tap the ROADSTER button`, '#9b6bff');
+        this.ui.toast(`${ICON.rocket} CAR BLOCKADE AHEAD · tap the LAUNCHER button`, '#9b6bff');
         this.audio.play('beep');
       }
       return;
@@ -2786,9 +2762,9 @@ export class Game {
             this.runHearts++;
             this.ui.toast(`${POWER_ICON.life} EXTRA LIFE`, 'var(--red)');
           }
-          if (k === 'super') this.ui.toast(`${POWER_ICON.super} ROADSTER JUMP ready · tap the ROADSTER button`, '#9b6bff');
+          if (k === 'super') this.ui.toast(`${POWER_ICON.super} CANYON LAUNCHER ready · tap the LAUNCHER button`, '#9b6bff');
           if (k === 'dash' && this.state === 'run') this.world.player.airDash(); // Step 06.5: fires at once
-          if (k === 'escape') this.ui.toast(`${POWER_ICON.escape} SKY ESCAPE ready · tap SOS (E) in an emergency`, '#ff5a3c');
+          if (k === 'escape') this.ui.toast(`${POWER_ICON.escape} LAST STAND ready · tap RESCUE (E) in an emergency`, '#ff5a3c');
           break;
         }
         case 'near':
@@ -2808,7 +2784,7 @@ export class Game {
         case 'ring':
           this.audio.play('ring');
           this.vibrate(8);
-          this.ui.pop('RING', '#ffd24a', 'COINS ×2', 2);
+          this.ui.pop('GOLD FEVER', '#ffd24a', 'COINS ×2', 2);
           {
             // a few small gold glints around the car (no big flash over the road)
             const c = this.vehicle.root.position;
@@ -2892,9 +2868,9 @@ export class Game {
     const ok = r.superJumps + r.hyperJumps + r.escapes === before - 1 && r.invulnT > 0;
     if (!ok) return false;
     this.autoRescueUsed = true;
-    const name = { super: 'ROADSTER', hyper: 'HYPER', escape: 'SOS' }[k];
+    const name = { super: 'CANYON LAUNCHER', hyper: 'EAGLE JUMP', escape: 'LAST STAND' }[k];
     // short, non-blocking (top toast — never over the road ahead), no confirmation, game keeps running
-    this.ui.toastNow(`${k === 'escape' ? ICON.sos : ICON.rocket} <b>${name} AUTO ACTIVATED!</b>`, k === 'escape' ? '#ff5a3c' : k === 'hyper' ? '#ffc21a' : '#9b6bff');
+    this.ui.toastNow(`${k === 'escape' ? ICON.sos : ICON.rocket} <b>LAST STAND RESCUE · ${name}!</b>`, k === 'escape' ? '#ff5a3c' : k === 'hyper' ? '#ffc21a' : '#9b6bff');
     return true;
   }
   /** shared entry point of the pre-race special (button = MANUAL, last-chance = AUTO_LAST_CHANCE) */
@@ -3033,9 +3009,9 @@ export class Game {
       pts += n * each;
       parts.push(`${n}× ${name}`);
     };
-    add(r.superJumps, LEFTOVER_POINTS.super, 'Roadster Jump');
-    add(r.hyperJumps, LEFTOVER_POINTS.hyper, 'HYPER JUMP');
-    add(r.escapes, LEFTOVER_POINTS.escape, 'Sky Escape');
+    add(r.superJumps, LEFTOVER_POINTS.super, 'Canyon Launcher');
+    add(r.hyperJumps, LEFTOVER_POINTS.hyper, 'EAGLE JUMP');
+    add(r.escapes, LEFTOVER_POINTS.escape, 'Last Stand');
     if (pts <= 0) return;
     const total = Math.round(pts * r.scoreMul);
     r.score += total;
@@ -3118,10 +3094,10 @@ export class Game {
       if (c.reward < rule.minReward || stars < rule.stars) continue;
       for (const [k, n] of Object.entries(rule.items)) {
         this.save.items[k as ItemKey] += n ?? 0;
-        bonusItems.push(`+${n} ${({ super: 'Roadster Jump', hyper: 'HYPER JUMP', escape: 'Sky Escape', shield: 'Start Shield' } as Record<string, string>)[k]}`);
+        bonusItems.push(`+${n} ${({ super: 'Canyon Launcher', hyper: 'EAGLE JUMP', escape: 'Last Stand', shield: 'Sheriff Guard' } as Record<string, string>)[k]}`);
       }
     }
-    if (bonusItems.length) window.setTimeout(() => this.ui.toast(`${ICON.bag} Track bonus → Magic Bag · ${bonusItems.join(' · ')}`, '#c24dff'), 1200);
+    if (bonusItems.length) window.setTimeout(() => this.ui.toast(`${ICON.bag} Track bonus → Saddle Bag · ${bonusItems.join(' · ')}`, '#c24dff'), 1200);
     const rewards = this.recordMeta(true);
     this.persist();
     this.queueClassCelebration();
@@ -3202,8 +3178,9 @@ export class Game {
     }
     this.scenery.setWorld(id);
     // each place has its own obstacle looks (same hitboxes)
-    this.obstacleViews.theme = (PROP_THEMES as string[]).includes(id) ? (id as PropTheme) : null;
+    this.obstacleViews.setWorld(id);
     this.track.setAccent(new THREE.Color(this.scenery.accent));
+    this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
     this.track.setOpenAir(this.scenery.openAir);
     const idx = ENDLESS_LADDER.indexOf(id) + 1;

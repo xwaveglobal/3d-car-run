@@ -59,82 +59,106 @@ const zDist = (z: number, every: number, at: number) => {
   return Math.min(d, every - d);
 };
 
-/** the road at (x, z) metres */
+/** the road at (x, z) metres — v1.0.0 (3D Car Run): sun-bleached desert asphalt, warm white dashes,
+ *  yellow edge lines, dusty shoulders (same marking positions, same periodic tile) */
 export function roadSample(x: number, z: number, out: RoadSample = { r: 0, g: 0, b: 0, rough: 0, er: 0, eg: 0, eb: 0 }): RoadSample {
   const R = ROAD;
   const ax = Math.abs(x);
-  // asphalt: dark, slightly blue-grey, three octaves of aggregate grain
+  // asphalt: warm grey, three octaves of aggregate grain
   const n1 = vnoise(x, z, 0.5, 1);
   const n2 = vnoise(x, z, 0.12, 2);
   const n3 = vnoise(x, z, 0.03, 3);
-  const grain = (n1 - 0.5) * 0.02 + (n2 - 0.5) * 0.03 + (n3 - 0.5) * 0.045;
-  // sparse light aggregate stones and dark pits (single texels of the finest grid)
-  const stone = n3 > 0.93 ? 0.05 : n3 < 0.05 ? -0.03 : 0;
-  let l = 0.105 + grain + stone;
-  let rough = 0.84 + (n2 - 0.5) * 0.12;
-  let tint = 0.012; // blue lift
-  // shoulder outside the edge line: darker, smoother sealed strip with fine transverse grooves
+  const grain = (n1 - 0.5) * 0.03 + (n2 - 0.5) * 0.035 + (n3 - 0.5) * 0.05;
+  const stone = n3 > 0.93 ? 0.06 : n3 < 0.05 ? -0.035 : 0;
+  let l = 0.2 + grain + stone;
+  let rough = 0.88 + (n2 - 0.5) * 0.1;
+  // warm tint (r, g, b multipliers of l)
+  let tr = 1.07;
+  let tg = 1.0;
+  let tb = 0.9;
   const shoulder = ax > R.edgeX + R.edgeW / 2;
   if (shoulder) {
-    l = 0.075 + grain * 0.6 + (zDist(z, 0.3, 0) < 0.03 ? -0.018 : 0);
-    rough = 0.9;
-    tint = 0.008;
+    // dusty shoulder: sand blown onto the sealed strip, fine transverse grooves
+    const dust = 0.55 + 0.45 * vnoise(x, z, 0.25, 5);
+    l = 0.24 + grain * 0.7 + dust * 0.1 + (zDist(z, 0.3, 0) < 0.03 ? -0.02 : 0);
+    rough = 0.94;
+    tr = 1.22;
+    tg = 1.04;
+    tb = 0.78;
   } else {
-    // polished tyre tracks in every lane: slightly darker and smoother (they catch the light)
+    // tyre tracks: slightly darker and smoother
     for (const lx of LANES)
       for (const s of [-1, 1]) {
         const d = Math.abs(x - (lx + s * R.trackX)) / (R.trackW / 2);
         if (d < 1) {
           const k = 1 - d * d;
-          l -= 0.008 * k;
-          rough -= 0.12 * k;
+          l -= 0.014 * k;
+          rough -= 0.1 * k;
         }
       }
+    // sand drifting in from the edges (never reaches the lane centres)
+    const toEdge = R.edgeX - ax;
+    if (toEdge < 0.55) {
+      const k = (1 - toEdge / 0.55) * (0.4 + 0.6 * vnoise(x, z, 0.2, 6));
+      l += 0.05 * k;
+      tr += 0.1 * k;
+      tb -= 0.08 * k;
+    }
   }
   let er = 0;
   let eg = 0;
   let eb = 0;
-  // worn paint: the wear pattern removes a little paint, never a gap in a line
-  const wear = 0.82 + 0.18 * vnoise(x, z, 0.05, 4);
-  // lane dividers: dashed, `dash` m painted per tile
+  const wear = 0.8 + 0.2 * vnoise(x, z, 0.05, 4);
+  // lane dividers: warm white dashes
   for (const dx of DIVIDERS)
     if (near(x, dx, R.dividerW / 2) && ((z % R.tile) + R.tile) % R.tile < R.dash) {
-      l = 0.78 * wear;
-      tint = 0;
+      l = 0.84 * wear;
+      tr = 1.02;
+      tg = 1.0;
+      tb = 0.94;
       rough = 0.6;
-      er = eg = eb = 0.22 * wear;
+      er = eg = 0.2 * wear;
+      eb = 0.18 * wear;
     }
-  // edge lines: solid
+  // edge lines: solid Route-66 yellow
   for (const ex of EDGES)
     if (near(x, ex, R.edgeW / 2)) {
       l = 0.8 * wear;
-      tint = 0;
+      tr = 1.08;
+      tg = 0.84;
+      tb = 0.26;
       rough = 0.6;
-      er = eg = eb = 0.22 * wear;
+      er = 0.24 * wear;
+      eg = 0.18 * wear;
+      eb = 0.04 * wear;
     }
-  // reflective studs (cat's eyes) in the divider gaps and inside the edge lines, every studEvery m
+  // reflective studs: white on the dividers, amber inside the edge lines
   const studZ = zDist(z, R.studEvery, R.dash + (R.studEvery - R.dash) / 2) <= R.stud / 2;
   if (studZ) {
     for (const dx of DIVIDERS)
       if (near(x, dx, R.stud / 2)) {
-        l = 0.62;
+        l = 0.7;
+        tr = tg = tb = 1;
         rough = 0.2;
-        er = 0.75;
-        eg = 0.95;
-        eb = 1;
+        er = 0.95;
+        eg = 0.92;
+        eb = 0.82;
       }
     for (const ex of EDGES)
       if (near(x, ex - Math.sign(ex) * (R.edgeW / 2 + 0.1), R.stud / 2)) {
-        l = 0.55;
+        l = 0.6;
+        tr = 1.1;
+        tg = 0.8;
+        tb = 0.3;
         rough = 0.2;
         er = 1;
-        eg = 0.62;
+        eg = 0.6;
         eb = 0.12;
       }
   }
-  out.r = clamp01(l);
-  out.g = clamp01(l + tint * 0.4);
-  out.b = clamp01(l + tint);
+  out.r = clamp01(l * tr);
+  out.g = clamp01(l * tg);
+  out.b = clamp01(l * tb);
   out.rough = clamp01(rough);
   out.er = er;
   out.eg = eg;

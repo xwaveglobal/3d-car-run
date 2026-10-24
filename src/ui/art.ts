@@ -6,14 +6,14 @@
 let uid = 0;
 const id = (p: string) => `${p}${++uid}`;
 
-/** one gold coin seen face-on, with the XWAVE bolt */
+/** one gold coin seen face-on, with the 3D Car Run star */
 export function coinFace(size = 28) {
   const g = id('cf');
   return `<svg class="art-coin" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true">
     <defs><radialGradient id="${g}" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#fff6b0"/><stop offset=".45" stop-color="#ffd23d"/><stop offset="1" stop-color="#e08a00"/></radialGradient></defs>
     <circle cx="20" cy="20" r="19" fill="#b86a00"/><circle cx="20" cy="19" r="18" fill="url(#${g})"/>
     <circle cx="20" cy="19" r="13.5" fill="none" stroke="#c77800" stroke-width="2" opacity=".55"/>
-    <path d="M22.5 8.5 13 21h6l-2 10 9.5-12.5h-6z" fill="#fff4c2" stroke="#b86a00" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+    <path d="m20 8.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4-5.8-3-5.8 3 1.1-6.4-4.7-4.6 6.5-.9z" fill="#fff4c2" stroke="#b86a00" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 }
 
 /** a pile of coins in perspective (stacks + loose coins + sparkles) */
@@ -29,11 +29,11 @@ export function coinPile(w = 220, h = 120) {
       s += `<ellipse cx="${x}" cy="${yy}" rx="22" ry="8" fill="url(#${top})" stroke="#c77800" stroke-width="1"/>`;
     }
     const ty = y - (n - 1) * 7;
-    s += `<path d="M${x + 2} ${ty - 5}l-6 6h4l-2 4 7-6h-4z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/>`;
+    s += `<path d="m${x} ${ty - 6}1.8 3.6 4 .6-2.9 2.8.7 4L${x} ${ty + 3.2}l-3.6 1.8.7-4-2.9-2.8 4-.6z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/>`;
     return s;
   };
   const loose = (x: number, y: number, r: number, rot: number) =>
-    `<g transform="translate(${x} ${y}) rotate(${rot}) scale(1 .62)"><circle r="${r + 1.5}" fill="#a95e00"/><circle r="${r}" cy="-1.5" fill="url(#${top})"/><path d="M2 -9l-7 9h4.5l-1.5 7 7-9h-4.5z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/></g>`;
+    `<g transform="translate(${x} ${y}) rotate(${rot}) scale(1 .62)"><circle r="${r + 1.5}" fill="#a95e00"/><circle r="${r}" cy="-1.5" fill="url(#${top})"/><path d="m0 -8 2.4 4.8 5.3.8-3.8 3.7.9 5.3L0 4.1l-4.8 2.5.9-5.3-3.8-3.7 5.3-.8z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/></g>`;
   const spark = (x: number, y: number, s: number) => `<path d="M${x} ${y - s}L${x + s * 0.28} ${y - s * 0.28}L${x + s} ${y}L${x + s * 0.28} ${y + s * 0.28}L${x} ${y + s}L${x - s * 0.28} ${y + s * 0.28}L${x - s} ${y}L${x - s * 0.28} ${y - s * 0.28}z" fill="#fff8d0"/>`;
   return `<svg class="art-pile" width="${w}" height="${h}" viewBox="0 0 220 120" aria-hidden="true">
     <defs>
