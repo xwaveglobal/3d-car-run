@@ -494,9 +494,9 @@ html, body { background: var(--bg); }
 #more .mitem { padding: 12px 16px 14px !important; gap: 3px !important; }
 #more .mitem small { font-size: 10.5px !important; line-height: 1.2; max-width: 100%; padding: 0 6px; }
 #more .mitem b { font-size: 13.5px !important; }
-#ui .badge { border-radius: 999px !important; min-width: 20px; height: 20px; padding: 0 6px !important; display: inline-grid !important; place-items: center; font: 800 11px/1 var(--font-body) !important; font-style: normal !important; transform: none !important; }
+#ui em.badge { border-radius: 999px !important; min-width: 20px; height: 20px; padding: 0 6px !important; display: inline-grid !important; place-items: center; font: 800 11px/1 var(--font-body) !important; font-style: normal !important; transform: none !important; }
 #more .mitem .badge { position: absolute; top: -8px; right: -8px; }
-#ui .badge[hidden] { display: none !important; }
+#ui em.badge[hidden] { display: none !important; }
 
 /* Profile: the big EXP without a box behind it (iOS draws the clipped gradient as a box), the two
    buttons side by side like the mockup, the avatar strip fades out where it scrolls */
@@ -546,3 +546,8 @@ html, body { background: var(--bg); }
 #hud { --spTop: 156px; }
 #hud .rocketbtn span, #hud .sos span { font-size: 8px !important; letter-spacing: 0 !important; white-space: nowrap; max-width: 52px; overflow: hidden; line-height: 1; margin-top: 1px; }
 #hud .rocketbtn, #hud .sos { width: 60px !important; height: 60px !important; flex-direction: column; justify-content: center; }
+#hud .rocketbtn span, #hud .sos span { position: absolute; left: 50%; bottom: -15px; transform: translateX(-50%); max-width: none !important; overflow: visible !important;
+  padding: 2px 7px 3px; border-radius: 7px; font-size: 8.5px !important; letter-spacing: .4px !important; color: #fff1d0 !important;
+  background: var(--wood-dark) center / 120px auto, #3a2210; border: 1.5px solid #ad8a58; text-shadow: 0 1px 0 #1a0a02; }
+#hud .rocketbtn svg, #hud .sos svg { width: 30px !important; height: 30px !important; }
+#hud .rocketbtn em, #hud .sos em { background: #fff1d0 !important; color: #5a2e08 !important; border: 1.5px solid #5a2e08; }

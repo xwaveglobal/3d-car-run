@@ -67,7 +67,7 @@ import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
 
-const VERSION = 'v1.0.3';
+const VERSION = 'v1.0.4';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;

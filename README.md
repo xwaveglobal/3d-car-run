@@ -189,6 +189,22 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.4 — panel polish from the owner's phone screenshots
+
+- Every full page (Top Pilots, Daily, Missions, Shop…) sits on a dimmed desert instead of the old navy.
+- Settings: labels wrap instead of "Camera moti…"; Account / Language rows in the slab face (not italic).
+- More: text clear of the corner rivets; the Daily count is a round red badge.
+- Profile: big EXP without the box iOS drew behind it; EXP GUIDE and LEADERBOARD side by side; the avatar strip fades.
+- Top Pilots: wooden podium steps with gold / silver / bronze trim.
+- Entry / Launch / Share rewards: bronze step numbers, wood boxes (no purple), avatar kept in its circle, a pencil on
+  the name step, the close button inside the frame; 3D CAR RUN on the car card plates.
+- Gold Rush result: the big number is the coins (gold, coin icon), Coins + metres instead of Best + %, no race banner over
+  the card, bronze title rules inside the card.
+- Race HUD: the special button sits below the hearts; its label is a small plaque under the disc.
+- Closing a race no longer shows the placeholder "AD · DEMO" box (no ad network yet); `?addemo` shows it for testing.
+- Home: choosing the car by swiping is off for now (`HOME_SHOW.carPicker`).
+- Fixed a broken SVG path in the coin-pile art (console errors).
+
 ## v1.0.3 — sound fixed (Western soundtrack), Home from the new key art, calmer colours, text review
 
 - **Audio bug fixed**: the guitar synth was a Web Audio feedback loop, and Web Audio forces any delay inside a

@@ -4,6 +4,15 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.4: panel polish (owner's 9 phone screenshots), Home car picker off
+
+- See README v1.0.4. Owner: "mọi thứ ngay ngắn ko có tình trạng chữ hay các border bị sát nhau … tạm thời bỏ chức năng chọn xe".
+- The "error when closing at the end of a race" = the demo interstitial ("AD · DEMO") — now only with `?addemo`.
+- Capture script for the owner's screens at 390×844: see scratch `nine.mjs` pattern (Settings, More, Profile, Top Pilots,
+  Daily, Entry, Missions, Gold Rush result, Launch, Share, Shop, Garage, Bag, race HUD).
+
+---
+
 ## 2026-10-24 — v1.0.3: audio fixed + Western music, Home from key art v3, calmer colours, text review
 
 Owner: "âm thanh bị lỗi … big bugs, cho sound và music gần với phong cách mới … cowboy"; "thay home chuẩn như ảnh 1,
