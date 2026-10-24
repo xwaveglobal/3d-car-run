@@ -42,6 +42,9 @@ pts=np.array([[190,1000],[215,955],[330,925],[470,895],[560,888],[650,915],[720,
 cv2.fillPoly(m,[pts],255)
 m=cv2.dilate(m,np.ones((31,31),np.uint8))
 m=cv2.dilate(m,np.ones((11,11),np.uint8))
+# never paint dust over the painted signs, their posts, PLAY or the bottom buttons (they are the buttons)
+for (x0_,y0_,x1_,y1_) in [(18,1145,190,1345),(755,1145,930,1400),(160,1288,800,1475),(25,1482,925,1600)]:
+    m[y0_:y1_,x0_:x1_]=0
 u8=out.clip(0,255).astype(np.uint8)
 small=cv2.resize(u8,(W//8,H//8),interpolation=cv2.INTER_AREA)
 ms=cv2.resize(m,(W//8,H//8),interpolation=cv2.INTER_NEAREST)

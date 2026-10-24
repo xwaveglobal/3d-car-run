@@ -225,9 +225,9 @@ export class HomeView {
       const p = this.puffs[this.puffI++ % this.puffs.length];
       p.side = this.puffI % 2 ? 1 : -1;
       p.t = 0;
-      p.life = 0.7 + Math.random() * 0.5;
+      p.life = 0.55 + Math.random() * 0.35;
       p.s.position.set(car.position.x + p.side * (1.0 + Math.random() * 0.25), 0.3, car.position.z + 1.2 + Math.random() * 0.3);
-      p.v.set(p.side * (0.9 + Math.random() * 0.9), 0.3 + Math.random() * 0.35, 0.5 + Math.random() * 0.8);
+      p.v.set(p.side * (0.35 + Math.random() * 0.5), 0.25 + Math.random() * 0.3, 0.3 + Math.random() * 0.5);
       p.s.visible = true;
     }
     for (const p of this.puffs) {
@@ -240,7 +240,7 @@ export class HomeView {
       }
       p.s.position.addScaledVector(p.v, dt);
       p.v.multiplyScalar(1 - 1.4 * dt);
-      const sc = 0.8 + k * 3.2;
+      const sc = 0.7 + k * 2.2;
       p.s.scale.set(sc, sc, 1);
       (p.s.material as THREE.SpriteMaterial).opacity = HOME_SHOW.puffAlpha * Math.sin(Math.PI * Math.min(1, k * 1.4)) * (1 - k);
     }
