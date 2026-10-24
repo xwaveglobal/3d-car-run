@@ -38,17 +38,19 @@ export function homeStage(vw: number, vh: number): StageRect {
 
 /** Home elements in art pixels: [x, y, width] (height follows the sprite) — measured on the key art */
 export const HOME_LAYOUT = {
-  bonus: [30, 1160, 156],
-  sign: [762, 1162, 160],
-  play: [146, 1262, 656],
-  garage: [40, 1500, 276],
-  shop: [343, 1504, 258],
-  missions: [620, 1502, 284],
+  // [x, y, width, height?] — v1.0.3 (key art v3): BONUS / ENTRY / PLAY / GARAGE / SHOP / MISSIONS are painted
+  // in the art; these are their tap areas (the height is given). The top bar is cut out of the art (sprites).
+  bonus: [22, 1150, 163, 150],
+  sign: [760, 1150, 168, 152],
+  play: [166, 1292, 626, 178],
+  garage: [30, 1488, 282, 104],
+  shop: [335, 1488, 270, 104],
+  missions: [631, 1488, 286, 104],
   // top bar (pinned to the top of the screen on tall phones)
-  profile: [24, 38, 428],
-  currency: [482, 63, 250],
-  gear: [748, 60, 82],
-  menu: [842, 58, 84],
+  profile: [25, 40, 442],
+  currency: [480, 65, 248],
+  gear: [736, 61, 95],
+  menu: [835, 60, 92],
   /** the 3D car: centre of its footprint and its on-screen width */
-  car: [452, 1000, 620],
+  car: [470, 1012, 575],
 } as const;

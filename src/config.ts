@@ -470,7 +470,7 @@ export const HOME_SHOW = {
   fill: 0.3,
   puffs: 28,
   puffRate: 18,
-  puffAlpha: 0.5,
+  puffAlpha: 0.4,
   /** swipe: how far the car slides out (m) */
   slide: 7,
 };

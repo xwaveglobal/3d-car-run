@@ -8,13 +8,7 @@ import { AVATAR_COUNT, DICE_IMG, avatarForName, avatarSvg, classCorner } from '.
 import { CLASSES, CLASS_COLOR, CLASS_MIN, XPT, classBadge, classFor as classOfBolts, classForScore, playerRank, type RankClass } from '../meta/Rank.ts';
 import logoUrl from '../assets/images/car-run-logo.webp';
 import { HOME_LAYOUT, homeStage } from './homeStage.ts';
-import hBonus from '../assets/images/home/bonus.webp';
-import hEntry from '../assets/images/home/entry.webp';
-import hSign from '../assets/images/home/sign.webp';
-import hPlay from '../assets/images/home/play.webp';
-import hGarage from '../assets/images/home/garage.webp';
-import hShop from '../assets/images/home/shop.webp';
-import hMissions from '../assets/images/home/missions.webp';
+import hSign from '../assets/images/home/sign-blank.webp';
 import hProfile from '../assets/images/home/profile.webp';
 import hCurrency from '../assets/images/home/currency.webp';
 import hGear from '../assets/images/home/gear.webp';
@@ -190,8 +184,8 @@ const BAG_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradi
 /** tutorial (book + ?) and launch (megaphone) icons */
 /** v1.0.2 Home: an element's place on the key art (art px → CSS vars, see western.css .home2 .hs) */
 const hpos = (k: keyof typeof HOME_LAYOUT) => {
-  const [x, y, w] = HOME_LAYOUT[k];
-  return `--x:${x};--y:${y};--w:${w}`;
+  const [x, y, w, h] = HOME_LAYOUT[k] as readonly number[];
+  return `--x:${x};--y:${y};--w:${w}${h ? `;--h:${h}` : ''}`;
 };
 
 const TUT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M10.2 8.3a2 2 0 1 1 2.6 1.9c-.5.2-.8.6-.8 1.1v.6"/><path d="M12 14.4h.01"/></g></svg>`;
@@ -422,14 +416,14 @@ export class UI {
       <div class="hcar" data-k="carzone" style="${hpos('car')}" aria-label="Swipe to choose a car">
         <div class="hcarname" data-k="carname" hidden></div>
       </div>
-      <button class="hs hsign" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><img src="${hBonus}" alt="" draggable="false" /><span class="sr">Gold Rush</span><em class="hdot" data-k="bonusdot" hidden></em></button>
-      <button class="hs hsign" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><img src="${hEntry}" alt="" draggable="false" /><span class="sr">Entry</span><em class="hdot badge" hidden></em></button>
+      <button class="hs hot" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><span class="sr">Gold Rush</span><em class="hdot" data-k="bonusdot" hidden></em></button>
+      <button class="hs hot" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><span class="sr">Entry</span><em class="hdot badge" hidden></em></button>
       <button class="hs hsign blank" data-a="perk" data-v="launch" data-k="pk-launch" style="${hpos('sign')}" aria-label="Launch reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ROCKET_W}</span><span class="slb">LAUNCH</span><em class="hdot badge" hidden></em></button>
       <button class="hs hsign blank" data-a="perk" data-v="share" data-k="pk-share" style="${hpos('sign')}" aria-label="Share reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ICON.share}</span><span class="slb">SHARE</span><em class="hdot badge" hidden></em></button>
-      <button class="hs hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><img src="${hPlay}" alt="" draggable="false" /><span class="sr">Play</span></button>
-      <button class="hs hbtn" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><img src="${hGarage}" alt="" draggable="false" /><span class="sr">Garage</span><em class="hdot" data-k="garagedot" hidden></em></button>
-      <button class="hs hbtn" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><img src="${hShop}" alt="" draggable="false" /><span class="sr">Shop</span><em class="msale" data-k="saletag">−80%</em></button>
-      <button class="hs hbtn" data-a="missions" style="${hpos('missions')}" aria-label="Missions"><img src="${hMissions}" alt="" draggable="false" /><span class="sr">Missions</span></button>
+      <button class="hs hot hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><span class="sr">Play</span></button>
+      <button class="hs hot" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><span class="sr">Garage</span><em class="hdot" data-k="garagedot" hidden></em></button>
+      <button class="hs hot" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><span class="sr">Shop</span><em class="msale" data-k="saletag">−80%</em></button>
+      <button class="hs hot" data-a="missions" style="${hpos('missions')}" aria-label="Missions"><span class="sr">Missions</span></button>
       <div class="htop">
         <button class="hs hprofile" data-a="profile" style="${hpos('profile')}" aria-label="Your profile">
           <img src="${hProfile}" alt="" draggable="false" />

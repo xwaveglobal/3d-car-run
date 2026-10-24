@@ -225,9 +225,9 @@ export class HomeView {
       const p = this.puffs[this.puffI++ % this.puffs.length];
       p.side = this.puffI % 2 ? 1 : -1;
       p.t = 0;
-      p.life = 0.9 + Math.random() * 0.7;
+      p.life = 0.7 + Math.random() * 0.5;
       p.s.position.set(car.position.x + p.side * (1.0 + Math.random() * 0.25), 0.3, car.position.z + 1.2 + Math.random() * 0.3);
-      p.v.set(p.side * (1.8 + Math.random() * 1.6), 0.35 + Math.random() * 0.45, 0.8 + Math.random() * 1.2);
+      p.v.set(p.side * (0.9 + Math.random() * 0.9), 0.3 + Math.random() * 0.35, 0.5 + Math.random() * 0.8);
       p.s.visible = true;
     }
     for (const p of this.puffs) {
