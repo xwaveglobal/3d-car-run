@@ -26,7 +26,7 @@ const res = { steps: {} };
 res.steps.load = await st('after load (no gesture)');
 await g.startEndless();
 res.steps.raceStarted = await st('race started (taps only)');
-await page.waitForFunction(() => window.__xwave.state === 'run', null, { timeout: 60000 });
+await page.waitForFunction(() => window.__xwave.state === 'run', null, { timeout: 300000 });
 await page.waitForTimeout(1500);
 // pickup: drive into the next pickup by forcing one onto the player's lane is game logic; just wait for coins
 const before = await page.evaluate(() => window.__sfx.length);

@@ -13,6 +13,7 @@ tập ảnh trong file zip … màu không bị chói quá … biển quảng c�
 - Home v3: `scripts/home/make-home-bg-v3.py` (+ `assets-src/home/v3/` cut-outs), `HOME_LAYOUT` re-measured.
 - UI palette toned down (western.css + desaturated wood textures); `GRADE` in config.ts for the 3D world.
 - Text: audit applied (see README v1.0.3). Kept "Pilot" and "LAUNCH" — the owner's v3 mockups use them.
+- Checks: typecheck, `npm test` 14 / 14 (incl. audio), real-build regression 68 / 68, audio start-up (first tap starts sound, music on, crash SFX audible), Home at 360×640 / 390×844.
 - Next: owner listens on a phone (music volume / mix), feedback on the new Home.
 
 ---
