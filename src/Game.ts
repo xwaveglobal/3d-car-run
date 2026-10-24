@@ -1,10 +1,11 @@
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
 import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
+import { DUST } from './render/western/looks.ts';
 import { GOLD_RUSH, GoldRushTimer, creditOnce, fmtClock, goldRushPayout, goldRushRoadLength } from './meta/GoldRush.ts';
 import { ROAD_STYLE } from './render/western/looks.ts';
 import * as THREE from 'three';
-import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, TYRE, RENDER, type SpeedLevel } from './config.ts';
+import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, RENDER, type SpeedLevel } from './config.ts';
 import { clamp, damp } from './core/math.ts';
 import { Input, type Action } from './core/Input.ts';
 import { loadSave, writeSave, type SaveData } from './core/Save.ts';
@@ -1115,7 +1116,7 @@ export class Game {
     const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Outlaw Rush' : 'Endless'}` : `${this.meta.name} · best race`;
     void sub;
     const ready = this.cardCache?.key === this.cardKey(ofRun);
-    if (!ready) this.ui.toast(`${ICON.share} Making your card…`, '#9b6bff');
+    if (!ready) this.ui.toast(`${ICON.share} Making your card…`, '#ffb02e');
     const blob = await this.prepareCard(ofRun);
     const text = `Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in 3D Car Run! Can you beat me?`;
     const r = await shareImage(blob, text, this.shareUrl);
@@ -1533,7 +1534,7 @@ export class Game {
     this.save.special = k;
     this.persist();
     const name = { super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand' }[k];
-    this.ui.toast(`${POWER_ICON[k]} <b>SADDLE BAG: ${name.toUpperCase()} EQUIPPED</b>`, '#c24dff');
+    this.ui.toast(`${POWER_ICON[k]} <b>SADDLE BAG: ${name.toUpperCase()} EQUIPPED</b>`, '#e0a040');
     return k;
   }
   private pickLabel() {
@@ -1571,7 +1572,7 @@ export class Game {
     if (this.bagPickMode || !this.save.special) this.save.special = key;
     this.persist();
     this.audio.play('power');
-    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Launcher', hyper: 'Eagle', escape: 'Last Stand' }[key]} · in your bag`, '#9b6bff');
+    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Launcher', hyper: 'Eagle', escape: 'Last Stand' }[key]} · in your bag`, '#ffb02e');
     this.ui.hideOverlay('bagbuy'); // after buying: back to the bag
     if (this.ui.isShown('bag')) this.ui.bagSync(this.save, this.bagPickMode);
     if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
@@ -1671,7 +1672,7 @@ export class Game {
       // safety: whatever happens, the stretch the pickup created never costs a heart
       this.run.invulnT = Math.max(this.run.invulnT, (sp.to - w.dist) / Math.max(1, w.speed) + 0.6);
       const msg: Record<string, string> = { super: 'CAR WALL AHEAD', hyper: 'TRUCK CONVOY AHEAD', escape: 'TRAFFIC JAM AHEAD', wall: 'ROAD BLOCKED AHEAD', rail: 'BUSY STRETCH AHEAD', ghost: 'LASER ZONE AHEAD', tunnel: 'TUNNEL AHEAD' };
-      this.ui.toast(`${ICON.rocket} ${msg[k] ?? 'SPECIAL'} · it fires by itself!`, '#9b6bff');
+      this.ui.toast(`${ICON.rocket} ${msg[k] ?? 'SPECIAL'} · it fires by itself!`, '#ffb02e');
       return;
     }
     if (k === 'super' || k === 'hyper') {
@@ -1862,7 +1863,7 @@ export class Game {
       this.run.shieldHits = SHIELD_HITS;
       this.run.shieldT = this.run.durations().shield;
       this.run.superJumps = 1;
-      window.setTimeout(() => this.ui.toast(`${ICON.rocket} HEAD START · Sheriff Guard + Canyon Launcher`, '#9b6bff'), 2900);
+      window.setTimeout(() => this.ui.toast(`${ICON.rocket} HEAD START · Sheriff Guard + Canyon Launcher`, '#ffb02e'), 2900);
     }
     // v2: ONE special per race, picked before the start; it leaves the Magic Bag only when it is used
     this.carried = null;
@@ -1885,7 +1886,7 @@ export class Game {
         if (k === 'hyper') this.run.hyperJumps = 1;
         if (k === 'escape') this.run.escapes = 1;
         const name = { super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand' }[k];
-        window.setTimeout(() => this.ui.toast(`${ICON.check} SPECIAL READY · ${name}`, '#9b6bff'), 3300);
+        window.setTimeout(() => this.ui.toast(`${ICON.check} SPECIAL READY · ${name}`, '#ffb02e'), 3300);
       }
     }
     if (this.tutorialMode && this.tut.grant) {
@@ -2017,27 +2018,35 @@ export class Game {
     }
   }
 
+  /**
+   * v1.0.0 (3D Car Run): desert dust kicked up behind the rear tyres while driving — soft sand puffs
+   * (normal blending, no glow) that grow and drift back with the road; denser at speed and with Nitro,
+   * none in the air. Budget: DUST.rate × the preset's particle density (LOW draws about half).
+   */
   private tyreSpray(dt: number, speed: number) {
     const p = this.world.player;
-    if (this.state !== 'run' || p.air > 0.08 || speed < TYRE.sprayFrom) {
+    if (this.state !== 'run' || p.air > 0.08 || speed < DUST.from) {
       this.sprayAcc = 0;
       return;
     }
-    const k = clamp((speed - TYRE.sprayFrom) / (SPEED.max - TYRE.sprayFrom), 0, 1);
-    this.sprayAcc += dt * TYRE.sprayRate * (0.3 + 0.7 * k);
+    const k = clamp((speed - DUST.from) / (SPEED.max - DUST.from), 0, 1);
+    const nitro = this.run?.turboT ? 1.6 : 1;
+    this.sprayAcc += dt * DUST.rate * (0.35 + 0.65 * k) * nitro;
+    const col = DUST.color[this.scenery.world] ?? DUST.color.city!;
     while (this.sprayAcc >= 1) {
       this.sprayAcc -= 1;
       for (const side of [-1, 1] as const) {
         const q = this.vehicle.rearTyreWorld(side, this.sprayPos);
-        this.particles.emit(
-          q.x + (Math.random() - 0.5) * 0.12, q.y, q.z + 0.05,
-          side * (0.3 + Math.random() * 0.9), 0.5 + Math.random() * 1.3, 1 + Math.random() * 3,
-          TYRE.effects && Math.random() < 0.3 + 0.5 * k ? TYRE.sparkColor : TYRE.sprayColor, TYRE.spraySize * (0.7 + Math.random() * 0.6), TYRE.sprayLife * (0.7 + Math.random() * 0.6),
-          { locked: true, drag: 2, grav: 9 },
+        this.smoke.emit(
+          q.x + side * 0.15 + (Math.random() - 0.5) * 0.2, q.y + 0.05, q.z + 0.3,
+          side * (0.4 + Math.random() * 0.8), 0.4 + Math.random() * 0.8, 2 + Math.random() * 3,
+          col, DUST.size * (0.75 + Math.random() * 0.5), DUST.life * (0.7 + Math.random() * 0.6),
+          { locked: true, drag: 2.4, grow: 2.2 },
         );
       }
     }
   }
+
 
   /** the very first, generic pilot training (strict step-by-step flow) */
   private get isBasicTraining() {
@@ -2076,7 +2085,7 @@ export class Game {
     if (st.need === 'sos') r.escapes = Math.max(r.escapes, 1);
     else if (this.tut.grant?.hyper) r.hyperJumps = Math.max(r.hyperJumps, 1);
     else r.superJumps = Math.max(r.superJumps, 1);
-    this.ui.toast(`${st.need === 'sos' ? ICON.sos : ICON.rocket} Training: you get it back — try again!`, '#9b6bff');
+    this.ui.toast(`${st.need === 'sos' ? ICON.sos : ICON.rocket} Training: you get it back — try again!`, '#ffb02e');
     this.ui.updateHud(r, this.world.speed, SPEED.max, null);
   }
 
@@ -2169,8 +2178,8 @@ export class Game {
     this.rig.shake(hyper ? 0.45 : 0.3);
     this.rig.fovKick += hyper ? 12 : 8;
     const c = this.vehicle.root.position;
-    const col = hyper ? 0xffc21a : 0x9b6bff;
-    for (let k = 0; k < (hyper ? 5 : 3); k++) this.rings.spawn(this.tmpV.set(c.x, 0.08 + k * 0.5, 0), k ? col : hyper ? 0xfff3a0 : 0x5ad1ff, 2.5 + k * 1.4, 0.55, true);
+    const col = hyper ? 0xffd84a : 0xffb02e; // v1.0.0: launch rings in gold / sunset orange
+    for (let k = 0; k < (hyper ? 5 : 3); k++) this.rings.spawn(this.tmpV.set(c.x, 0.08 + k * 0.5, 0), k ? col : hyper ? 0xfff3a0 : 0xffe0a0, 2.5 + k * 1.4, 0.55, true);
     this.particles.burst(c.x, 0.3, 0, hyper ? 70 : 40, col, hyper ? 12 : 9, 0.26, 0.6, { up: 4 });
     this.ui.pop(hyper ? 'EAGLE JUMP!' : 'CANYON LAUNCHER!', hyper ? '#ffd24a' : '#c8a8ff', hyper ? 'MYTHIC' : '', -10);
   }
@@ -2215,7 +2224,7 @@ export class Game {
           const px = this.world.player.x;
           for (let k = 0; k < (big ? 10 : 5); k++) {
             const a = Math.random() * Math.PI * 2;
-            this.smoke.emit(px + Math.cos(a) * 0.9, 0.12, 0.4 + Math.sin(a) * 0.8, Math.cos(a) * (big ? 2.4 : 1.5), 0.5 + Math.random() * 0.6, 1 + Math.random(), 0xc9d2e0, big ? 0.34 : 0.22, big ? 0.5 : 0.36, { drag: 3, grow: 1.3, locked: true });
+            this.smoke.emit(px + Math.cos(a) * 0.9, 0.12, 0.4 + Math.sin(a) * 0.8, Math.cos(a) * (big ? 2.4 : 1.5), 0.5 + Math.random() * 0.6, 1 + Math.random(), DUST.landColor, big ? 0.46 : 0.3, big ? 0.6 : 0.42, { drag: 3, grow: 1.6, locked: true });
           }
         }
         if (m === 'up' && this.superFlight) {
@@ -2534,7 +2543,7 @@ export class Game {
       const climbing = p.vphase === 'exec' || p.vphase === 'antic';
       if (climbing || ((p.isHyper || p.isEscape) && p.vphase === 'hold')) {
         const c = this.vehicle.root.position;
-        const cols = p.isEscape ? [0xff5a3c, 0xffffff] : p.isHyper ? [0xffc21a, 0xfff3a0] : [0x9b6bff, 0x5ad1ff];
+        const cols = p.isEscape ? [0xff5030, 0xf0c890] : p.isHyper ? [0xffd84a, 0xfff3a0] : [0xffb02e, 0xffe0a0]; // Last Stand = sandstorm vortex
         for (let k = 0; k < (climbing ? 4 : 1); k++) this.particles.emit(c.x + (Math.random() - 0.5) * 1.6, c.y - 0.4, 0.4 + Math.random(), 0, climbing ? -10 - Math.random() * 6 : -2, 3, cols[k % 2], 0.3, 0.45, { drag: 1.5, locked: true, grow: 0.8 });
       }
     }
@@ -2665,7 +2674,7 @@ export class Game {
       }
       if (!this.blockadeWarned && a.dist - w.dist < 120 && charged) {
         this.blockadeWarned = true;
-        this.ui.toast(`${ICON.rocket} CAR BLOCKADE AHEAD · tap the LAUNCHER button`, '#9b6bff');
+        this.ui.toast(`${ICON.rocket} TRUCK BLOCKADE AHEAD · tap the LAUNCHER button`, '#ffb02e');
         this.audio.play('beep');
       }
       return;
@@ -2782,7 +2791,7 @@ export class Game {
             this.runHearts++;
             this.ui.toast(`${POWER_ICON.life} EXTRA LIFE`, 'var(--red)');
           }
-          if (k === 'super') this.ui.toast(`${POWER_ICON.super} CANYON LAUNCHER ready · tap the LAUNCHER button`, '#9b6bff');
+          if (k === 'super') this.ui.toast(`${POWER_ICON.super} CANYON LAUNCHER ready · tap the LAUNCHER button`, '#ffb02e');
           if (k === 'dash' && this.state === 'run') this.world.player.airDash(); // Step 06.5: fires at once
           if (k === 'escape') this.ui.toast(`${POWER_ICON.escape} LAST STAND ready · tap RESCUE (E) in an emergency`, '#ff5a3c');
           break;
@@ -2820,7 +2829,7 @@ export class Game {
           this.vehicle.shieldHit();
           this.vibrate([30, 40, 30]);
           this.rig.shake(0.35);
-          this.particles.burst(this.vehicle.root.position.x, this.vehicle.root.position.y, 0, 18, 0x3d9bff, 8, 0.2, 0.45); // the aura flashes too
+          this.particles.burst(this.vehicle.root.position.x, this.vehicle.root.position.y, 0, 18, 0xffcf4a, 8, 0.2, 0.45); // the Sheriff Guard flashes too
           const left = this.run.shield ? this.run.shieldHits : 0;
           this.ui.pop(left > 0 ? `SHIELD ×${left}` : 'SHIELD GONE', left > 0 ? '#6fc8ff' : '#9fb3dd', '', -8);
           break;
@@ -2828,10 +2837,10 @@ export class Game {
         case 'smash':
           this.audio.play('explode');
           // obstacle shattered: real chunks fly off + orange/blue sparks (no white flash)
-          this.debris.explode(this.tmpV.set(f.x, f.y, f.z), 0x3a3f4c, 0x4fb8ff, true);
+          this.debris.explode(this.tmpV.set(f.x, f.y, f.z), 0x8a5a30, 0xffc860, true); // v1.0.0: splinters + sparks (Bull Rush)
           this.particles.burst(f.x, f.y, f.z, 30, 0xff8a1f, 12, 0.28, 0.6, { locked: true, grav: 7, up: 3 });
-          this.particles.burst(f.x, f.y, f.z, 14, 0x5cc2ff, 9, 0.22, 0.45, { locked: true, grav: 4 });
-          this.smoke.emit(f.x, f.y, f.z, 0, 1.2, 0, 0x9aa3b5, 0.38, 0.45, { drag: 2, grow: 1.4, locked: true }); // small puff, no cloud
+          this.particles.burst(f.x, f.y, f.z, 14, 0xffd890, 9, 0.22, 0.45, { locked: true, grav: 4 });
+          this.smoke.emit(f.x, f.y, f.z, 0, 1.2, 0, 0xd8b88a, 0.5, 0.55, { drag: 2, grow: 1.6, locked: true }); // a dust puff
           this.rig.shake(0.32);
           this.vibrate(25);
           break;
@@ -2890,7 +2899,7 @@ export class Game {
     this.autoRescueUsed = true;
     const name = { super: 'CANYON LAUNCHER', hyper: 'EAGLE JUMP', escape: 'LAST STAND' }[k];
     // short, non-blocking (top toast — never over the road ahead), no confirmation, game keeps running
-    this.ui.toastNow(`${k === 'escape' ? ICON.sos : ICON.rocket} <b>LAST STAND RESCUE · ${name}!</b>`, k === 'escape' ? '#ff5a3c' : k === 'hyper' ? '#ffc21a' : '#9b6bff');
+    this.ui.toastNow(`${k === 'escape' ? ICON.sos : ICON.rocket} <b>LAST STAND RESCUE · ${name}!</b>`, k === 'escape' ? '#ff5a3c' : k === 'hyper' ? '#ffc21a' : '#ffb02e');
     return true;
   }
   /** shared entry point of the pre-race special (button = MANUAL, last-chance = AUTO_LAST_CHANCE) */
@@ -3009,7 +3018,7 @@ export class Game {
     this.vehicle.resetPose();
     this.speedScale = 0.25;
     const c = this.tmpV.set(LANES[p.lane], HEIGHT.NORMAL, 0);
-    for (let i = 0; i < 4; i++) window.setTimeout(() => this.rings.spawn(c.clone(), 0x39b6ff, 2.5 + i * 0.6, 0.6, i % 2 === 0), i * 90);
+    for (let i = 0; i < 4; i++) window.setTimeout(() => this.rings.spawn(c.clone(), 0xffc848, 2.5 + i * 0.6, 0.6, i % 2 === 0), i * 90);
     this.particles.burst(c.x, c.y, 0, 36, 0x6fd2ff, 6, 0.25, 0.6);
     this.audio.play('respawn');
     this.vibrate(20);
@@ -3039,7 +3048,7 @@ export class Game {
     this.leftover = { pts: total, items: parts.join(' + ') };
     window.setTimeout(() => {
       this.ui.pop(`+${total.toLocaleString('en-US')}`, '#c9a8ff', 'UNUSED BOOSTS', -18);
-      this.ui.toast(`${ICON.rocket} Unused boosts → points · ${parts.join(' + ')} = +${total.toLocaleString('en-US')}`, '#9b6bff');
+      this.ui.toast(`${ICON.rocket} Unused boosts → points · ${parts.join(' + ')} = +${total.toLocaleString('en-US')}`, '#ffb02e');
       this.audio.play('combo');
     }, 900);
   }
@@ -3077,7 +3086,7 @@ export class Game {
     this.timeScale = this.timeScaleTarget = 1;
     this.ui.tutPrompt(null);
     // confetti + celebration rings
-    const colors = [0xffc21a, 0x39b6ff, 0xff4fd8, 0xb6ff2e, 0xffffff];
+    const colors = [0xffc848, 0xe0402a, 0xf2ece0, 0x6aa83e, 0xffffff];
     const p = this.vehicle.root.position;
     for (let k = 0; k < 5; k++) {
       window.setTimeout(() => {
@@ -3141,7 +3150,7 @@ export class Game {
         bonusItems.push(`+${n} ${({ super: 'Canyon Launcher', hyper: 'EAGLE JUMP', escape: 'Last Stand', shield: 'Sheriff Guard' } as Record<string, string>)[k]}`);
       }
     }
-    if (bonusItems.length) window.setTimeout(() => this.ui.toast(`${ICON.bag} Track bonus → Saddle Bag · ${bonusItems.join(' · ')}`, '#c24dff'), 1200);
+    if (bonusItems.length) window.setTimeout(() => this.ui.toast(`${ICON.bag} Track bonus → Saddle Bag · ${bonusItems.join(' · ')}`, '#e0a040'), 1200);
     const rewards = this.recordMeta(true);
     this.persist();
     this.queueClassCelebration();
@@ -3360,8 +3369,8 @@ export class Game {
         if (Math.random() > k) break;
         k -= 1;
         const pos = this.vehicle.jetWorld(i, this.tmpV);
-        if (p.air < 0.4) this.particles.emit(pos.x + (Math.random() - 0.5) * 0.1, pos.y + 0.15, pos.z + 0.2, (Math.random() - 0.5) * 0.5, -0.4, 9 + Math.random() * 4, 0x5cc2ff, 0.12, 0.25, { drag: 1.5 });
-        else this.particles.emit(pos.x + (Math.random() - 0.5) * 0.1, pos.y - 0.3 - Math.random() * 0.3, pos.z, (Math.random() - 0.5) * 0.4, -4 - p.engine * 4, speed > 1 ? 2 : 0.4, 0x5cc2ff, 0.08, 0.22, { drag: 2.2, locked: speed > 1 });
+        if (p.air < 0.4) this.particles.emit(pos.x + (Math.random() - 0.5) * 0.1, pos.y + 0.15, pos.z + 0.2, (Math.random() - 0.5) * 0.5, -0.4, 9 + Math.random() * 4, 0xffa040, 0.13, 0.25, { drag: 1.5 }); // Dust Storm Nitro exhaust
+        else this.particles.emit(pos.x + (Math.random() - 0.5) * 0.1, pos.y - 0.3 - Math.random() * 0.3, pos.z, (Math.random() - 0.5) * 0.4, -4 - p.engine * 4, speed > 1 ? 2 : 0.4, 0xffc070, 0.09, 0.22, { drag: 2.2, locked: speed > 1 });
       }
     }
   }

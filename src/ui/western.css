@@ -308,3 +308,18 @@ html, body { background: var(--bg); }
   background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important; border: 2px solid #c8924a !important; color: #fff1d0 !important; }
 #ui .screen:not(#start) .navrow .btn.nav.blue { background: linear-gradient(180deg, rgba(255,215,122,.92), rgba(224,149,30,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border-color: #7a4a14 !important; }
 #ui .finish-title { font-size: 26px !important; }
+
+/* remaining blue bits: tabs, check-in tiles, garage select, post-race board buttons */
+#ui .tabs { background: var(--wood-dark) center / 260px auto, #2a1608 !important; border: 2px solid #c8924a !important; }
+#ui .tabs button { font-family: var(--font) !important; font-style: normal !important; font-weight: 400 !important; color: var(--muted) !important; }
+#ui .tabs button.on { background: linear-gradient(180deg, #ffd77a, #e0951e) !important; color: #3a1c04 !important; }
+#ui .ckt { background: linear-gradient(180deg, rgba(110,66,30,.6), rgba(40,22,10,.75)) !important; border: 1px solid rgba(214,160,90,.5) !important; }
+#ui .ckt small { color: var(--muted) !important; }
+#ui .ckt b { font-family: var(--font) !important; font-weight: 400 !important; color: #fff1d0 !important; }
+#ui .ckt.today { border: 2px solid #ffc848 !important; }
+#ui .ckt .ok { color: #8ee06a !important; }
+#ui .ckday { color: #fff1d0 !important; }
+#ui #garage .carsel .btn, #ui #garage .btn.big, #ui #runrank .rr-btns .btn {
+  background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important; border: 2px solid #c8924a !important; color: #fff1d0 !important; }
+#ui #garage .carsel .btn.gold, #ui #runrank .rr-btns .btn:last-child { background: linear-gradient(180deg, rgba(255,215,122,.92), rgba(224,149,30,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border-color: #7a4a14 !important; }
+#ui .lbrow.me, #ui .lbrow.you { border: 2px solid #ffc848 !important; }

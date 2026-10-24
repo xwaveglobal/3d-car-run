@@ -305,7 +305,7 @@ export class Debris {
   private parts: { m: THREE.Mesh; v: THREE.Vector3; w: THREE.Vector3; t: number }[] = [];
   private locked = false;
   private mat = new THREE.MeshStandardMaterial({ color: 0xf3f5fa, roughness: 0.3, metalness: 0.3 });
-  private glow = new THREE.MeshBasicMaterial({ color: 0x39b6ff, toneMapped: false });
+  private glow = new THREE.MeshBasicMaterial({ color: 0xffc860, toneMapped: false });
   constructor() {
     const geos = [
       new THREE.BoxGeometry(0.6, 0.2, 0.8),

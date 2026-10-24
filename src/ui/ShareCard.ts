@@ -47,12 +47,41 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   const g = c.getContext('2d');
   if (!g) return null;
   const col = CLASS_COLOR[d.rank];
-  // background: deep night sky + rank-coloured glow
+  // v1.0.0 (3D Car Run): a desert sunset — warm sky, red mesas, a dusty road — + rank-coloured glow
   const bg = g.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#120a3a');
-  bg.addColorStop(0.55, '#1d0f52');
-  bg.addColorStop(1, '#07051a');
+  bg.addColorStop(0, '#2a2a5c');
+  bg.addColorStop(0.35, '#c8643a');
+  bg.addColorStop(0.62, '#f0b060');
+  bg.addColorStop(0.63, '#a8582e');
+  bg.addColorStop(1, '#3a1a0a');
   g.fillStyle = bg;
+  g.fillRect(0, 0, W, H);
+  // mesas on the horizon
+  g.fillStyle = '#7a3418';
+  for (const [x, w, h] of [[60, 220, 120], [330, 160, 80], [700, 260, 150], [960, 140, 90]] as const) {
+    g.beginPath();
+    g.moveTo(x, H * 0.63);
+    g.lineTo(x + 24, H * 0.63 - h);
+    g.lineTo(x + w - 24, H * 0.63 - h);
+    g.lineTo(x + w, H * 0.63);
+    g.fill();
+  }
+  // road to the vanishing point
+  g.fillStyle = '#4a3a30';
+  g.beginPath();
+  g.moveTo(W / 2 - 40, H * 0.63);
+  g.lineTo(W / 2 + 40, H * 0.63);
+  g.lineTo(W * 0.92, H);
+  g.lineTo(W * 0.08, H);
+  g.fill();
+  g.fillStyle = '#ffd060';
+  for (let i = 0; i < 6; i++) {
+    const t0 = i / 6;
+    const y = H * 0.63 + (H * 0.37) * t0 * t0;
+    g.fillRect(W / 2 - 2 - t0 * 6, y, 4 + t0 * 12, 10 + t0 * 30);
+  }
+  // darken the middle so text reads
+  g.fillStyle = 'rgba(20,8,2,.35)';
   g.fillRect(0, 0, W, H);
   const glow = g.createRadialGradient(W / 2, 470, 40, W / 2, 470, 620);
   glow.addColorStop(0, `${col}66`);
@@ -80,7 +109,7 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   }
   g.textAlign = 'center';
   g.fillStyle = '#ffffff';
-  g.font = '900 italic 92px system-ui, -apple-system, Segoe UI, sans-serif';
+  g.font = '92px "Rye", Georgia, serif';
   g.shadowColor = col;
   g.shadowBlur = 30;
   g.fillText(d.title, W / 2, 300);
@@ -89,7 +118,7 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   shield(g, W / 2, 500, 150);
   const sg = g.createLinearGradient(0, 350, 0, 650);
   sg.addColorStop(0, col);
-  sg.addColorStop(1, '#1a0f40');
+  sg.addColorStop(1, '#3a1a06');
   g.fillStyle = sg;
   g.shadowColor = col;
   g.shadowBlur = 50;
@@ -108,7 +137,7 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   g.fillText(`RANK ${d.rank}`, W / 2, 712);
   // EXP
   g.fillStyle = '#ffffff';
-  g.font = '900 128px system-ui, -apple-system, Segoe UI, sans-serif';
+  g.font = '128px "Alfa Slab One", Georgia, serif';
   g.fillText(fmt(d.exp), W / 2, 850);
   g.font = '800 44px system-ui, -apple-system, Segoe UI, sans-serif';
   g.fillStyle = '#ffd94a';
@@ -132,8 +161,10 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
     g.drawImage(car, (W - cw) / 2, 1235 - ch, cw, ch);
   }
   // pilot strip
-  g.fillStyle = 'rgba(0,0,0,.45)';
+  g.fillStyle = 'rgba(42,22,8,.85)';
   g.fillRect(0, H - 110, W, 110);
+  g.fillStyle = '#c8924a';
+  g.fillRect(0, H - 114, W, 4);
   if (ava) g.drawImage(ava, 40, H - 98, 86, 86);
   g.textAlign = 'left';
   g.fillStyle = '#ffffff';

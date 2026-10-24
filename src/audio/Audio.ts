@@ -1,7 +1,8 @@
 /**
- * Procedural Web Audio: every SFX is synthesized, plus a small synthwave
- * sequencer for music. Any SFX can be overridden by a real file via
- * `loadOverride(name, url)` (see assets/manifest.ts).
+ * Procedural Web Audio: every SFX is synthesized, plus a small sequencer for the music.
+ * v1.0.0 (3D Car Run): an original Western soundtrack (plucked-string guitar, boom-chicka bass,
+ * whistle lead, train-beat brushes) and a desert-wind bed — all generated, no samples, no licensed
+ * material. Any SFX can be overridden by a real file via `loadOverride(name, url)` (assets/manifest.ts).
  */
 export type Sfx =
   | 'coin' | 'lane' | 'up' | 'down' | 'land' | 'power' | 'shield' | 'shieldBreak' | 'crash' | 'explode'
@@ -23,7 +24,7 @@ export class Audio {
   private seqTimer: number | null = null;
   private step = 0;
   private nextTime = 0;
-  private bpm = 100;
+  private bpm = 112;
   /** warm lowpass + echo for the music (pads / arp) */
   private musicTone!: BiquadFilterNode;
   private echo!: GainNode;
@@ -217,13 +218,14 @@ export class Audio {
     const pan = opt.pan ?? 0;
     switch (name) {
       case 'coin': {
-        // rising pitch on fast streaks
+        // gold "ching": bright metal ping + a short shimmer; rising pitch on fast streaks
         if (t - this.coinPitchT > 0.6) this.coinPitch = 0;
         this.coinPitchT = t;
-        const base = 1320 * Math.pow(2, Math.min(this.coinPitch, 12) / 24);
+        const base = 1568 * Math.pow(2, Math.min(this.coinPitch, 12) / 24);
         this.coinPitch++;
-        this.osc('square', base, base, t, 0.06, 0.06);
-        this.osc('sine', base * 1.5, base * 1.5, t + 0.05, 0.16, 0.12);
+        this.osc('triangle', base, base, t, 0.08, 0.08);
+        this.osc('sine', base * 2.01, base * 2.01, t + 0.02, 0.22, 0.06);
+        this.osc('sine', base * 1.5, base * 1.5, t + 0.05, 0.18, 0.09);
         break;
       }
       case 'lane':
@@ -234,19 +236,18 @@ export class Audio {
         this.osc('sine', 160, 90, t, 0.12, 0.2, undefined, pan);
         break;
       case 'up':
-        // pneumatic "pssshh" of the air blast, then the thrusters spool up
-        this.noise(t, 0.55, 0.42, 7000, 2500, 0.6, 'highpass');
-        this.noise(t, 0.4, 0.2, 900, 3500, 0.9);
-        this.osc('sawtooth', 160, 520, t + 0.05, 0.32, 0.05);
+        // engine rev + a dusty whoosh as the wheels leave the road
+        this.noise(t, 0.45, 0.28, 1800, 600, 0.7);
+        this.osc('sawtooth', 110, 240, t, 0.3, 0.05);
         break;
       case 'down':
         this.osc('sawtooth', 500, 140, t, 0.22, 0.07);
         this.noise(t, 0.22, 0.18, 2500, 400, 0.8);
         break;
       case 'land':
-        // tyres touch down + an air release
-        this.osc('sine', 120, 55, t, 0.16, 0.22);
-        this.noise(t, 0.45, 0.3, 5000, 1500, 0.6, 'highpass');
+        // tyres hit the road + a crunch of sand
+        this.osc('sine', 120, 50, t, 0.18, 0.24);
+        this.noise(t, 0.35, 0.3, 900, 200, 0.6, 'lowpass');
         break;
       case 'power':
         [0, 4, 7, 12].forEach((n, i) => this.osc('triangle', 523 * Math.pow(2, n / 12), 523 * Math.pow(2, n / 12), t + i * 0.055, 0.2, 0.12));
@@ -283,11 +284,14 @@ export class Audio {
         this.osc('sawtooth', 660, 1320, t, 0.3, 0.05);
         break;
       case 'fanfare':
-        // Step 06.5 class promotion: low swell + bright major chord, then a high sparkle (≈1.4 s)
-        this.noise(t, 0.9, 0.12, 200, 2400, 0.5);
-        [0, 7, 12].forEach((n) => this.osc('sawtooth', 220 * Math.pow(2, n / 12), 220 * Math.pow(2, n / 12), t + 0.05, 1.2, 0.05));
-        [0, 4, 7, 12].forEach((n, i) => this.osc('square', 523 * Math.pow(2, n / 12), 523 * Math.pow(2, n / 12), t + 0.25 + i * 0.09, 0.5, 0.05));
-        this.osc('triangle', 2093, 2637, t + 0.7, 0.6, 0.05);
+        // class promotion: a sheriff's bugle call (G – C – E – G, the last one held) over a drum roll
+        this.noise(t, 0.8, 0.1, 1800, 1800, 0.6, 'bandpass');
+        [[0, 0.16], [5, 0.16], [9, 0.16], [12, 0.7]].forEach(([n, d], i) => {
+          const f = 392 * Math.pow(2, n / 12);
+          this.osc('sawtooth', f, f, t + 0.12 + i * 0.17, d, 0.045);
+          this.osc('triangle', f, f, t + 0.12 + i * 0.17, d, 0.07);
+        });
+        this.osc('sine', 1568, 1568, t + 0.75, 0.6, 0.04);
         break;
       case 'mission':
         [0, 4, 7, 12, 16].forEach((n, i) => this.osc('square', 660 * Math.pow(2, n / 12), 660 * Math.pow(2, n / 12), t + i * 0.08, 0.22, 0.06));
@@ -296,18 +300,23 @@ export class Audio {
         this.osc('triangle', 880, 1760, t, 0.18, 0.09);
         break;
       case 'click':
-        this.osc('square', 900, 700, t, 0.05, 0.05);
+        // metal-on-wood UI click (a hammered bronze stud)
+        this.osc('triangle', 1400, 900, t, 0.04, 0.06);
+        this.noise(t, 0.03, 0.08, 3000, 1500, 2, 'bandpass');
         break;
       case 'turbo':
-        this.noise(t, 1.0, 0.35, 300, 3000, 0.7);
-        this.osc('sawtooth', 90, 300, t, 0.8, 0.1);
+        // Dust Storm Nitro: engine roar + a rushing gust
+        this.noise(t, 1.1, 0.35, 250, 2400, 0.7);
+        this.osc('sawtooth', 70, 210, t, 0.8, 0.1);
+        this.osc('square', 140, 260, t, 0.5, 0.03);
         break;
       case 'respawn':
         [12, 7, 4, 0].reverse().forEach((n, i) => this.osc('sine', 440 * Math.pow(2, n / 12), 440 * Math.pow(2, n / 12), t + i * 0.07, 0.3, 0.1));
         break;
       case 'warp':
-        this.noise(t, 1.2, 0.4, 200, 6000, 1);
-        this.osc('sawtooth', 60, 900, t, 1.0, 0.08);
+        // a new place: desert wind gust + a twang
+        this.noise(t, 1.4, 0.32, 300, 1400, 0.8);
+        this.pluckKS(52, t + 0.1, 0.16, this.sfxBus);
         break;
       case 'expire':
         this.osc('triangle', 700, 350, t, 0.25, 0.08);
@@ -327,6 +336,14 @@ export class Audio {
     this.playing = false;
     if (this.seqTimer !== null) window.clearInterval(this.seqTimer);
     this.seqTimer = null;
+    if (this.wind) {
+      try {
+        this.wind.src.stop();
+      } catch {
+        /* not started */
+      }
+      this.wind = null;
+    }
   }
 
   private schedule() {
@@ -340,89 +357,141 @@ export class Audio {
     }
   }
 
-  /** slow-attack pad voice (two detuned saws through the music lowpass) */
-  private pad(midi: number, t0: number, dur: number, vol: number) {
+
+
+
+
+  /**
+   * Plucked string (Karplus-Strong): a short noise burst into a tuned feedback delay with a lowpass in
+   * the loop — a nylon / steel guitar twang. Each note owns its tiny graph and stops itself.
+   */
+  private pluckKS(midi: number, t0: number, vol: number, out: AudioNode, bright = 2600, sustain = 0.985) {
     const c = this.ctx!;
     const hz = 440 * Math.pow(2, (midi - 69) / 12);
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(0.9, dur * 0.35));
-    g.gain.setValueAtTime(vol, t0 + dur * 0.7);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    g.connect(this.musicTone);
-    for (const det of [-7, 7]) {
-      const o = c.createOscillator();
-      o.type = 'sawtooth';
-      o.frequency.value = hz;
-      o.detune.value = det;
-      o.connect(g);
-      o.start(t0);
-      o.stop(t0 + dur + 0.05);
-    }
+    const src = c.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const burst = c.createGain();
+    burst.gain.setValueAtTime(vol, t0);
+    burst.gain.exponentialRampToValueAtTime(0.0001, t0 + Math.min(0.02, 2 / hz + 0.004));
+    const dl = c.createDelay(0.1);
+    dl.delayTime.value = 1 / hz;
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = bright;
+    const fb = c.createGain();
+    fb.gain.value = sustain;
+    const env = c.createGain();
+    env.gain.setValueAtTime(1, t0);
+    env.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.4);
+    src.connect(burst).connect(dl);
+    dl.connect(lp).connect(fb).connect(dl);
+    lp.connect(env).connect(out);
+    src.start(t0, Math.random() * 0.5);
+    src.stop(t0 + 0.03);
+    // tear the loop down after the note has died
+    window.setTimeout(() => {
+      try {
+        fb.disconnect();
+        env.disconnect();
+      } catch {
+        /* already gone */
+      }
+    }, Math.max(0, (t0 - c.currentTime + 1.6) * 1000));
   }
 
-  /** soft pluck for the arpeggio (sine + triangle), sent to the echo */
-  private pluck(midi: number, t0: number, vol: number) {
+  /** whistle lead (sine with a slow vibrato), sent to the echo — the lone rider */
+  private whistle(midi: number, t0: number, dur: number, vol: number) {
     const c = this.ctx!;
     const hz = 440 * Math.pow(2, (midi - 69) / 12);
+    const o = c.createOscillator();
+    o.type = 'sine';
+    o.frequency.value = hz;
+    const lfo = c.createOscillator();
+    lfo.frequency.value = 5.5;
+    const lg = c.createGain();
+    lg.gain.setValueAtTime(0, t0);
+    lg.gain.linearRampToValueAtTime(hz * 0.012, t0 + dur * 0.5);
+    lfo.connect(lg).connect(o.frequency);
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.42);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.06);
+    g.gain.setValueAtTime(vol, t0 + dur * 0.75);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g);
     g.connect(this.musicTone);
     g.connect(this.echo);
-    for (const [type, mul] of [['sine', 1], ['triangle', 2]] as const) {
-      const o = c.createOscillator();
-      o.type = type;
-      o.frequency.value = hz * mul;
-      const og = c.createGain();
-      og.gain.value = mul === 1 ? 1 : 0.25;
-      o.connect(og).connect(g);
-      o.start(t0);
-      o.stop(t0 + 0.45);
-    }
+    o.start(t0);
+    lfo.start(t0);
+    o.stop(t0 + dur + 0.05);
+    lfo.stop(t0 + dur + 0.05);
+  }
+
+  /** desert wind bed: looping noise through a slowly wandering bandpass (very quiet) */
+  private wind: { src: AudioBufferSourceNode; g: GainNode } | null = null;
+  private startWind() {
+    const c = this.ctx;
+    if (!c || this.wind) return;
+    const src = c.createBufferSource();
+    src.buffer = this.noiseBuf;
+    src.loop = true;
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 520;
+    bp.Q.value = 0.7;
+    const lfo = c.createOscillator();
+    lfo.frequency.value = 0.07;
+    const lg = c.createGain();
+    lg.gain.value = 260;
+    lfo.connect(lg).connect(bp.frequency);
+    const g = c.createGain();
+    g.gain.value = 0.045;
+    src.connect(bp).connect(g).connect(this.musicBus);
+    src.start();
+    lfo.start();
+    this.wind = { src, g };
   }
 
   /**
-   * Original procedural soundtrack (no samples, no licensed material → safe for commercial use).
-   * Calm synthwave: Fmaj7 – G6 – Em7 – Am7 at 100 bpm, warm pads, round bass, soft drums,
-   * echoing arpeggio. Intensity 0 = menu (pads + arp only), 1 = run (drums in), 2 = turbo.
+   * Original procedural Western soundtrack (no samples, no licensed material → safe for commercial use).
+   * Andalusian cadence Am – G – F – E at 112 bpm: boom-chicka bass + strummed chords (plucked strings),
+   * a whistle melody on the open road, train-beat brushes and a soft kick while racing.
+   * Intensity 0 = menu (guitar + whistle), 1 = run (drums + bass drive), 2 = Nitro (double-time strum).
    */
   private note(step: number, t: number, spb: number) {
     const bus = this.musicBus;
-    const hz = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
-    // chord tones (relative) per bar: Fmaj7, G6, Em7, Am7
-    const roots = [53, 55, 52, 57];
+    this.startWind();
+    // Am – G – F – E (the E bar takes the major third, G#)
+    const roots = [45, 43, 41, 40];
     const chords = [
-      [0, 4, 7, 11],
-      [0, 4, 7, 9],
-      [0, 3, 7, 10],
-      [0, 3, 7, 10],
+      [0, 7, 12, 15, 19],
+      [0, 7, 12, 16, 19],
+      [0, 7, 12, 16, 19],
+      [0, 7, 12, 16, 20],
     ];
     const bar = Math.floor(step / 16) % 4;
+    const phrase = Math.floor(step / 64) % 2;
     const root = roots[bar];
     const ch = chords[bar];
     const s = step % 16;
     const run = this.intensity >= 1;
-    // pads: whole-bar chord, gentle attack
-    if (s === 0) for (const iv of ch) this.pad(root + 12 + iv, t, spb * 16.5, run ? 0.022 : 0.03);
-    // round bass: root on 1, fifth on the "and" of 2, octave pickup
-    if (s === 0 || s === 6 || s === 10 || s === 14) {
-      const m = root - 12 + (s === 6 ? 7 : s === 14 ? 12 : 0);
-      this.osc('triangle', hz(m), hz(m), t, spb * (s === 0 ? 3.5 : 1.8), run ? 0.16 : 0.1, this.musicTone);
+    // boom: bass root on 1, fifth on 3 (and the pickup in the run)
+    if (s === 0 || s === 8 || (run && s === 14)) {
+      const m = root + (s === 8 ? 7 : s === 14 ? 12 : 0);
+      this.pluckKS(m, t, run ? 0.5 : 0.36, this.musicTone, 900, 0.992);
     }
-    // arpeggio (8ths, up-down through the chord), sparkle an octave up in turbo
-    if (s % 2 === 0) {
-      const seq = [0, 1, 2, 3, 2, 1, 2, 3];
-      const m = root + 24 + ch[seq[(s / 2) % 8]] + (this.intensity >= 2 ? 12 : 0);
-      this.pluck(m, t, run ? 0.05 : 0.04);
-    }
+    // chicka: strummed upper chord on the off-beats (a quick down-strum = 5 strings 12 ms apart)
+    const strum = this.intensity >= 2 ? s % 2 === 1 : s === 4 || s === 12 || (run && (s === 6 || s === 14));
+    if (strum) ch.slice(1).forEach((iv, i) => this.pluckKS(root + 12 + iv, t + i * 0.012, run ? 0.16 : 0.12, this.musicTone, 3200, 0.975));
+    // whistle melody (A minor pentatonic, two phrases) — sparse, with space between lines
+    const mel = phrase === 0 ? [[0, 69, 6], [6, 72, 2], [8, 76, 8]] : [[0, 74, 4], [4, 72, 4], [8, 69, 8]];
+    if (bar % 2 === 0 || !run)
+      for (const [at, m, len] of mel) if (s === at && (bar < 3 || phrase === 1)) this.whistle(m + (bar === 3 ? -1 : 0), t, spb * len * 0.95, run ? 0.035 : 0.045);
     if (!run) return;
-    // soft kick on 1 and 3 (four-on-the-floor only in turbo)
-    if (s % 8 === 0 || (this.intensity >= 2 && s % 4 === 0)) this.osc('sine', 110, 42, t, 0.22, 0.32, bus);
-    // light shaker on off-beats
-    if (s % 4 === 2) this.noise(t, 0.05, 0.05, 7000, 7000, 0.8, 'highpass', bus);
-    // brushed clap on 2 and 4
-    if (s === 4 || s === 12) this.noise(t, 0.18, 0.09, 1400, 900, 0.7, 'bandpass', bus);
+    // soft kick on 1 and 3 (and 2 / 4 with Nitro)
+    if (s % 8 === 0 || (this.intensity >= 2 && s % 4 === 0)) this.osc('sine', 100, 40, t, 0.22, 0.3, bus);
+    // train-beat brushes: 16ths with accents on the off-beats
+    this.noise(t, 0.05, s % 4 === 2 ? 0.07 : 0.025, 5200, 4200, 0.9, 'bandpass', bus);
+    // rim-click on 2 and 4
+    if (s === 4 || s === 12) this.osc('triangle', 1700, 900, t, 0.04, 0.05, bus);
   }
 }

@@ -25,10 +25,10 @@ export const SPECIALS = ['escape', 'super', 'hyper'] as const;
 export type SpecialKey = (typeof SPECIALS)[number];
 /** teaser specials: shown blurred, unlock at AAA (they appear for real in Bonus events) */
 export const LOCKED_SPECIALS: { id: string; name: string; short: string; desc: string }[] = [
-  { id: 'tunnel', name: 'Tunnel Rider', short: 'Tunnel', desc: 'In a tunnel, drive on its roof' },
-  { id: 'wall', name: 'Wall Run', short: 'Wall', desc: 'Run along the side wall past a whole row' },
-  { id: 'ghost', name: 'Phase Ghost', short: 'Ghost', desc: 'Pass through obstacles for a few seconds' },
-  { id: 'rail', name: 'Sky Rail', short: 'Rail', desc: 'Grab a rail up high and glide a whole stretch' },
+  { id: 'tunnel', name: 'Mine Runner', short: 'Mine', desc: 'In a mine tunnel, drive on its roof' },
+  { id: 'wall', name: 'Canyon Wall Ride', short: 'Wall', desc: 'Ride the canyon wall past a whole row' },
+  { id: 'ghost', name: 'Ghost Rider', short: 'Ghost', desc: 'Ride through obstacles for a few seconds' },
+  { id: 'rail', name: 'Rail Rider', short: 'Rail', desc: 'Grab the rail up high and glide a whole stretch' },
 ];
 
 /** coin value of a reward (used to show "worth N coins" on shop bundles) */

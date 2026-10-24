@@ -148,3 +148,20 @@ export const ROAD_STYLE: Record<WorldId, RoadStyle> = {
   country: { ...R_DAY, signs: 'none', rail: 0x8a6a4a },
   sea: { ...R_DAY, piers: 'stone', signs: 'none' },
 };
+
+/**
+ * v1.0.0 desert dust behind the tyres (Game.tyreSpray): speed where it starts (m/s), puffs per second
+ * per tyre at full speed (× the preset's particle density), size, life, and the dust colour per place.
+ */
+export const DUST = {
+  from: 14,
+  rate: 16,
+  size: 0.55,
+  life: 0.85,
+  landColor: 0xd8b88a,
+  color: {
+    city: 0xdcc090, cloud: 0xd0a078, mega: 0xd8b890, harbor: 0xc8b8a0, solar: 0xe0c898, tunnel: 0x8a6a4a,
+    belt: 0xe0c8a0, storm: 0xe0b078, space: 0x8a88a8, ice: 0xc8c0b0, canyon: 0xd09070, volcano: 0xa88070,
+    desert: 0xe8c890, forest: 0xb8a890, country: 0xd8c8a0, sea: 0xd8b8a0,
+  } as Partial<Record<WorldId, number>>,
+};
