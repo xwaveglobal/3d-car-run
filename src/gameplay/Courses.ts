@@ -49,7 +49,7 @@ export const FREE_TRACKS = 5;
 const BASE: Course[] = [
   {
     id: 'future-city',
-    name: 'Future City',
+    name: 'Desert Valley',
     world: 'city',
     length: 3200,
     diffOffset: 0,
@@ -70,7 +70,7 @@ const BASE: Course[] = [
   },
   {
     id: 'cloud-city',
-    name: 'Cloud City',
+    name: 'Canyon Bridge',
     world: 'cloud',
     length: 2800,
     diffOffset: 700,
@@ -86,7 +86,7 @@ const BASE: Course[] = [
   },
   {
     id: 'neon-tunnel',
-    name: 'Neon Tunnel',
+    name: 'Rock Tunnel',
     world: 'tunnel',
     length: 2400,
     diffOffset: 1300,
@@ -102,7 +102,7 @@ const BASE: Course[] = [
   },
   {
     id: 'space-zone',
-    name: 'Space Zone',
+    name: 'Night Highway',
     world: 'space',
     length: 3000,
     diffOffset: 1900,
@@ -118,7 +118,7 @@ const BASE: Course[] = [
   },
   {
     id: 'mega-city',
-    name: 'XWAVE Megacity',
+    name: 'Ghost Town',
     world: 'mega',
     length: 3600,
     diffOffset: 2700,
@@ -130,7 +130,7 @@ const BASE: Course[] = [
       { name: 'Rush Hour', from: 400, to: 1300, bias: { traffic: 3, trafficMix: 3 } },
       { name: 'Security Gates', from: 1300, to: 2300, bias: { gate: 6, laser: 3 } },
       { name: 'Tower Run', from: 2300, to: 3100, bias: { wall3: 3, beam: 2, crateBeam: 2 } },
-      { name: 'XWAVE Finale', from: 3100, to: 3600, bias: { ring: 3, laser: 2, gate: 2 } },
+      { name: 'High Noon Finale', from: 3100, to: 3600, bias: { ring: 3, laser: 2, gate: 2 } },
     ],
   },
 ];
@@ -144,7 +144,7 @@ const BASE: Course[] = [
 const REMIX: string[][] = [
   ['Night Rush', 'Storm Front', 'Overclock', 'Meteor Rain', 'Rush Hour'],
   ['Hyperloop', 'Thunder Peaks', 'Red Zone', 'Black Hole', 'Lockdown'],
-  ['Zero Gravity', 'Skyfall', 'Core Breach', 'Supernova', 'XWAVE Legend'],
+  ['Zero Gravity', 'Skyfall', 'Core Breach', 'Supernova', 'Outlaw Legend'],
 ];
 function remix(b: Course, tier: number, name: string): Course {
   const k = 1 + 0.18 * tier; // longer track

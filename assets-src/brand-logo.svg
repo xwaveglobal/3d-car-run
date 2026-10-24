@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760">
+<defs>
+  <linearGradient id="woodG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8a5a30"/><stop offset=".45" stop-color="#6b4322"/><stop offset="1" stop-color="#4a2c14"/>
+  </linearGradient>
+  <linearGradient id="ropeG" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#e2b874"/><stop offset=".5" stop-color="#c8955a"/><stop offset="1" stop-color="#a87640"/>
+  </linearGradient>
+  <radialGradient id="bronzeR" cx=".35" cy=".35" r=".8">
+    <stop offset="0" stop-color="#ffe0a0"/><stop offset=".5" stop-color="#c88a3a"/><stop offset="1" stop-color="#6a4018"/>
+  </radialGradient>
+  <linearGradient id="steelG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d8d4cc"/><stop offset=".55" stop-color="#9c968c"/><stop offset=".7" stop-color="#e8e4dc"/><stop offset="1" stop-color="#8a847a"/>
+  </linearGradient>
+  <linearGradient id="goldG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff2b0"/><stop offset=".3" stop-color="#ffc848"/><stop offset=".62" stop-color="#e8861a"/><stop offset="1" stop-color="#a84a10"/>
+  </linearGradient>
+  <linearGradient id="starG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff0c0"/><stop offset=".5" stop-color="#d8b070"/><stop offset="1" stop-color="#8a6230"/>
+  </linearGradient>
+  <linearGradient id="hatG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#8a5a32"/><stop offset="1" stop-color="#4a2c16"/>
+  </linearGradient>
+  <linearGradient id="hornG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#3a2a1c"/><stop offset=".5" stop-color="#cdb898"/><stop offset="1" stop-color="#f4ead8"/>
+  </linearGradient>
+  <filter id="drop" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#000" flood-opacity=".55"/>
+  </filter>
+</defs>
+<g filter="url(#drop)">
+  <!-- bull horns behind the sign -->
+  <path d="M280,262 C170,252 85,196 40,92 C112,168 196,186 290,188 Z" fill="url(#hornG)" stroke="#2a1a0e" stroke-width="7" transform="translate(0,20)"/>
+  <path d="M720,262 C830,252 915,196 960,92 C888,168 804,186 710,188 Z" fill="url(#hornG)" stroke="#2a1a0e" stroke-width="7" transform="translate(0,20)"/>
+  <!-- top board: 3D -->
+  <g id="b1">
+  <rect x="250" y="150" width="500" height="250" rx="14" fill="url(#woodG)" stroke="#24140a" stroke-width="8"/>
+  <rect x="258" y="158" width="484" height="234" rx="9" fill="none" stroke="#c48a4a" stroke-opacity=".35" stroke-width="3"/>
+  <path d="M258,160 C400,155 550,166 742,158" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,198.33333333333334 C400,193.33333333333334 550,204.33333333333334 742,196.33333333333334" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,236.66666666666669 C400,231.66666666666669 550,242.66666666666669 742,234.66666666666669" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,275 C400,270 550,281 742,273" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,313.33333333333337 C400,308.33333333333337 550,319.33333333333337 742,311.33333333333337" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,351.66666666666663 C400,346.66666666666663 550,357.66666666666663 742,349.66666666666663" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M258,390 C400,385 550,396 742,388" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><circle cx="272" cy="172" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="269" cy="169" r="3" fill="#ffe7b0"/><circle cx="728" cy="172" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="725" cy="169" r="3" fill="#ffe7b0"/><circle cx="272" cy="378" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="269" cy="375" r="3" fill="#ffe7b0"/><circle cx="728" cy="378" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="725" cy="375" r="3" fill="#ffe7b0"/></g>
+  <path d="M260,138 H740 Q762,138 762,160 V390 Q762,412 740,412 H260 Q238,412 238,390 V160 Q238,138 260,138 Z" fill="none" stroke="#3a2210" stroke-width="22"/>
+  <path d="M260,138 H740 Q762,138 762,160 V390 Q762,412 740,412 H260 Q238,412 238,390 V160 Q238,138 260,138 Z" fill="none" stroke="url(#ropeG)" stroke-width="16"/>
+  <path d="M260,138 H740 Q762,138 762,160 V390 Q762,412 740,412 H260 Q238,412 238,390 V160 Q238,138 260,138 Z" fill="none" stroke="#6b4420" stroke-width="16" stroke-dasharray="7 9" stroke-opacity=".55"/>
+  <!-- cowboy hat on the top board -->
+  <g transform="translate(500,92)">
+    <ellipse cx="0" cy="44" rx="190" ry="34" fill="url(#hatG)" stroke="#24140a" stroke-width="7"/>
+    <path d="M-110,40 C-112,-20 -80,-62 -40,-58 C-18,-56 -10,-40 0,-40 C10,-40 18,-56 40,-58 C80,-62 112,-20 110,40 Z" fill="url(#hatG)" stroke="#24140a" stroke-width="7"/>
+    <path d="M-108,22 C-40,34 40,34 108,22 L110,40 C40,52 -40,52 -110,40 Z" fill="#2a1a10"/>
+    <polygon points="0.0,-20.0 5.4,-5.5 20.9,-4.8 8.8,4.9 12.9,19.8 0.0,11.2 -12.9,19.8 -8.8,4.9 -20.9,-4.8 -5.4,-5.5" fill="url(#starG)" stroke="#3a2210" stroke-width="5" stroke-linejoin="round"/>
+  </g>
+  <!-- 3D: brushed steel with a dark outline and a bevel -->
+  <text x="500" y="358" text-anchor="middle" font-family="Rye" font-size="208" letter-spacing="6"
+    fill="#1a0e06" stroke="#1a0e06" stroke-width="26" stroke-linejoin="round">3D</text>
+  <text x="500" y="352" text-anchor="middle" font-family="Rye" font-size="208" letter-spacing="6"
+    fill="url(#steelG)" stroke="#5a4a3a" stroke-width="4">3D</text>
+  <polygon points="500.0,230.0 507.4,249.8 528.5,250.7 512.0,263.9 517.6,284.3 500.0,272.6 482.4,284.3 488.0,263.9 471.5,250.7 492.6,249.8" fill="url(#starG)" stroke="#3a2210" stroke-width="5" stroke-linejoin="round"/>
+  <!-- bottom board: CAR RUN -->
+  <g id="b2">
+  <rect x="110" y="400" width="780" height="200" rx="14" fill="url(#woodG)" stroke="#24140a" stroke-width="8"/>
+  <rect x="118" y="408" width="764" height="184" rx="9" fill="none" stroke="#c48a4a" stroke-opacity=".35" stroke-width="3"/>
+  <path d="M118,410 C344,405 578,416 882,408" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,440 C344,435 578,446 882,438" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,470 C344,465 578,476 882,468" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,500 C344,495 578,506 882,498" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,530 C344,525 578,536 882,528" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,560 C344,555 578,566 882,558" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><path d="M118,590 C344,585 578,596 882,588" stroke="#2a160a" stroke-opacity=".35" stroke-width="2.5" fill="none"/><circle cx="132" cy="422" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="129" cy="419" r="3" fill="#ffe7b0"/><circle cx="868" cy="422" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="865" cy="419" r="3" fill="#ffe7b0"/><circle cx="132" cy="578" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="129" cy="575" r="3" fill="#ffe7b0"/><circle cx="868" cy="578" r="10" fill="url(#bronzeR)" stroke="#2a160a" stroke-width="3"/><circle cx="865" cy="575" r="3" fill="#ffe7b0"/></g>
+  <text x="500" y="552" text-anchor="middle" font-family="Rye" font-size="138" letter-spacing="4"
+    fill="#1a0e06" stroke="#1a0e06" stroke-width="24" stroke-linejoin="round">CAR RUN</text>
+  <text x="500" y="546" text-anchor="middle" font-family="Rye" font-size="138" letter-spacing="4"
+    fill="url(#goldG)" stroke="#6a2a08" stroke-width="3">CAR RUN</text>
+  <!-- sheriff star badge under the sign -->
+  <path d="M380,640 C440,610 560,610 620,640 L600,680 C540,660 460,660 400,680 Z" fill="url(#hatG)" stroke="#24140a" stroke-width="6"/>
+  <circle cx="500" cy="640" r="58" fill="#3a2210"/>
+  <polygon points="500.0,586.0 513.3,621.7 551.4,623.3 521.6,647.0 531.7,683.7 500.0,662.7 468.3,683.7 478.4,647.0 448.6,623.3 486.7,621.7" fill="url(#starG)" stroke="#3a2210" stroke-width="5" stroke-linejoin="round"/>
+</g>
+</svg>

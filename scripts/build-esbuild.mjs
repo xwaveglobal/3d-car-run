@@ -1,6 +1,6 @@
 // Fallback build without Vite (used in CI / sandboxes with esbuild only).
 //   node scripts/build-esbuild.mjs            -> dist-esbuild/index.html (+ JS/CSS files)
-//   node scripts/build-esbuild.mjs --single   -> dist-esbuild/xwave-flying-run.html (one self-contained file)
+//   node scripts/build-esbuild.mjs --single   -> dist-esbuild/3d-car-run.html (one self-contained file)
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -21,7 +21,7 @@ const res = await build({
   sourcemap: false,
   write: false,
   outdir: out,
-  loader: { '.webp': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.glb': 'dataurl' },
+  loader: { '.webp': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.glb': 'dataurl', '.woff': 'dataurl' },
   plugins: single
     ? [
         {
@@ -58,7 +58,7 @@ if (single) {
     // replacer functions: minified code contains `$&`-style sequences String.replace would expand
     .replace('</head>', () => `<style>${css}</style>\n  </head>`)
     .replace(/<script type="module" src="\/src\/main.ts"><\/script>/, () => `<script type="module">${safeJs}</script>`);
-  writeFileSync(join(out, 'xwave-flying-run.html'), html);
+  writeFileSync(join(out, '3d-car-run.html'), html);
   console.log(`single file: ${(html.length / 1024).toFixed(0)} KB`);
 } else {
   cpSync(join(root, 'public'), out, { recursive: true });

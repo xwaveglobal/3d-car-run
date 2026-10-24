@@ -1,4 +1,4 @@
-// Sky Roadster server — pure rules (no I/O). Imported by server/index.mjs and by tests/server.test.ts.
+// 3D Car Run server — pure rules (no I/O). Imported by server/index.mjs and by tests/server.test.ts.
 //
 // The server is the authority for EXP and rank: a client can only claim EXP through POST /runs, and the
 // server re-computes it from the distance with the same rates as src/config.ts (EXP.rate, VARIANTS.rateMul).

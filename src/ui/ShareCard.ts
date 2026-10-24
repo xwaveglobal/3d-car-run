@@ -151,14 +151,14 @@ export async function shareImage(blob: Blob | null, text: string, url: string): 
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
   try {
     if (blob && nav.share && nav.canShare) {
-      const file = new File([blob], 'sky-roadster.png', { type: 'image/png' });
+      const file = new File([blob], '3d-car-run.png', { type: 'image/png' });
       if (nav.canShare({ files: [file] })) {
-        await nav.share({ files: [file], title: 'Sky Roadster', text: url ? `${text} ${url}` : text });
+        await nav.share({ files: [file], title: '3D Car Run', text: url ? `${text} ${url}` : text });
         return 'shared';
       }
     }
     if (nav.share) {
-      await nav.share({ title: 'Sky Roadster', text, ...(url ? { url } : {}) });
+      await nav.share({ title: '3D Car Run', text, ...(url ? { url } : {}) });
       return 'shared';
     }
   } catch (e) {

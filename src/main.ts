@@ -13,7 +13,7 @@ function webglAvailable() {
 const container = document.getElementById('game')!;
 if (!webglAvailable()) {
   container.innerHTML =
-    '<div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font:600 16px system-ui;color:#cfe7ff">Sky Roadster needs WebGL. Please enable hardware acceleration or try another browser.</div>';
+    '<div style="position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font:600 16px system-ui;color:#cfe7ff">3D Car Run needs WebGL. Please enable hardware acceleration or try another browser.</div>';
 } else {
   const game = new Game(container);
   // ?perf=1 only: scripted profiling hooks (scripts/perf/profile.mjs, or the browser console on a phone)

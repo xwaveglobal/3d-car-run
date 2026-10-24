@@ -1,19 +1,24 @@
 import { COUNTRIES, countryName, flagOf } from '../meta/Country.ts';
 import './ui.css';
+import './western.css';
 import { ICON } from './icons.ts';
 import { copyText } from './ShareCard.ts';
 import { AVATAR_COUNT, avatarForName, avatarSvg, classCorner } from './avatars.ts';
 import { CLASSES, CLASS_COLOR, CLASS_MIN, XPT, classBadge, classFor as classOfBolts, classForScore, playerRank, type RankClass } from '../meta/Rank.ts';
-import logoUrl from '../assets/images/sky-roadster-logo.webp';
+import logoUrl from '../assets/images/car-run-logo.webp';
 import appIcon from '../assets/images/app-icon.webp';
 import { amount, calendarGift, coinFace, coinPile, friends, giftBox, megaphone, phonePlus, shareNodes, starBig, tapMarks, wifiRobot } from './art.ts';
 import loadingUrl from '../assets/images/loading.webp';
-import thFuture from '../assets/images/tracks/future-city.jpg';
-import thTunnel from '../assets/images/tracks/neon-tunnel.jpg';
-import thCloud from '../assets/images/tracks/cloud-city.jpg';
-import thSpace from '../assets/images/tracks/space-zone.jpg';
-import thMega from '../assets/images/tracks/mega-city.jpg';
-import thEndless from '../assets/images/tracks/endless.jpg';
+import thValley from '../assets/images/tracks/desert-valley.jpg';
+import thArch from '../assets/images/tracks/canyon-arch.jpg';
+import thBridge from '../assets/images/tracks/canyon-bridge.jpg';
+import thRuins from '../assets/images/tracks/ancient-ruins.jpg';
+import thNight from '../assets/images/tracks/night-highway.jpg';
+import thTrain from '../assets/images/tracks/train-yard.jpg';
+import thOil from '../assets/images/tracks/oil-field.jpg';
+import thStorm from '../assets/images/tracks/sandstorm.jpg';
+import thWind from '../assets/images/tracks/wind-farm.jpg';
+import thLaunch from '../assets/images/tracks/canyon-launcher.jpg';
 import guide1 from '../assets/images/guide/guide-1.jpg';
 import guide2 from '../assets/images/guide/guide-2.jpg';
 import guide3 from '../assets/images/guide/guide-3.jpg';
@@ -55,12 +60,16 @@ import { LANGS, getLang, setLang, translateTree, type Lang } from './i18n.ts';
 
 /** track thumbnail: remixes reuse their world's art */
 const THUMBS: Record<string, string> = {
-  endless: thEndless,
-  'future-city': thFuture,
-  'neon-tunnel': thTunnel,
-  'cloud-city': thCloud,
-  'space-zone': thSpace,
-  'mega-city': thMega,
+  endless: thValley,
+  track2: thArch,
+  'canyon-bridge': thBridge,
+  'ancient-ruins': thRuins,
+  'night-highway': thNight,
+  'train-yard': thTrain,
+  'oil-field': thOil,
+  sandstorm: thStorm,
+  'wind-farm': thWind,
+  'canyon-launcher': thLaunch,
 };
 
 export type UpgradeKey = 'engine' | 'shield' | 'magnet';
@@ -164,6 +173,8 @@ export interface UIHandlers {
 const BAG_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="bgp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98bff"/><stop offset="1" stop-color="#6a2ee0"/></linearGradient></defs><path d="M8.3 7.4C5 9.6 3.6 13 4.3 16.4c.7 3.2 3.6 4.8 7.7 4.8s7-1.6 7.7-4.8c.7-3.4-.7-6.8-4-9z" fill="url(#bgp)" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><path d="M8.6 7.4c-.9-1.6-.3-3.4 1.3-3.4 1 0 1.3.7 2.1.7s1.1-.7 2.1-.7c1.6 0 2.2 1.8 1.3 3.4z" fill="#8a52f0" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><rect x="7.6" y="6.8" width="8.8" height="1.9" rx=".9" fill="#ffd23d" stroke="#7a4a00" stroke-width=".6"/><path d="M12 11.2l1.05 2.15 2.35.33-1.7 1.66.4 2.34L12 16.6l-2.1 1.08.4-2.34-1.7-1.66 2.35-.33z" fill="#ffe680"/><circle cx="17.6" cy="11" r=".8" fill="#fff"/><circle cx="6.6" cy="13.4" r=".55" fill="#fff" opacity=".8"/></svg>`;
 
 /** tutorial (book + ?) and launch (megaphone) icons */
+/** v1.0.0: More menu (three planks) */
+const MENU_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3.5" y="5" width="17" height="3" rx="1.2"/><rect x="3.5" y="10.5" width="17" height="3" rx="1.2"/><rect x="3.5" y="16" width="17" height="3" rx="1.2"/></g></svg>`;
 const TUT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M10.2 8.3a2 2 0 1 1 2.6 1.9c-.5.2-.8.6-.8 1.1v.6"/><path d="M12 14.4h.01"/></g></svg>`;
 /** what a finished / crashed run paid out (result screens) */
 export interface RunRewards {
@@ -332,14 +343,7 @@ export class UI {
     const mo = new MutationObserver(() => this.scheduleFit());
     for (const ov of Array.from(this.root.querySelectorAll<HTMLElement>('.screen.overlay'))) mo.observe(ov, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden'] });
     window.addEventListener('resize', () => this.scheduleFit());
-    // display font (falls back to the system stack offline)
-    if (!document.querySelector('link[data-xw-font]')) {
-      const l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.dataset.xwFont = '1';
-      l.href = 'https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&display=swap';
-      document.head.appendChild(l);
-    }
+    // v1.0.0: display fonts (Rye + Alfa Slab One) are bundled in western.css — no runtime CDN
   }
 
   private head(title: string, extra = '') {
@@ -351,7 +355,7 @@ export class UI {
   }
 
   private template() {
-    const logo = `<div class="logo"><img class="xw" src="${logoUrl}" alt="Sky Roadster" draggable="false" /></div>`;
+    const logo = `<div class="logo"><img class="xw" src="${logoUrl}" alt="3D Car Run" draggable="false" /></div>`;
     const loadingBg = `<img class="loadbg" src="${loadingUrl}" alt="" draggable="false" />`;
     return `
     <section id="loading" class="screen show">
@@ -360,7 +364,11 @@ export class UI {
     </section>
 
     <section id="tracks" class="screen">
-      ${this.head('SELECT TRACK')}
+      ${this.head('RACE START')}
+      <div class="speedsel" role="radiogroup" aria-label="Difficulty">
+        ${(['easy', 'normal', 'hard'] as const).map((k, i) => `<button role="radio" data-a="speed" data-v="${k}" title="${LEVELS[k].label}: ${LEVELS[k].desc}"><i class="chev">${'★'.repeat(i + 1)}</i><b>${LEVELS[k].label}</b><small>EXP ×${['1.0', '1.05', '1.7'][i]}</small></button>`).join('')}
+      </div>
+      <div class="speedcap" data-k="speedtip"></div>
       <div class="track-list" data-k="tracklist"></div>
       <div class="boost-row" data-k="boosts" hidden></div>
       <button class="btn gold adbtn" data-a="adboost" data-k="adboost" hidden>${ICON.play}</button>
@@ -399,16 +407,15 @@ export class UI {
         </button>
         <div class="tr">
           <button class="wallet" data-a="shop" aria-label="Coins · open shop">${ICON.coin}<b data-k="wallet">0</b><i class="plus" data-a="freepop" role="button" aria-label="Free coins · watch an ad">${ICON.plus}</i></button>
-          <button class="icon-btn sm2" data-a="help" aria-label="Tutorial">${TUT_ICON}</button>
           <button class="icon-btn" data-a="settings" aria-label="Settings">${ICON.gear}</button>
+          <button class="icon-btn morebtn" data-a="more" aria-label="More">${MENU_ICON}<em class="badge dot" data-k="morebadge" hidden></em></button>
         </div>
       </div>
       <div class="brand">${logo}</div>
       <div class="mid">
       <div class="rail left">
-        <button class="rbtn" data-a="daily"><span class="ri g-daily">${ICON.calendar}</span><span class="rl">Daily</span><em class="badge" data-k="dailybadge" hidden>1</em></button>
         <button class="rbtn" data-a="events"><span class="ri g-cups">${ICON.gift}</span><span class="rl">Bonus</span><em class="tag live">OPEN</em></button>
-        <button class="rbtn" data-a="ranks"><span class="ri g-ranks">${ICON.podium}</span><span class="rl">Ranks</span></button>
+        <button class="rbtn" data-a="daily"><span class="ri g-daily">${ICON.calendar}</span><span class="rl">Daily</span><em class="badge" data-k="dailybadge" hidden>1</em></button>
       </div>
       <div class="rail right">
         <button class="rbtn" data-a="perk" data-v="share" data-k="pk-share"><span class="ri g-share">${ICON.share}</span><span class="rl">Share</span><em class="badge" hidden>!</em></button>
@@ -418,10 +425,6 @@ export class UI {
       </div>
       <div class="menu">
         <button class="cupstrip" data-a="events" data-k="cupstrip" hidden></button>
-        <div class="speedsel" role="radiogroup" aria-label="Speed">
-          ${(['easy', 'normal', 'hard'] as const).map((k, i) => `<button role="radio" data-a="speed" data-v="${k}" title="${LEVELS[k].label}: ${LEVELS[k].desc}"><i class="chev">${'★'.repeat(i + 1)}</i><b>${LEVELS[k].label}</b><small>EXP ×${['1.0', '1.05', '1.7'][i]}</small></button>`).join('')}
-        </div>
-        <div class="speedcap" data-k="speedtip" hidden></div>
 
         <div class="menu-btns">
           <button class="btn mbtn" data-a="play"><span class="ib">${ICON.play}</span><span class="lb">Play</span><span class="pchev"><i></i><i></i></span></button>
@@ -453,7 +456,21 @@ export class UI {
           <button class="btn sm ghost" data-a="help">${ICON.info} How to play</button>
           <button class="btn sm ghost" data-a="restore">${ICON.bag} Restore</button>
         </div>
-        <div class="label sfoot" data-k="sfoot">Sky Roadster</div>
+        <div class="label sfoot" data-k="sfoot">3D Car Run</div>
+      </div>
+    </section>
+
+    <section id="more" class="screen overlay">
+      <div class="panel modal moremenu">
+        <div class="mhead"><h2>MORE</h2><button class="icon-btn sm" data-a="closemodal" aria-label="Close">${ICON.close}</button></div>
+        <div class="mgrid">
+          <button class="mitem" data-a="ranks"><span class="mi">${ICON.podium}</span><b>Top Pilots</b><small>Weekly &amp; all-time ranks</small></button>
+          <button class="mitem" data-a="daily"><span class="mi">${ICON.calendar}</span><b>Daily Rewards</b><small>Check in every day</small><em class="badge" data-k="dailybadge2" hidden>1</em></button>
+          <button class="mitem" data-a="help"><span class="mi">${TUT_ICON}</span><b>How to Play</b><small>Training &amp; guides</small></button>
+          <button class="mitem" data-a="profile"><span class="mi">${ICON.user}</span><b>Profile</b><small>Name, avatar, class</small></button>
+          <button class="mitem" data-a="bag"><span class="mi">${BAG_ICON}</span><b>Saddle Bag</b><small>Your specials</small></button>
+          <button class="mitem" data-a="settings"><span class="mi">${ICON.gear}</span><b>Settings</b><small>Sound, graphics, language</small></button>
+        </div>
       </div>
     </section>
 
@@ -565,10 +582,10 @@ export class UI {
     <section id="sharepv" class="screen overlay">
       <div class="panel modal shpv">
         <div class="mhead"><h2>${ICON.share} SHARE</h2><button class="icon-btn sm" data-a="closeov" data-v="sharepv" aria-label="Close">${ICON.close}</button></div>
-        <img class="shpv-img" data-k="shpvimg" alt="Your Sky Roadster card" />
+        <img class="shpv-img" data-k="shpvimg" alt="Your 3D Car Run card" />
         <p class="shpv-tip">Long-press the card to save or share it</p>
         <div class="td-row">
-          <a class="btn gold" data-k="shpvdl" download="sky-roadster.png">${ICON.check} Save image</a>
+          <a class="btn gold" data-k="shpvdl" download="3d-car-run.png">${ICON.check} Save image</a>
           <button class="btn ghost" data-a="shpvcopy">🔗 Copy text</button>
         </div>
       </div>
@@ -774,7 +791,7 @@ export class UI {
         <div class="carstrip" data-k="carstrip"></div>
         <div class="carsel panel">
           <button class="icon-btn" data-a="prevcar" aria-label="Previous car">${ICON.chevL}</button>
-          <div class="name"><b data-k="carname">XWAVE Pearl</b><small class="ccls" data-k="carcls">GT Coupe</small><div class="dots" data-k="cardots"></div></div>
+          <div class="name"><b data-k="carname">Zenith</b><small class="ccls" data-k="carcls">GT Coupe</small><div class="dots" data-k="cardots"></div></div>
           <button class="icon-btn" data-a="nextcar" aria-label="Next car">${ICON.chevR}</button>
         </div>
         <button class="btn" data-a="carbtn" data-k="carbtn">Selected</button>
@@ -806,7 +823,11 @@ export class UI {
       const el = tgt.closest<HTMLElement>('[data-a]');
       if (!el || el.hasAttribute('disabled')) return;
       const a = el.dataset.a!;
+      if (el.closest('#more') && a !== 'closemodal') this.hideOverlay('more');
       switch (a) {
+        case 'more':
+          this.showOverlay('more');
+          return;
         case 'play': return this.h.play();
         case 'tracks': return this.h.play();
         case 'nexttrack': return this.h.nextTrack();
@@ -839,7 +860,7 @@ export class UI {
         case 'shpvcopy':
           copyText(this.shareText);
           return this.toast(`${ICON.share} Copied — paste it anywhere`);
-        case 'morecars': return this.toast(`${ICON.car} More cars unlock at rank ${classBadge('S')} ${classBadge('SS')} ${classBadge('SSS')} on Mega Rush`, '#ff7a2e');
+        case 'morecars': return this.toast(`${ICON.car} More cars unlock at rank ${classBadge('S')} ${classBadge('SS')} ${classBadge('SSS')} on Outlaw Rush`, '#ff7a2e');
         case 'account': return this.h.cloud('open');
         case 'acgoogle': return this.h.cloud('google');
         case 'acapple': return this.h.cloud('apple');
@@ -855,7 +876,7 @@ export class UI {
         case 'sgo': return this.h.goRace();
         case 'bonusgo': return this.h.bonusGo();
         case 'slocked': return this.toast(`${ICON.lock} Opens at rank AAA · try it now in a Bonus event`, '#b7a6ff');
-        case 'soon': return this.toast(`${ICON.lock} Reach rank ${el.dataset.v ?? 'S'} on Mega Rush to open this track`, '#b7a6ff');
+        case 'soon': return this.toast(`${ICON.lock} Reach rank ${el.dataset.v ?? 'S'} on Outlaw Rush to open this track`, '#b7a6ff');
         case 'rankgate': return this.rankGuide();
         case 'garage': return this.h.garage();
         case 'missions': return this.h.missions();
@@ -1128,7 +1149,7 @@ export class UI {
   hudBest = 0;
   /** speed level shown on the race HUD ('' = hide) */
   hudLevel = '';
-  /** highest rank this road can give (Endless AAA, Mega Rush SSS) */
+  /** highest rank this road can give (Endless AAA, Outlaw Rush SSS) */
   hudTop: RankClass = 'AAA';
   /** the player's own rank (profile) shown on the race HUD */
   hudMe: RankClass = 'D';
@@ -1428,7 +1449,7 @@ export class UI {
   /** END screen (v2): this race's EXP, the rank it reached, the leaderboard position — little text */
   gameOver(o: { score: number; best: number; isBest: boolean; dist: number; length?: number; coins: number; near: number; missions: { text: string; reward: number }[]; rewards: RunRewards | null; speedBonus: number; level: string; tip: CrashTip | null; runRank?: RankClass | null; pos?: string; car?: string; bonus?: boolean }) {
     void o.tip;
-    // Endless/Mega Rush: "FINISH"; from rank C up a special brag card made to be shown off
+    // Endless/Outlaw Rush: "FINISH"; from rank C up a special brag card made to be shown off
     const brag = !!o.runRank && CLASSES.indexOf(o.runRank) >= CLASSES.indexOf('C');
     this.setAll('gotitle', o.bonus ? 'BONUS END' : 'FINISH');
     const panel = this.screens.gameover.querySelector<HTMLElement>('.result')!;
@@ -1481,7 +1502,7 @@ export class UI {
     const st = skin.stats ?? [7, 7, 7, 7];
     const bars = ['Speed', 'Acceleration', 'Handling', 'Energy'].map((n, i) => `<div class="cst"><span>${n}</span><i><b style="width:${st[i] * 10}%"></b></i><em>${vis === 'dark' ? '?' : st[i]}</em></div>`).join('');
     $(this.root, '[data-k="carinfo"]').innerHTML = vis === 'dark'
-      ? `<div class="crare" style="--rc:${RARITY_COLOR[skin.rarity ?? 'Common']}"><b class="cname">???</b>${skin.rarity ?? ''}</div><p class="cdark">${ICON.lock} ${skin.future ? 'A future XWAVE car — its unlock is coming soon.' : `Reach rank ${classBadge(skin.need as RankClass)} to reveal and unlock this car. Drive farther in one run to earn EXP.`}</p>`
+      ? `<div class="crare" style="--rc:${RARITY_COLOR[skin.rarity ?? 'Common']}"><b class="cname">???</b>${skin.rarity ?? ''}</div><p class="cdark">${ICON.lock} ${skin.future ? 'A future car — its unlock is coming soon.' : `Reach rank ${classBadge(skin.need as RankClass)} to reveal and unlock this car. Drive farther in one run to earn EXP.`}</p>`
       : `<div class="crare" style="--rc:${RARITY_COLOR[skin.rarity ?? 'Common']}"><b class="cname">${skin.name}</b>${skin.rarity ?? ''}<small>${esc(skin.cls.split('·')[1]?.trim() ?? '')}</small></div>
          <div class="cbonus">${ICON.lock} Unlocks at rank ${classBadge(skin.need as RankClass)}</div>
          <p class="cfair">Every car drives the same — EXP stays fair. Cars show off your rank.</p>`;
@@ -1589,19 +1610,19 @@ export class UI {
         <span class="tbadge">1</span></button>`;
     const t2 = aaa
       ? `<button class="tcard t2 ${s.track === 'track2' ? 'sel' : ''}" data-a="track" data-id="track2">
-        <img src="${THUMBS['mega-city']}" alt="" draggable="false" />
-        <div class="tinfo"><b>Mega Rush <em class="lvtag">${LEVELS[lv].label}</em></b><span class="label">Harder · EXP ×1.25 · ranks S+</span>
+        <img src="${THUMBS.track2}" alt="" draggable="false" />
+        <div class="tinfo"><b>Outlaw Rush <em class="lvtag">${LEVELS[lv].label}</em></b><span class="label">Harder · EXP ×1.25 · ranks S+</span>
         <span class="tmeta">${XPT}<span>${fmt(s.exp2Best)}</span>${classBadge('S')}${classBadge('SS')}${classBadge('SSS')}</span></div>
         <span class="tbadge">2</span></button>`
       : `<button class="tcard t2 tlocked dark" data-a="rankguide">
-        <img src="${THUMBS['mega-city']}" alt="" draggable="false" />
-        <div class="tinfo"><b>Mega Rush</b><span class="label">Harder road · ranks S+</span>
+        <img src="${THUMBS.track2}" alt="" draggable="false" />
+        <div class="tinfo"><b>Outlaw Rush</b><span class="label">Harder road · ranks S+</span>
         <span class="tmeta">${ICON.lock}<span>Reach rank</span>${classBadge('AAA')}</span></div>
         <span class="tbadge">${ICON.lock}</span></button>`;
-    // tracks 3–5 open at S / SS / SSS (earned on Mega Rush)
+    // tracks 3–5 open at S / SS / SSS (earned on Outlaw Rush)
     const soon = (['S', 'SS', 'SSS'] as RankClass[])
       .map((r, i) => `<button class="tcard mystery" data-a="soon" data-v="${r}"><div class="mq">?</div>
-        <div class="tinfo"><b>${['Ocean Drive', 'Volcano Run', 'Aurora Peak'][i]}</b><span class="tmeta">${ICON.lock}<span>Reach rank</span>${classBadge(r)}</span></div>
+        <div class="tinfo"><b>${['Silver Mine', 'Monument Valley', 'Thunder Mesa'][i]}</b><span class="tmeta">${ICON.lock}<span>Reach rank</span>${classBadge(r)}</span></div>
         <span class="tbadge">${i + 3}</span></button>`)
       .join('');
     $(this.root, '[data-k="tracklist"]').innerHTML = endless + t2 + soon;
@@ -1766,9 +1787,13 @@ export class UI {
     $(this.root, '[data-k="pline"]').innerHTML = `${classBadge(this.myClass)}<span class="pbolt">${fmt(o.bolts)}${BOLT}</span>`;
     // all-time position on the avatar (tap → profile)
     $(this.root, '[data-k="ava"]').insertAdjacentHTML('beforeend', `<em class="avrank">${o.allRank ? `#${o.allRank >= 10000 ? `${Math.round(o.allRank / 1000)}K` : fmt(o.allRank)}` : '#—'}</em>`);
-    const b = $(this.root, '[data-k="dailybadge"]');
-    b.hidden = o.dailyBadge <= 0;
-    b.textContent = String(o.dailyBadge);
+    for (const k of ['dailybadge', 'dailybadge2']) {
+      const b = $(this.root, `[data-k="${k}"]`);
+      b.hidden = o.dailyBadge <= 0;
+      b.textContent = String(o.dailyBadge);
+    }
+    // v1.0.0: the More menu shows a dot while something inside it waits (daily reward)
+    $(this.root, '[data-k="morebadge"]').hidden = o.dailyBadge <= 0;
     $(this.root, '[data-k="saletag"]').hidden = !o.sale;
     // v2: the strip shows the Bonus event (open now / next one)
     const c = o.bonus;
@@ -2129,8 +2154,8 @@ export class UI {
     const pr = $(this.root, '[data-k="passrow"]');
     pr.hidden = true; // v2: no XWAVE Pass (the shop sells only coins)
     pr.innerHTML = o.pass.active
-      ? `<div class="passin">${ICON.crown}<div><b>XWAVE Pass</b><small>${o.pass.days} days left · 300 coins + 1 Roadster Jump every day</small></div><button class="btn sm gold" data-a="claimpass" ${o.pass.claimed ? 'disabled' : ''}>${o.pass.claimed ? 'Claimed' : 'Claim'}</button></div>`
-      : `<div class="passin">${ICON.crown}<div><b>XWAVE Pass</b><small>300 coins + Roadster Jump every day · ×2 quest coins</small></div><button class="btn sm gold" data-a="buy" data-sku="xwave_pass">$4.99</button></div>`;
+      ? `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>${o.pass.days} days left · 300 coins + 1 Roadster Jump every day</small></div><button class="btn sm gold" data-a="claimpass" ${o.pass.claimed ? 'disabled' : ''}>${o.pass.claimed ? 'Claimed' : 'Claim'}</button></div>`
+      : `<div class="passin">${ICON.crown}<div><b>Gold Pass</b><small>300 coins + Roadster Jump every day · ×2 quest coins</small></div><button class="btn sm gold" data-a="buy" data-sku="xwave_pass">$4.99</button></div>`;
     this.setAll('dreset', `resets in ${o.resetIn}`);
     $(this.root, '[data-k="qlist"]').innerHTML = o.quests
       .map((q) => `<div class="quest ${q.claimed ? 'claimed' : q.done ? 'done' : ''}">
@@ -2269,7 +2294,7 @@ export class UI {
       B: car('volt', 'Volt'),
       A: car('phantom', 'Phantom'),
       AA: car('inferno', 'Inferno'),
-      AAA: `${car('nexus', 'Nexus')}${road('Mega Rush')}<span class="ul">${ICON.rocket}AAA specials</span>`,
+      AAA: `${car('nexus', 'Nexus')}${road('Outlaw Rush')}<span class="ul">${ICON.rocket}AAA specials</span>`,
       S: road('Ocean Drive'),
       SS: road('Volcano Run'),
       SSS: road('Aurora Peak'),
@@ -2347,7 +2372,7 @@ export class UI {
             ${step(4, 'Claim your rewards', done, coinBanner(d.entryReward))}
           </div>` +
           (done
-            ? `<div class="pzdone">${ICON.check} Reward claimed — explore Sky Roadster</div>
+            ? `<div class="pzdone">${ICON.check} Reward claimed — explore 3D Car Run</div>
                <div class="pzgo">${explore.map(([a, ic, t]) => `<button data-a="popgo" data-v="${a}"><span>${ic}</span><b>${t}</b></button>`).join('')}</div>`
             : all ? `<button class="btn big gold" data-a="popa" data-v="entry">CLAIM</button>` : `<button class="btn big blue" data-a="profile">${ICON.user} OPEN PROFILE</button>`);
       }
@@ -2357,7 +2382,7 @@ export class UI {
         return head(megaphone(46), 'LAUNCH REWARD', 'art') +
           `<div class="pzsteps">
             ${step(1, 'Click the button below', sa, `<div class="pzgobtn"><button class="btn blue" data-a="popa" data-v="go:addscreen">${ICON.play} GO</button>${hand}${tapMarks('r')}</div>`)}
-            ${step(2, 'Open Sky Roadster from your Home Screen', sa, `<div class="pzapps"><span class="pzgrid"><i></i><i></i><i></i><i></i></span><span class="pzarrow">→</span><img class="pzicon" src="${appIcon}" alt="" /></div>`)}
+            ${step(2, 'Open 3D Car Run from your Home Screen', sa, `<div class="pzapps"><span class="pzgrid"><i></i><i></i><i></i><i></i></span><span class="pzarrow">→</span><img class="pzicon" src="${appIcon}" alt="" /></div>`)}
             ${step(3, 'Claim your rewards', done, coinBanner(d.launchReward))}
           </div>` +
           (done ? `<button class="btn big ghost" disabled>${ICON.check} Claimed</button>` : sa ? `<button class="btn big gold" data-a="popa" data-v="launch">CLAIM</button>` : `<button class="btn big blue" data-a="popa" data-v="go:addscreen">GO</button>`);
@@ -2381,7 +2406,7 @@ export class UI {
       }
       case 'rate':
         return head(starBig(40), 'RATE US', 'art') +
-          `<p class="p3t">Enjoying Sky Roadster?<br/>Give us a 5-star rating!</p>
+          `<p class="p3t">Enjoying 3D Car Run?<br/>Give us a 5-star rating!</p>
           <div class="pzstars">${[1, 2, 3, 4, 5].map((n) => `<button data-a="popa" data-v="rate${n}" aria-label="${n} stars">${starBig(44)}</button>`).join('')}</div>
           <button class="btn big blue" data-a="popa" data-v="rate5">RATE NOW</button>
           <button class="btn big dark" data-a="closeov" data-v="popup">NOT NOW</button>`;
@@ -2393,9 +2418,9 @@ export class UI {
           [`<span class="pzsq">🔗</span>`, 'Copy Link', 'copylink'], [`<span class="pzsq">•••</span>`, 'More', 'sharelink'],
         ];
         return head(phonePlus(44), 'ADD TO SCREEN', 'art') +
-          `<p class="p3t">Add Sky Roadster to your<br/>Home Screen for faster access!</p>
+          `<p class="p3t">Add 3D Car Run to your<br/>Home Screen for faster access!</p>
           <div class="pzphone"><i class="notch"></i><div class="pzsheet">${sheet.map(([ic, t, a]) => `<button class="pztile2" data-a="popa" data-v="${a}">${ic}<small>${t}</small></button>`).join('')}</div>
-            <ol class="pzol">${ios ? '<li>Tap <b>Share</b></li><li>Select <b>Add to Home Screen</b></li>' : '<li>Tap the browser menu <b>⋮</b></li><li>Select <b>Install app</b> / <b>Add to Home screen</b></li>'}<li>Find Sky Roadster on your Home Screen</li></ol></div>` +
+            <ol class="pzol">${ios ? '<li>Tap <b>Share</b></li><li>Select <b>Add to Home Screen</b></li>' : '<li>Tap the browser menu <b>⋮</b></li><li>Select <b>Install app</b> / <b>Add to Home screen</b></li>'}<li>Find 3D Car Run on your Home Screen</li></ol></div>` +
           (can ? `<button class="btn big blue" data-a="popa" data-v="install">INSTALL NOW</button>` : `<button class="btn big blue" data-a="closeov" data-v="popup">GOT IT</button>`);
       }
       default:

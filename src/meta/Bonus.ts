@@ -21,18 +21,18 @@ export const BONUS = {
 };
 
 export const BONUS_NAME: Record<BonusWorld, string> = {
-  desert: 'Desert Highway',
-  forest: 'Pine Forest',
-  country: 'Country Road',
-  sea: 'Ocean Causeway',
+  desert: 'Gold Canyon',
+  forest: 'Pine Ridge',
+  country: 'Prairie Ranch',
+  sea: 'Sunset Coast',
 };
 
 /** section names along each Bonus road (one per ~5 minutes) */
 export const BONUS_SECTIONS: Record<BonusWorld, string[]> = {
-  desert: ['Dune Gate', 'Cactus Flats', 'Red Mesas', 'Mirage Mile', 'Canyon Run', 'Sunset Straight'],
-  forest: ['Pine Gate', 'Fern Valley', 'Old Bridge', 'Misty Hills', 'Ranger Pass', 'Lakeside'],
-  country: ['Farm Gate', 'Wheat Fields', 'Windmill Row', 'Hay Bales', 'Barn Bend', 'Village Lane'],
-  sea: ['Harbour Gate', 'Palm Islets', 'Sailing Bay', 'Lighthouse Point', 'Coral Reef', 'Sunset Pier'],
+  desert: ['Prospector Gate', 'Cactus Flats', 'Red Mesas', 'Mirage Mile', 'Nugget Run', 'Sunset Straight'],
+  forest: ['Timber Gate', 'Fern Valley', 'Old Bridge', 'Misty Hills', 'Ranger Pass', 'Lakeside'],
+  country: ['Ranch Gate', 'Wheat Fields', 'Windmill Row', 'Hay Bales', 'Barn Bend', 'Cattle Lane'],
+  sea: ['Cove Gate', 'Palm Bluffs', 'Smuggler Bay', 'Lighthouse Point', 'Sea Arches', 'Sunset Pier'],
 };
 
 export interface BonusSlot {

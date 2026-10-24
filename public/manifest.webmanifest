@@ -1,33 +1,16 @@
 {
-  "name": "Sky Roadster",
-  "short_name": "Sky Roadster",
-  "description": "Sky Roadster is a high-speed 3D endless runner. Pilot the XWAVE roadster through a neon sky-city: swipe left or right to switch lanes, up to fly over barriers, down to dive under beams. Collect energy coins, grab shields, magnets and turbo boosts, and chain near misses for combo points. Race five tracks from Future City to the XWAVE Megacity, or go Endless and chase your best score.",
+  "name": "3D Car Run",
+  "short_name": "3D Car Run",
+  "description": "3D Car Run is a Western desert racing game. Tear down dusty Route 66 highways, red-rock canyons, ghost towns and train yards: swipe left or right to switch lanes, up to jump over barricades, down to dive under beams. Grab gold coins, Sheriff Guard, Gold Magnet and Dust Storm Nitro, chase the Gold Rush bonus run and climb the weekly ranks.",
   "start_url": "./",
   "display": "fullscreen",
   "orientation": "portrait",
-  "background_color": "#04071a",
-  "theme_color": "#04071a",
+  "background_color": "#2a160a",
+  "theme_color": "#2a160a",
   "icons": [
-    {
-      "src": "icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png"
-    },
-    {
-      "src": "icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-1024.png", "sizes": "1024x1024", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

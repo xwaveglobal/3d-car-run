@@ -1,4 +1,4 @@
--- Sky Roadster — game database (PostgreSQL; works in SQLite with minor type changes).
+-- 3D Car Run — game database (PostgreSQL; works in SQLite with minor type changes).
 -- server/index.mjs keeps the same data in data.json for local testing.
 
 -- ---------------------------------------------------------------- accounts (v2.3 cloud save)

@@ -295,7 +295,7 @@ export const PERF = typeof location !== 'undefined' && /[?&]perf/.test(location.
 export const AUTOPILOT = typeof location !== 'undefined' && /[?&]autopilot/.test(location.search);
 
 /**
- * v2.3 cloud save (server/index.mjs). `api` = the game server's address, e.g. 'https://api.skyroadster.com'.
+ * v2.3 cloud save (server/index.mjs). `api` = the game server's address, e.g. 'https://api.3dcarrun.com'.
  * Empty = cloud off (progress stays on the device). `?api=…` in the page URL overrides it for testing.
  */
 export const CLOUD = {

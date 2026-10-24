@@ -1,4 +1,5 @@
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
+import { WORLD_THEME } from './western/themes.ts';
 import * as THREE from 'three';
 import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, TYRE, RENDER, type SpeedLevel } from './config.ts';
 import { clamp, damp } from './core/math.ts';
@@ -71,24 +72,8 @@ type PerkKind = 'entry' | 'launch' | 'share' | 'invite' | 'rate' | 'addscreen' |
 
 type State = 'loading' | 'menu' | 'garage' | 'missions' | 'tracks' | 'countdown' | 'run' | 'paused' | 'dying' | 'continue' | 'respawn' | 'finish' | 'gameover';
 
-const WORLD_NAMES: Record<WorldId, string> = {
-  city: 'FUTURE CITY',
-  tunnel: 'NEON TUNNEL',
-  cloud: 'CLOUD CITY',
-  space: 'SPACE ZONE',
-  mega: 'XWAVE MEGACITY',
-  desert: 'DESERT HIGHWAY',
-  forest: 'PINE FOREST',
-  country: 'COUNTRY ROAD',
-  sea: 'OCEAN CAUSEWAY',
-  harbor: 'NEON HARBOR',
-  solar: 'SOLAR FARMS',
-  canyon: 'CRYSTAL CANYON',
-  belt: 'ASTEROID BELT',
-  storm: 'STORM FRONT',
-  volcano: 'VOLCANO CORE',
-  ice: 'AURORA ICE',
-};
+/** v1.0.0 (3D Car Run): Western place names — see src/western/themes.ts */
+const WORLD_NAMES: Record<WorldId, string> = Object.fromEntries(Object.entries(WORLD_THEME).map(([k, v]) => [k, v.name])) as Record<WorldId, string>;
 
 const POWER_LABEL: Record<Exclude<PickupKind, 'coin'>, string> = {
   shield: 'SHIELD',
@@ -386,7 +371,7 @@ export class Game {
       checkIn: () => this.doCheckIn(),
       claimQuest: (id) => this.claim(this.meta.claimQuest(id), 'Quest reward', () => this.openDaily(true)),
       claimChest: (i) => this.claim(this.meta.claimChest(i), 'Chest opened', () => this.openDaily(true)),
-      claimPass: () => this.claim(this.meta.claimPass(), 'XWAVE Pass', () => this.openDaily(true)),
+      claimPass: () => this.claim(this.meta.claimPass(), 'Gold Pass', () => this.openDaily(true)),
       raceCup: () => {
         const c = this.meta.myCup();
         if (c) this.startTrack(c.cup.track);
@@ -917,9 +902,9 @@ export class Game {
   private async shareLink(kind: 'share' | 'invite') {
     if (kind === 'share') return this.shareCard(false);
     const url = `${location.origin}${location.pathname}${kind === 'invite' ? `?ref=${this.save.pid.toString(36)}` : ''}`;
-    const text = kind === 'invite' ? `Race me in Sky Roadster! Join with my link and we both get ${PERK.invite} coins.` : `I'm racing in Sky Roadster — best score ${this.save.best.toLocaleString('en-US')}. Can you beat me?`;
+    const text = kind === 'invite' ? `Race me in 3D Car Run! Join with my link and we both get ${PERK.invite} coins.` : `I'm racing in 3D Car Run — best score ${this.save.best.toLocaleString('en-US')}. Can you beat me?`;
     try {
-      if (navigator.share) await navigator.share({ title: 'Sky Roadster', text, url });
+      if (navigator.share) await navigator.share({ title: '3D Car Run', text, url });
       else {
         copyText(`${text} ${url}`);
         this.ui.toast(`${ICON.share} Link copied — paste it to a friend`);
@@ -1107,11 +1092,11 @@ export class Game {
   /** share just the game link (Add-to-screen tiles, Share again): native sheet, else copy */
   private async shareGameLink(copyOnly = false) {
     const url = this.shareUrl;
-    const text = `Race me in Sky Roadster! Rank ${this.rank} · ${this.bestExp.toLocaleString('en-US')} EXP.`;
+    const text = `Race me in 3D Car Run! Rank ${this.rank} · ${this.bestExp.toLocaleString('en-US')} EXP.`;
     if (!copyOnly) {
       try {
         if (navigator.share) {
-          await navigator.share({ title: 'Sky Roadster', text, ...(url ? { url } : {}) });
+          await navigator.share({ title: '3D Car Run', text, ...(url ? { url } : {}) });
           return true;
         }
       } catch (e) {
@@ -1135,7 +1120,7 @@ export class Game {
     const run = this.run;
     const exp = ofRun && run && !this.course ? run.exp : this.bestExp;
     const rank = ofRun && run && !this.course ? classFor(run.exp) : this.rank;
-    const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Mega Rush' : 'Endless'}` : `${this.meta.name} · best race`;
+    const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Outlaw Rush' : 'Endless'}` : `${this.meta.name} · best race`;
     const blob = drawShareCard({ title: ofRun ? 'FINISH' : 'MY PILOT CARD', name: this.meta.name || 'Pilot', rank, exp, sub, car: carRear(this.save.vehicle), avatar: avatarSvg(this.save.avatar), logo: logoImg }).catch(() => null);
     this.cardCache = { key, blob };
     return blob;
@@ -1145,12 +1130,12 @@ export class Game {
     const run = this.run;
     const exp = ofRun && run && !this.course ? run.exp : this.bestExp;
     const rank = ofRun && run && !this.course ? classFor(run.exp) : this.rank;
-    const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Mega Rush' : 'Endless'}` : `${this.meta.name} · best race`;
+    const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Outlaw Rush' : 'Endless'}` : `${this.meta.name} · best race`;
     void sub;
     const ready = this.cardCache?.key === this.cardKey(ofRun);
     if (!ready) this.ui.toast(`${ICON.share} Making your card…`, '#9b6bff');
     const blob = await this.prepareCard(ofRun);
-    const text = `Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in Sky Roadster! Can you beat me?`;
+    const text = `Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in 3D Car Run! Can you beat me?`;
     const r = await shareImage(blob, text, this.shareUrl);
     if (r === 'shared') return true;
     if (r === 'cancel') return false;
@@ -1523,7 +1508,7 @@ export class Game {
     this.save.special = this.save.items.super > 0 ? 'super' : null;
     this.save.v2 = true;
     this.persist();
-    if (refund > 0) window.setTimeout(() => this.ui.toast(`${ICON.coin} Sky Roadster v2 · old items & upgrades refunded: +${refund.toLocaleString('en-US')} coins`, '#ffc21a'), 2500);
+    if (refund > 0) window.setTimeout(() => this.ui.toast(`${ICON.coin} old items & upgrades refunded: +${refund.toLocaleString('en-US')} coins`, '#ffc21a'), 2500);
   }
 
   /** v2: the special carried in this race (taken from the bag only when used) */
@@ -1541,7 +1526,7 @@ export class Game {
   private pickTrackId = 'endless';
   openSpecialPick(trackId: string) {
     if (trackId === 'track2' && !rankAtLeast(this.rank, 'AAA')) {
-      this.ui.toast(`${ICON.lock} Reach rank AAA to unlock Mega Rush`, '#ff4fd8');
+      this.ui.toast(`${ICON.lock} Reach rank AAA to unlock Outlaw Rush`, '#ff4fd8');
       return;
     }
     this.audio.play('click');
@@ -1570,7 +1555,7 @@ export class Game {
     return k;
   }
   private pickLabel() {
-    return `${this.pickTrackId === 'track2' ? 'Mega Rush' : 'Endless'} · ${LEVELS[this.save.settings.speed].label}`;
+    return `${this.pickTrackId === 'track2' ? 'Outlaw Rush' : 'Endless'} · ${LEVELS[this.save.settings.speed].label}`;
   }
   /** Magic Bag opened from the pre-race button: tapping a special picks it */
   private bagPickMode = false;
@@ -1818,7 +1803,7 @@ export class Game {
   startTrack(id: string) {
     this.tutorialMode = false;
     if (id === 'track2' && !rankAtLeast(this.rank, 'AAA')) {
-      this.ui.toast(`${ICON.lock} Reach rank AAA to unlock Mega Rush`, '#ff4fd8');
+      this.ui.toast(`${ICON.lock} Reach rank AAA to unlock Outlaw Rush`, '#ff4fd8');
       return;
     }
     if (id !== 'track2') id = 'endless'; // v2: the old 20 courses are retired
@@ -1969,7 +1954,7 @@ export class Game {
     const c = this.course;
     this.ui.trackHud(c ? { section: c.sections[0].name, dist: 0, length: c.length, marks: c.sections.slice(1).map((s) => s.from) } : null);
     if (c) this.ui.banner(`TRACK ${COURSES.indexOf(c) + 1} · ${(c.length / 1000).toFixed(1)} KM`, c.name.toUpperCase());
-    else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'BOOST TRAINING' : 'FIRST FLIGHT', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'PILOT TRAINING');
+    else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'BOOST TRAINING' : 'FIRST RIDE', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'DRIVER TRAINING');
   }
 
   pause() {
@@ -2940,7 +2925,7 @@ export class Game {
     if (!c || this.state === 'run' || this.state === 'countdown' || this.state === 'paused' || this.state === 'dying' || this.state === 'respawn') return;
     // reward accuracy: the car this class REALLY unlocked (only AA has one; S+ only if configured + owned)
     const carId = SKINS.find((k) => !k.future && k.need === c && this.save.unlocked.includes(k.id))?.id ?? null;
-    const sub: Record<string, string> = { C: 'Nice start — the road is opening up!', B: 'Solid driving. Keep climbing!', A: 'Top-class driving. Keep the streak going!', AA: 'Elite driver — a new XWAVE car is yours.', AAA: 'The highest Endless class. Mega Rush is open!', S: 'Mega Rush legend.', SS: 'Almost untouchable.', SSS: 'The very top of Sky Roadster.' };
+    const sub: Record<string, string> = { C: 'Nice start — the road is opening up!', B: 'Solid driving. Keep climbing!', A: 'Top-class driving. Keep the streak going!', AA: 'Elite driver — a new car is yours.', AAA: 'The highest Endless class. Outlaw Rush is open!', S: 'Outlaw Rush legend.', SS: 'Almost untouchable.', SSS: 'The very top of 3D Car Run.' };
     this.audio.play('fanfare');
     this.vibrate([30, 40, 60]);
     const rw = CLASS_REWARD[c as 'C' | 'B' | 'A'];
@@ -3072,7 +3057,7 @@ export class Game {
     this.ui.tutorial(false);
     this.audio.play('mission');
     this.audio.intensity = 0;
-    this.ui.banner(this.tutorialMode ? 'PILOT TRAINING' : this.course?.bonus ? 'BONUS ROAD' : 'TRACK COMPLETE', this.tutorialMode ? 'COMPLETE!' : 'FINISH!');
+    this.ui.banner(this.tutorialMode ? 'DRIVER TRAINING' : this.course?.bonus ? 'BONUS ROAD' : 'TRACK COMPLETE', this.tutorialMode ? 'COMPLETE!' : 'FINISH!');
     this.timeScale = this.timeScaleTarget = 1;
     this.ui.tutPrompt(null);
     // confetti + celebration rings
@@ -3558,6 +3543,8 @@ export class Game {
     this.save.settings.speed = lv;
     this.persist();
     this.ui.refreshProfile(this.save);
+    // v1.0.0: the level picker lives on the Race Start screen — refresh its cards (level tags)
+    if (this.state === 'tracks') this.ui.tracksSync(this.save, this.meta.myCup()?.cup.track);
     this.audio.unlock();
     this.audio.play('click');
   }

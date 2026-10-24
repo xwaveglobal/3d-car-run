@@ -1,4 +1,4 @@
-# Sky Roadster game server
+# 3D Car Run game server
 
 `server/index.mjs` — one file, no dependencies (Node 18+). Rules shared with the game live in `server/core.mjs`
 (checked against `src/config.ts` by `npm test` → `tests/server.test.ts`).
@@ -18,15 +18,15 @@ DEV_CODES=1 node server/index.mjs            # http://localhost:8787, data in se
 `DEV_CODES=1` shows the email code in the game (testing only). Without a mail key the code is printed in the console.
 
 ## Go live
-1. Host the server (any Node host / VPS / container) behind HTTPS, e.g. `https://api.skyroadster.com`.
-2. Put `CLOUD.api = 'https://api.skyroadster.com'` in `src/config.ts` and rebuild the game.
+1. Host the server (any Node host / VPS / container) behind HTTPS, e.g. `https://api.3dcarrun.com`.
+2. Put `CLOUD.api = 'https://api.3dcarrun.com'` in `src/config.ts` and rebuild the game.
 3. Environment:
 
 | Variable | What |
 |---|---|
 | `PORT` | listen port (default 8787) |
 | `PUBLIC_URL` | the server's public https address (OAuth callbacks) |
-| `ALLOWED_RETURN` | comma list of game origins allowed after sign-in, e.g. `https://skyroadster.com` |
+| `ALLOWED_RETURN` | comma list of game origins allowed after sign-in, e.g. `https://3dcarrun.com` |
 | `STATE_SECRET` | random string (signs the OAuth state) |
 | `RESEND_API_KEY`, `MAIL_FROM` | send email codes through Resend (or replace `sendCode()` with your mailer) |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud → OAuth client (Web). Redirect URI: `PUBLIC_URL/auth/google/callback` |

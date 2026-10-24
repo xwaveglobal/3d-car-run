@@ -190,22 +190,22 @@ const LESSONS: Record<string, Lesson> = {
 type LaserModeT = 'low' | 'high' | 'block' | 'open';
 
 export const WORLD_LESSONS: Record<WorldId, { name: string; lessons: string[] }> = {
-  city: { name: 'Future City', lessons: ['crate', 'traffic', 'beam', 'barrier', 'ring'] },
-  tunnel: { name: 'Neon Tunnel', lessons: ['barrier', 'laserLow', 'beam', 'laserHigh', 'ring', 'laserBlock'] },
-  cloud: { name: 'Cloud City', lessons: ['crate', 'platform', 'ring', 'beam', 'traffic'] },
-  space: { name: 'Space Zone', lessons: ['asteroid', 'laserLow', 'asteroid', 'ring', 'crate'] },
-  mega: { name: 'XWAVE Megacity', lessons: ['traffic', 'gate', 'laserHigh', 'laserBlock', 'beam'] },
-  desert: { name: 'Desert Highway', lessons: ['crate', 'traffic', 'barrier', 'ring'] },
-  forest: { name: 'Pine Forest', lessons: ['crate', 'beam', 'barrier', 'ring'] },
-  country: { name: 'Country Road', lessons: ['traffic', 'crate', 'barrier', 'ring'] },
-  sea: { name: 'Ocean Causeway', lessons: ['crate', 'beam', 'traffic', 'ring'] },
-  harbor: { name: 'Neon Harbor', lessons: ['crate', 'traffic', 'beam'] },
-  solar: { name: 'Solar Farms', lessons: ['barrier', 'beam', 'crate'] },
-  canyon: { name: 'Crystal Canyon', lessons: ['crate', 'laserLow', 'beam'] },
-  belt: { name: 'Asteroid Belt', lessons: ['asteroid', 'crate', 'laserLow'] },
-  storm: { name: 'Storm Front', lessons: ['traffic', 'gate', 'beam'] },
-  volcano: { name: 'Volcano Core', lessons: ['barrier', 'laserBlock', 'gate'] },
-  ice: { name: 'Aurora Ice', lessons: ['crate', 'beam', 'gate'] },
+  city: { name: 'Desert Valley', lessons: ['crate', 'traffic', 'beam', 'barrier', 'ring'] },
+  tunnel: { name: 'Rock Tunnel', lessons: ['barrier', 'laserLow', 'beam', 'laserHigh', 'ring', 'laserBlock'] },
+  cloud: { name: 'Canyon Bridge', lessons: ['crate', 'platform', 'ring', 'beam', 'traffic'] },
+  space: { name: 'Night Highway', lessons: ['asteroid', 'laserLow', 'asteroid', 'ring', 'crate'] },
+  mega: { name: 'Ghost Town', lessons: ['traffic', 'gate', 'laserHigh', 'laserBlock', 'beam'] },
+  desert: { name: 'Gold Canyon', lessons: ['crate', 'traffic', 'barrier', 'ring'] },
+  forest: { name: 'Pine Ridge', lessons: ['crate', 'beam', 'barrier', 'ring'] },
+  country: { name: 'Prairie Ranch', lessons: ['traffic', 'crate', 'barrier', 'ring'] },
+  sea: { name: 'Sunset Coast', lessons: ['crate', 'beam', 'traffic', 'ring'] },
+  harbor: { name: 'Train Yard', lessons: ['crate', 'traffic', 'beam'] },
+  solar: { name: 'Oil Field', lessons: ['barrier', 'beam', 'crate'] },
+  canyon: { name: 'Red Rock Canyon', lessons: ['crate', 'laserLow', 'beam'] },
+  belt: { name: 'Ancient Ruins', lessons: ['asteroid', 'crate', 'laserLow'] },
+  storm: { name: 'Sandstorm', lessons: ['traffic', 'gate', 'beam'] },
+  volcano: { name: 'Badlands', lessons: ['barrier', 'laserBlock', 'gate'] },
+  ice: { name: 'Coastal Cliff', lessons: ['crate', 'beam', 'gate'] },
 };
 
 export function advancedScript(world: WorldId): TrainingScript {

@@ -1,4 +1,4 @@
-// Sky Roadster — game server (no dependencies, Node 18+).
+// 3D Car Run — game server (no dependencies, Node 18+).
 //
 //  • Players / scores / boards  (same API as RemotePlayerStore in src/net/PlayerStore.ts)
 //  • Accounts + cloud save: guest token → sign in with email code, Google or Apple → progress follows the account
@@ -138,7 +138,7 @@ function finishOAuth(res, state, result) {
   html(
     res,
     200,
-    `<!doctype html><meta charset="utf-8"><title>Sky Roadster</title><body style="background:#0b1436;color:#fff;font:16px system-ui;text-align:center;padding-top:30vh">Signing in…<script>
+    `<!doctype html><meta charset="utf-8"><title>3D Car Run</title><body style="background:#0b1436;color:#fff;font:16px system-ui;text-align:center;padding-top:30vh">Signing in…<script>
 var d=${payload};
 try{if(window.opener){window.opener.postMessage(d,'*');window.close();}}catch(e){}
 var b=${JSON.stringify(back)};
@@ -165,7 +165,7 @@ async function sendCode(email, code) {
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ from: process.env.MAIL_FROM ?? 'Sky Roadster <noreply@example.com>', to: email, subject: `Sky Roadster code: ${code}`, text: `Your Sky Roadster sign-in code is ${code}. It expires in 10 minutes.` }),
+      body: JSON.stringify({ from: process.env.MAIL_FROM ?? '3D Car Run <noreply@example.com>', to: email, subject: `3D Car Run code: ${code}`, text: `Your 3D Car Run sign-in code is ${code}. It expires in 10 minutes.` }),
     });
   } else console.log(`[dev] email code for ${email}: ${code}`);
 }
@@ -346,4 +346,4 @@ http
       send(res, 500, { error: String(e) });
     }
   })
-  .listen(PORT, () => console.log(`Sky Roadster server on http://localhost:${PORT}`));
+  .listen(PORT, () => console.log(`3D Car Run server on http://localhost:${PORT}`));

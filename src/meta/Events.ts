@@ -36,11 +36,11 @@ export interface EventInst {
 }
 
 const TRACKS: { id: string; name: string; km: string; color: string; scale: number }[] = [
-  { id: 'future-city', name: 'Future City', km: '3.2 km', color: '#2fd36b', scale: 1 },
-  { id: 'cloud-city', name: 'Cloud City', km: '2.8 km', color: '#4fc3ff', scale: 0.92 },
-  { id: 'neon-tunnel', name: 'Neon Tunnel', km: '2.4 km', color: '#ff4fd8', scale: 0.85 },
-  { id: 'space-zone', name: 'Space Zone', km: '3.0 km', color: '#9b6bff', scale: 1.02 },
-  { id: 'mega-city', name: 'XWAVE Megacity', km: '3.6 km', color: '#ffc21a', scale: 1.15 },
+  { id: 'future-city', name: 'Desert Valley', km: '3.2 km', color: '#2fd36b', scale: 1 },
+  { id: 'cloud-city', name: 'Canyon Bridge', km: '2.8 km', color: '#4fc3ff', scale: 0.92 },
+  { id: 'neon-tunnel', name: 'Rock Tunnel', km: '2.4 km', color: '#ff4fd8', scale: 0.85 },
+  { id: 'space-zone', name: 'Night Highway', km: '3.0 km', color: '#9b6bff', scale: 1.02 },
+  { id: 'mega-city', name: 'Ghost Town', km: '3.6 km', color: '#ffc21a', scale: 1.15 },
   { id: 'endless', name: 'Endless', km: 'all worlds', color: '#ff7a3a', scale: 1.7 },
 ];
 
