@@ -10200,7 +10200,7 @@ void main() {
         setBloom(strength) { this.bloomStrength = strength, this.bloom && (this.bloom.strength = strength); }
         render() { var _a13; if (this.lost)
             return; if (this.renderer.info.autoReset = !1, this.renderer.info.reset(), (_a13 = this.home) != null && _a13.active) {
-            if (this.renderer.setRenderTarget(null), this.renderer.render(this.home.scene, this.home.camera), this.uiPass) {
+            if (this.renderer.setRenderTarget(null), this.home.setLinearOut(this.renderer.outputColorSpace === LinearSRGBColorSpace), this.renderer.render(this.home.scene, this.home.camera), this.uiPass) {
                 let r2 = this.renderer, auto2 = r2.autoClear;
                 r2.autoClear = !1, r2.clearDepth(), this.uiPass(r2), r2.autoClear = auto2;
             }
@@ -10323,9 +10323,9 @@ void main() {
             __publicField(this, "slideX", 0);
             this.scene.environment = env, this.scene.environmentIntensity = .9, this.camera.layers.enableAll();
             let tex3 = new TextureLoader().load(art);
-            tex3.colorSpace = SRGBColorSpace, tex3.generateMipmaps = !0, tex3.minFilter = LinearMipmapLinearFilter, tex3.wrapS = tex3.wrapT = ClampToEdgeWrapping;
-            let mat3 = new ShaderMaterial({ uniforms: { tMap: { value: tex3 }, uView: { value: new Vector2(1, 1) }, uStage: { value: new Vector4(0, 0, 1, 1) }, uExt: { value: HOME_ART.ext / HOME_ART.h }, uDpr: { value: 1 } }, vertexShader: "void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }", fragmentShader: `
-        uniform sampler2D tMap; uniform vec2 uView; uniform vec4 uStage; uniform float uExt; uniform float uDpr;
+            tex3.colorSpace = NoColorSpace, tex3.generateMipmaps = !0, tex3.minFilter = LinearMipmapLinearFilter, tex3.wrapS = tex3.wrapT = ClampToEdgeWrapping;
+            let mat3 = new ShaderMaterial({ uniforms: { tMap: { value: tex3 }, uView: { value: new Vector2(1, 1) }, uStage: { value: new Vector4(0, 0, 1, 1) }, uExt: { value: HOME_ART.ext / HOME_ART.h }, uDpr: { value: 1 }, uLinearOut: { value: 0 } }, vertexShader: "void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }", fragmentShader: `
+        uniform sampler2D tMap; uniform vec2 uView; uniform vec4 uStage; uniform float uExt; uniform float uDpr; uniform float uLinearOut;
         void main() {
           vec2 p = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr; // CSS px, top-left origin
           float u = (p.x - uStage.x) / uStage.z;
@@ -10340,8 +10340,8 @@ void main() {
           } else {
             c = texture2D(tMap, vec2(u, 1.0 - v));
           }
-          gl_FragColor = vec4(c.rgb, 1.0);
-          #include <colorspace_fragment>
+          vec3 lin = mix(pow((c.rgb + 0.055) / 1.055, vec3(2.4)), c.rgb / 12.92, step(c.rgb, vec3(0.04045)));
+          gl_FragColor = vec4(mix(c.rgb, lin, uLinearOut), 1.0);
         }`, depthTest: !1, depthWrite: !1, toneMapped: !1 });
             this.bg = new Mesh(new PlaneGeometry(2, 2), mat3), this.bg.frustumCulled = !1, this.bg.renderOrder = -1e3, this.scene.add(this.bg);
             let hemi = new HemisphereLight(16764826, 9062946, HOME_SHOW.hemi), sun = new DirectionalLight(16761992, HOME_SHOW.sun);
@@ -10376,6 +10376,7 @@ void main() {
             let pm = new PMREMGenerator(renderer);
             this.scene.environment = pm.fromScene(es, .03).texture, pm.dispose(), sky.geometry.dispose(), sky.material.dispose();
         }
+        setLinearOut(on2) { this.bg.material.uniforms.uLinearOut.value = on2 ? 1 : 0; }
         resize(w, h, dpr) { this.vw = w, this.vh = h; let st = homeStage(w, h), u = this.bg.material.uniforms; u.uView.value.set(w, h), u.uDpr.value = dpr, u.uStage.value.set(st.x, st.y, st.w, st.h), this.camera.aspect = w / h, this.placeCamera(); }
         placeCamera() { let st = homeStage(this.vw, this.vh), [ax, ay, aw] = HOME_LAYOUT.car, cx = st.x + ax * st.s, cy = st.y + ay * st.s, wantPx = aw * st.s, fov2 = MathUtils.degToRad(HOME_SHOW.fov), d = HOME_SHOW.carSpan * this.vh / (2 * Math.tan(fov2 / 2) * wantPx), yaw = HOME_SHOW.yaw, pitch = HOME_SHOW.pitch, look = new Vector3(0, HOME_SHOW.lookY, 0); this.camera.position.set(look.x + Math.sin(yaw) * Math.cos(pitch) * d, look.y + Math.sin(pitch) * d, look.z + Math.cos(yaw) * Math.cos(pitch) * d), this.camera.lookAt(look), this.camera.setViewOffset(this.vw, this.vh, this.vw / 2 - cx, this.vh / 2 - cy, this.vw, this.vh), this.camera.updateProjectionMatrix(); }
         attach(car) { HOME_SHOW.car3d && this.scene.add(car), this.shadow.visible = HOME_SHOW.car3d, this.active = !0; }

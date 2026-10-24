@@ -34,7 +34,10 @@ export class HomeView {
     this.camera.layers.enableAll();
     // ---- painted background (full-screen quad, drawn first, never tone-mapped)
     const tex = new THREE.TextureLoader().load(art);
-    tex.colorSpace = THREE.SRGBColorSpace;
+    // v4.0 native: the art is uploaded RAW (never decoded by the GPU) and written out as the painted sRGB pixels —
+    // a mini-game runtime that does not decode sRGB textures (or encodes the surface again) washed it out.
+    // uLinearOut = 1 when the screen itself encodes to sRGB (src/native/color.ts fix A): then write linear.
+    tex.colorSpace = THREE.NoColorSpace;
     tex.generateMipmaps = true;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
@@ -45,10 +48,11 @@ export class HomeView {
         uStage: { value: new THREE.Vector4(0, 0, 1, 1) },
         uExt: { value: HOME_ART.ext / HOME_ART.h },
         uDpr: { value: 1 },
+        uLinearOut: { value: 0 },
       },
       vertexShader: /* glsl */ `void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }`,
       fragmentShader: /* glsl */ `
-        uniform sampler2D tMap; uniform vec2 uView; uniform vec4 uStage; uniform float uExt; uniform float uDpr;
+        uniform sampler2D tMap; uniform vec2 uView; uniform vec4 uStage; uniform float uExt; uniform float uDpr; uniform float uLinearOut;
         void main() {
           vec2 p = vec2(gl_FragCoord.x, uView.y * uDpr - gl_FragCoord.y) / uDpr; // CSS px, top-left origin
           float u = (p.x - uStage.x) / uStage.z;
@@ -63,8 +67,8 @@ export class HomeView {
           } else {
             c = texture2D(tMap, vec2(u, 1.0 - v));
           }
-          gl_FragColor = vec4(c.rgb, 1.0);
-          #include <colorspace_fragment>
+          vec3 lin = mix(pow((c.rgb + 0.055) / 1.055, vec3(2.4)), c.rgb / 12.92, step(c.rgb, vec3(0.04045)));
+          gl_FragColor = vec4(mix(c.rgb, lin, uLinearOut), 1.0);
         }`,
       depthTest: false,
       depthWrite: false,
@@ -139,6 +143,11 @@ export class HomeView {
     pm.dispose();
     sky.geometry.dispose();
     (sky.material as THREE.Material).dispose();
+  }
+
+  /** the renderer's output: sRGB (normal) → the art's pixels as they are; linear (the surface encodes) → decoded */
+  setLinearOut(on: boolean) {
+    this.bg.material.uniforms.uLinearOut.value = on ? 1 : 0;
   }
 
   resize(w: number, h: number, dpr: number) {

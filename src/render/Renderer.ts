@@ -247,6 +247,7 @@ export class Renderer {
     if (this.home?.active) {
       // Home: painted key art + the car, straight to the canvas (no bloom: the art keeps its colours)
       this.renderer.setRenderTarget(null);
+      this.home.setLinearOut(this.renderer.outputColorSpace === THREE.LinearSRGBColorSpace);
       this.renderer.render(this.home.scene, this.home.camera);
       // v4.0 native: the canvas UI (top bar, signs, tap areas) is composited on top of the key art too
       if (this.uiPass) {
