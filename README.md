@@ -189,6 +189,11 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.6 — round coin on every screen header
+
+- The coin bar on the page headers (Daily, Shop, Top Pilots, Missions…) was stretched to ~5:1 (its % padding grew the box),
+  so the star coin looked squashed. Now it keeps the plate's 248 : 87 shape (padding in px, border-box), a bit larger (42 px).
+
 ## v1.0.5 — loading art, Western avatars, profile rebuild, lighter build
 
 - Loading screen: the owner's new key art (logo + car in the dust), 600 px wide, logo kept sharp, dust softened → 115 KB.

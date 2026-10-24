@@ -4,6 +4,15 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.6: header coin bar no longer stretched
+
+- Owner: "Ô dấu sao ở top của các bảng đều bị méo". Cause: `.wallet` padding in % of the header width made the box 195 px
+  instead of 108 px, and the sprite is drawn at 100% × 100%. Fixed in western.css (px padding, border-box, 42 px high);
+  measured 2.85 : 1 on Daily / Shop / Top Pilots / Missions at 360 and 390 px.
+- Checks: typecheck, `npm test` 14 / 14.
+
+---
+
 ## 2026-10-24 — v1.0.5: loading key art, smaller build, Western avatars, profile rebuild
 
 Owner: "Ảnh 1 nút bị móp, ảnh 2 hình launcher bị hoà vào nền, ảnh 3 chỗ detail bị sít, exp đổi màu, các avatar … loại khác
