@@ -448,6 +448,22 @@ export const CAMERA = {
 };
 
 /**
+ * v1.0.3 colour grade of the 3D world (Renderer, MEDIUM / HIGH presets: one full-screen pass with the
+ * other post effects; LOW only gets the lower exposure). Owner: calmer, less glaring, more natural.
+ */
+export const GRADE = {
+  on: true,
+  /** 1 = unchanged, lower = less saturated */
+  saturation: 0.84,
+  /** + warm (red up, blue down), linear */
+  warmth: 0.02,
+  /** linear level where highlights start to roll off */
+  knee: 0.82,
+  /** tone-map exposure (was 1.05) */
+  exposure: 0.97,
+};
+
+/**
  * v1.0.2 Home showcase (render/HomeView.ts): the 3D car on the owner's key art. The car stands still
  * (wheels turning, dust behind), seen from behind-right like the art; swipe slides between cars.
  */

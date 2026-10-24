@@ -189,6 +189,25 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.3 — sound fixed (Western soundtrack), Home from the new key art, calmer colours, text review
+
+- **Audio bug fixed**: the guitar synth was a Web Audio feedback loop, and Web Audio forces any delay inside a
+  loop up to 128 samples — every note played at ~40 Hz (a buzzing, out-of-tune drone). New engine
+  (`src/audio/westernSynth.ts`, tested in `tests/audio.test.ts`): in-tune plucked strings, harmonica, whistle,
+  train-beat brushes, clip-clop, bells — rendered once (in small background slices) into seamless loops:
+  "Campfire" on Home, "Dust Trail Gallop" in races, a banjo layer during Nitro, canyon reverb. Western SFX:
+  saloon-bell countdown, starting pistol, guitar strums on pickups / missions, banjo runs, whip crack.
+- **Home = the owner's new key art** (`assets-src/reference/home-v3.webp`): the painted BONUS / ENTRY / PLAY /
+  GARAGE / SHOP / MISSIONS are the buttons; the top bar is cut out (live name, rank, EXP, coins, dots) and
+  pinned on tall phones; the swipeable 3D car stands where the painted car was.
+- **Calmer colours**: wood, bronze and gold toned down to the owner's v3 screens; a light colour grade on
+  the 3D world (MEDIUM / HIGH: less saturation, highlight roll-off; all presets: lower exposure).
+- **3D CAR RUN** on the car's rear badge (3D and garage pictures) instead of XWAVE; old billboard text
+  replaced.
+- **Text review** of every player-facing string: Roadster / HYPER / SOS / Magic Bag / flying wording → the
+  Western names, Gold Rush everywhere (not "Bonus"), correct EXP-guide unlocks and reward sources, the
+  "TRACK 0" banner in Gold Rush, i18n lookup that kept "Share" / "SHARE" apart, 35 missing labels translated.
+
 ## v1.0.2 — Home = the owner's key art; UI kit graphics
 
 - **Home rebuilt like the key art** (`assets-src/reference/home-v2.webp`): the painted desert, logo and dust are the

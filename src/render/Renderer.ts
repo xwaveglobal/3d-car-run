@@ -32,6 +32,23 @@ export const OVERLAY_LAYER = 1;
 
 import { GRAPHICS, type GraphicsQuality } from '../config.ts';
 import type { HomeView } from './HomeView.ts';
+import { GRADE } from '../config.ts';
+
+/** v1.0.3 colour grade (linear, before the tone map): saturation, warmth, soft highlight roll-off */
+const GradeShader = {
+  uniforms: { tDiffuse: { value: null }, uSat: { value: GRADE.saturation }, uWarm: { value: GRADE.warmth }, uKnee: { value: GRADE.knee } },
+  vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uSat; uniform float uWarm; uniform float uKnee; varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D(tDiffuse, vUv);
+      float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+      vec3 g = mix(vec3(l), c.rgb, uSat);
+      g *= vec3(1.0 + uWarm, 1.0, 1.0 - uWarm);
+      // soft knee: values above uKnee are compressed (less glare on bright sand / sky)
+      g = mix(g, uKnee + (g - uKnee) / (1.0 + (g - uKnee)), step(uKnee, g));
+      gl_FragColor = vec4(max(g, 0.0), c.a);
+    }`,
+};
 /** v4.2: LOW / MEDIUM / HIGH presets (config GRAPHICS) */
 export type Quality = GraphicsQuality;
 
@@ -95,7 +112,7 @@ export class Renderer {
     const r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false, stencil: false });
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
-    r.toneMappingExposure = 1.05;
+    r.toneMappingExposure = GRADE.exposure;
     r.domElement.style.display = 'block';
     r.domElement.style.width = '100%';
     r.domElement.style.height = '100%';
@@ -124,7 +141,9 @@ export class Renderer {
     this.renderer.setPixelRatio(this.pixelRatio);
     const wantBloom = pr.bloom && this.bloomEnabled;
     const wantBlur = pr.speedBlur;
-    const post = wantBloom || wantBlur;
+    // the grade rides with the other post effects (never forces a composer on LOW)
+    const wantGrade = GRADE.on && q !== 'low';
+    const post = wantBloom || wantBlur || wantGrade;
     // rebuild the composer when the set of passes changes (presets are switched rarely, in menus)
     if (this.composer && (!post || !!this.bloom !== wantBloom || !!this.speedBlur !== wantBlur)) this.disposeComposer();
     if (post && !this.composer) {
@@ -143,6 +162,9 @@ export class Renderer {
         this.speedBlur = new ShaderPass(SpeedBlurShader);
         this.composer.addPass(this.speedBlur);
       }
+      // v1.0.3: calmer, more natural colour (owner: "không bị chói quá") — a little less saturation,
+      // a touch of warmth, highlights rolled off before the tone map
+      if (wantGrade) this.composer.addPass(new ShaderPass(GradeShader));
       this.composer.addPass(new OutputPass());
     }
     this.resize();

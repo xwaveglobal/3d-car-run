@@ -1,7 +1,7 @@
 {
   "name": "3d-car-run",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "3D Car Run \u2014 mobile-first Western desert 3D racing runner (Three.js + TypeScript + Vite)",
   "type": "module",
   "scripts": {

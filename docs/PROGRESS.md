@@ -4,6 +4,19 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.3: audio fixed + Western music, Home from key art v3, calmer colours, text review
+
+Owner: "âm thanh bị lỗi … big bugs, cho sound và music gần với phong cách mới … cowboy"; "thay home chuẩn như ảnh 1,
+tập ảnh trong file zip … màu không bị chói quá … biển quảng cáo, neon có chữ Sky Roadster đều thay … rà soát toàn bộ text".
+- Audio: root cause = Web Audio feedback-loop guitar (delay clamped to 128 samples → every note ~40 Hz). New
+  `src/audio/westernSynth.ts` + loop playback in `Audio.ts`; `npm test` includes `tests/audio.test.ts` (pitch, loops).
+- Home v3: `scripts/home/make-home-bg-v3.py` (+ `assets-src/home/v3/` cut-outs), `HOME_LAYOUT` re-measured.
+- UI palette toned down (western.css + desaturated wood textures); `GRADE` in config.ts for the 3D world.
+- Text: audit applied (see README v1.0.3). Kept "Pilot" and "LAUNCH" — the owner's v3 mockups use them.
+- Next: owner listens on a phone (music volume / mix), feedback on the new Home.
+
+---
+
 ## 2026-10-24 — v1.0.2: Home = key art (owner: "ngoài home sử dụng y hệt ảnh 4 … xe ngoài home có thể lướt chọn được")
 
 - Home: painted key art background (`src/assets/images/home/home-bg.webp`, built by `scripts/home/make-home-bg.py`)
