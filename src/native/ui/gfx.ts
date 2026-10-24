@@ -11,25 +11,33 @@ import { getLang, tr as tr0 } from '../../ui/i18n.ts';
 /** translate a known label (English stays exactly as written) */
 const tr = (s: string) => (getLang() === 'en' ? s : tr0(s));
 
-export const FONT_D = '"Arial Black", "Helvetica Neue", Arial, sans-serif';
+// v4.0 (3D Car Run): Western faces — Alfa Slab One for display text, Rye (capitals only) for titles. The native
+// main registers the bundled TTFs (tt.loadFont) and fills in their family names; until then the fallbacks draw.
+export let FONT_D = '"Alfa Slab One", Rockwell, Georgia, "Arial Black", serif';
+export let FONT_T = 'Rye, "Alfa Slab One", Georgia, serif';
 export const FONT_B = '"Helvetica Neue", Arial, sans-serif';
+export function setFonts(display: string | null, title: string | null) {
+  if (display) FONT_D = `"${display}", Rockwell, Georgia, "Arial Black", serif`;
+  if (title) FONT_T = `"${title}", ${FONT_D}`;
+}
+// v4.0 (3D Car Run): the Western palette of the web UI (src/ui/western.css) — wood, leather, bronze, gold
 export const C = {
-  bg: '#04071a',
-  panel: 'rgba(9,16,44,0.92)',
-  panelSolid: '#0b1436',
-  rim: 'rgba(79,195,255,0.55)',
-  rimSoft: 'rgba(98,170,255,0.38)',
-  card: 'rgba(10,20,52,0.82)',
-  cardRim: 'rgba(130,175,255,0.18)',
-  blue: '#2f8cff',
-  cyan: '#4fc3ff',
-  green: '#2fd36b',
-  purple: '#8a3dff',
-  gold: '#ffc21a',
-  red: '#ff3b5c',
-  pink: '#ff4fd8',
-  text: '#ffffff',
-  muted: '#9fb3dd',
+  bg: '#1c0f06',
+  panel: 'rgba(52,30,14,0.95)',
+  panelSolid: '#3a2210',
+  rim: 'rgba(196,150,90,0.85)',
+  rimSoft: 'rgba(173,138,88,0.7)',
+  card: 'rgba(40,24,10,0.8)',
+  cardRim: 'rgba(190,150,100,0.45)',
+  blue: '#9a6436',
+  cyan: '#ffd27a',
+  green: '#6aa83e',
+  purple: '#a8552e',
+  gold: '#ffc848',
+  red: '#e0402a',
+  pink: '#e0702a',
+  text: '#fff1d0',
+  muted: '#d9bf94',
 };
 /** css var() colours used in Game strings */
 export function cssColor(c: string): string {
@@ -129,7 +137,7 @@ export function tokenize(html: string): Tok[] {
     if (tag === 'small') e.sm = true;
     if (tag === 'em' || tag === 'i') e.it = true;
     if (/\bclsb\b/.test(cls)) {
-      const cc = /--cc:\s*([^;"]+)/.exec(style)?.[1] ?? '#9fb3dd';
+      const cc = /--cc:\s*([^;"]+)/.exec(style)?.[1] ?? '#d9bf94';
       e.badge = { col: cc.trim(), size: /\blg\b/.test(cls) ? 'lg' : /\bmd\b/.test(cls) ? 'md' : 'sm' };
     }
     if (/\bprice\b/.test(cls)) e.col = C.gold;
@@ -158,7 +166,7 @@ export interface TextOpts {
   size?: number;
   color?: string;
   weight?: number | string;
-  font?: 'd' | 'b';
+  font?: 'd' | 'b' | 't';
   italic?: boolean;
   align?: 'left' | 'center' | 'right';
   baseline?: CanvasTextBaseline;
@@ -173,9 +181,11 @@ export interface TextOpts {
 }
 
 export function font(o: TextOpts, size: number) {
-  const fam = o.font === 'b' ? FONT_B : FONT_D;
-  const w = o.weight ?? (o.font === 'b' ? 600 : 900);
-  return `${o.italic ? 'italic ' : ''}${w} ${size}px ${fam}`;
+  // v4.0: slab / western faces are upright and come in one weight (no italic, no synthetic bold)
+  if (o.font === 't') return `400 ${size}px ${FONT_T}`;
+  if (o.font !== 'b') return `400 ${size}px ${FONT_D}`;
+  const w = o.weight ?? 600;
+  return `${o.italic ? 'italic ' : ''}${w} ${size}px ${FONT_B}`;
 }
 
 // ------------------------------------------------------------------ painter
@@ -595,7 +605,7 @@ export function rankBadgeW(g: Gfx, cls: string, h: number) {
 /** the hex rank plate (D … SSS) */
 export function rankBadge(g: Gfx, cls: string, x: number, y: number, h: number, col?: string) {
   if (g.dry) return;
-  const cc = col ?? CLASS_COLOR[cls as RankClass] ?? '#9fb3dd';
+  const cc = col ?? CLASS_COLOR[cls as RankClass] ?? '#d9bf94';
   const w = rankBadgeW(g, cls, h);
   const c = g.ctx;
   const n = h * 0.28;
@@ -617,15 +627,16 @@ export function rankBadge(g: Gfx, cls: string, x: number, y: number, h: number, 
 
 export type BtnStyle = 'blue' | 'gold' | 'green' | 'purple' | 'pink' | 'ghost' | 'dark' | 'red' | 'cyan';
 const BTN: Record<BtnStyle, [string, string, string]> = {
-  blue: ['#3aa0ff', '#1f5fe0', '#ffffff'],
-  gold: ['#ffd84a', '#ff9a1a', '#2a1600'],
-  green: ['#3fe07c', '#13a04a', '#ffffff'],
-  purple: ['#b06bff', '#6a2ee0', '#ffffff'],
-  pink: ['#ff6bb0', '#e0247a', '#ffffff'],
-  red: ['#ff6b6b', '#d81f3c', '#ffffff'],
-  cyan: ['#5ee6ff', '#1a9fd8', '#06223a'],
-  ghost: ['rgba(255,255,255,.10)', 'rgba(255,255,255,.06)', '#ffffff'],
-  dark: ['#25335f', '#151f44', '#ffffff'],
+  // v4.0 (3D Car Run): wood / brass / leather buttons (web: western.css .btn)
+  blue: ['#8a5a30', '#5e3619', '#fff1d0'],
+  gold: ['#ffd77a', '#d98c22', '#3a1c04'],
+  green: ['#7ab84a', '#3f7a22', '#fff1d0'],
+  purple: ['#b0603a', '#7a3418', '#fff1d0'],
+  pink: ['#d87a3a', '#a04414', '#fff1d0'],
+  red: ['#e0603a', '#b02a18', '#fff1d0'],
+  cyan: ['#ffe3a0', '#d99a3c', '#3a1a04'],
+  ghost: ['rgba(120,78,40,.55)', 'rgba(60,36,16,.75)', '#fff1d0'],
+  dark: ['#6a4020', '#3a2210', '#fff1d0'],
 };
 
 export interface BtnOpts {
@@ -655,10 +666,11 @@ export function button(g: Gfx, key: string, x: number, y: number, w: number, h: 
     }
     // v4.6 (owner): no button casts a shadow any more; outside Home buttons are flat (solid colour,
     // 1 px border, no gloss, no text shadow — Step 06.5), Home keeps its gradient + gloss
-    if (g.flat) g.rr(x, y, w, h, r, c2, st === 'ghost' ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.28)', 1);
+    const rim = st === 'gold' || st === 'cyan' ? '#7a4a14' : '#ad8a58';
+    if (g.flat) g.rr(x, y, w, h, r, g.lin(0, y, 0, y + h, [[0, c1], [1, c2]]), rim, 1.6);
     else {
-      g.rr(x, y, w, h, r, g.lin(0, y, 0, y + h, [[0, c1], [1, c2]]), st === 'ghost' ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.28)', 1);
-      if (st !== 'ghost') g.rr(x + 3, y + 2, w - 6, h * 0.42, r * 0.8, 'rgba(255,255,255,.16)');
+      g.rr(x, y, w, h, r, g.lin(0, y, 0, y + h, [[0, c1], [1, c2]]), rim, 1.6);
+      if (st !== 'ghost') g.rr(x + 3, y + 2, w - 6, h * 0.42, r * 0.8, 'rgba(255,240,200,.14)');
     }
     const size = o.size ?? Math.min(18, h * 0.42);
     const lab = o.icon ? `${o.icon} ${label}` : label;
@@ -679,8 +691,10 @@ export function button(g: Gfx, key: string, x: number, y: number, w: number, h: 
 export function iconBtn(g: Gfx, key: string, x: number, y: number, s: number, svg: string, fn: () => void, color = '#ffffff') {
   const pr = g.isPressed(key);
   if (!g.dry) {
-    g.rr(x, y, s, s, s * 0.3, pr ? 'rgba(79,195,255,.35)' : 'rgba(10,22,60,.82)', 'rgba(130,190,255,.45)', 1.2);
-    g.icon(svg, x + s * 0.22, y + s * 0.22, s * 0.56, color);
+    // v4.0: the brass square of the web UI (back / close)
+    g.rr(x, y, s, s, s * 0.24, g.lin(0, y, 0, y + s, [[0, pr ? '#ffe3a0' : '#ffd884'], [0.45, '#f0a43a'], [1, '#c06818']]), '#5a2e08', 2);
+    g.rr(x + 3, y + 3, s - 6, s - 6, s * 0.18, null, 'rgba(255,236,170,.55)', 1);
+    g.icon(svg, x + s * 0.22, y + s * 0.22, s * 0.56, color === '#ffffff' ? '#3a1a04' : color);
   }
   g.hit(x - 4, y - 4, s + 8, s + 8, key, fn);
 }
@@ -688,17 +702,29 @@ export function iconBtn(g: Gfx, key: string, x: number, y: number, s: number, sv
 /** glass panel */
 export function panel(g: Gfx, x: number, y: number, w: number, h: number, r = 18, rim = C.rimSoft) {
   if (g.dry) return;
+  // v4.0: a dark wood panel in a bronze frame with corner rivets (web: western.css .panel)
   g.shadow('rgba(0,0,0,.55)', 18, 6);
-  g.rr(x, y, w, h, r, g.lin(0, y, 0, y + h, [[0, 'rgba(18,32,76,.97)'], [1, 'rgba(8,15,40,.98)']]));
+  g.rr(x, y, w, h, r, g.lin(0, y, 0, y + h, [[0, '#5a3618'], [0.5, '#43280f'], [1, '#2e1a09']]));
   g.shadow(null);
-  g.rr(x + 0.5, y + 0.5, w - 1, h - 1, r, null, rim, 1.2);
+  // a few planks of grain
+  g.ctx.save();
+  g.ctx.beginPath();
+  roundRectPath(g.ctx, x, y, w, h, r);
+  g.ctx.clip();
+  for (let yy = y + 9; yy < y + h; yy += 13) g.rr(x, yy, w, 1, 0, 'rgba(20,10,3,.22)');
+  g.ctx.restore();
+  g.rr(x + 1, y + 1, w - 2, h - 2, r, null, rim === C.rimSoft ? '#ad8a58' : rim, 2.2);
+  g.rr(x + 5, y + 5, w - 10, h - 10, Math.max(4, r - 4), null, 'rgba(255,230,180,.12)', 1);
+  for (const [cx, cy] of [[x + 10, y + 10], [x + w - 10, y + 10], [x + 10, y + h - 10], [x + w - 10, y + h - 10]]) {
+    g.circle(cx, cy, 3, '#8a6a40', '#2a1406', 1);
+  }
 }
 export function card(g: Gfx, x: number, y: number, w: number, h: number, r = 12, rim = C.cardRim, fill = C.card) {
   g.rr(x, y, w, h, r, fill, rim, 1);
 }
 
 /** progress bar */
-export function bar(g: Gfx, x: number, y: number, w: number, h: number, k: number, col: any = C.cyan, bg = 'rgba(255,255,255,.12)') {
+export function bar(g: Gfx, x: number, y: number, w: number, h: number, k: number, col: any = C.gold, bg = 'rgba(0,0,0,.4)') {
   if (g.dry) return;
   g.rr(x, y, w, h, h / 2, bg);
   const kk = Math.max(0, Math.min(1, k));
@@ -710,8 +736,8 @@ export function toggle(g: Gfx, key: string, x: number, y: number, on: boolean, f
   const w = 46,
     h = 26;
   if (!g.dry) {
-    g.rr(x, y, w, h, h / 2, on ? g.lin(x, 0, x + w, 0, [[0, '#2fd36b'], [1, '#1fb5ff']]) : 'rgba(255,255,255,.14)', 'rgba(255,255,255,.25)');
-    g.circle(on ? x + w - h / 2 : x + h / 2, y + h / 2, h / 2 - 3, '#ffffff');
+    g.rr(x, y, w, h, h / 2, on ? g.lin(x, 0, x + w, 0, [[0, '#7ab84a'], [1, '#3f7a22']]) : 'rgba(0,0,0,.35)', '#ad8a58', 1.2);
+    g.circle(on ? x + w - h / 2 : x + h / 2, y + h / 2, h / 2 - 3, g.rad(on ? x + w - h / 2 : x + h / 2, y + h / 2 - 3, 1, h / 2, [[0, '#fff1d0'], [1, '#c8924a']]));
   }
   g.hit(x - 6, y - 8, w + 12, h + 16, key, fn);
 }

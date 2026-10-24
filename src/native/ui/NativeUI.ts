@@ -43,7 +43,7 @@ export interface HudState {
 
 const BASE = ['loading', 'start', 'tracks', 'garage', 'missions', 'ranks', 'daily', 'events', 'shop', 'hud', 'countdown', 'tutprompt'];
 /** overlay draw order (bottom → top) */
-export const OVERLAYS = ['finish', 'gameover', 'runrank', 'continue', 'pause', 'tutdone', 'tutintro', 'settings', 'guide', 'eventres', 'profile', 'bonus', 'specialpick', 'bag', 'bagbuy', 'boostinfo', 'spconfirm', 'rankguide', 'account', 'cloudpick', 'classup', 'sharepv', 'popup', 'logs'];
+export const OVERLAYS = ['finish', 'gameover', 'runrank', 'continue', 'pause', 'tutdone', 'tutintro', 'settings', 'guide', 'eventres', 'profile', 'bonus', 'specialpick', 'bag', 'bagbuy', 'boostinfo', 'spconfirm', 'rankguide', 'account', 'cloudpick', 'classup', 'sharepv', 'more', 'popup', 'logs'];
 
 export class UI {
   /** Game uses root.getBoundingClientRect() to map 3D → screen */
@@ -521,7 +521,7 @@ export class UI {
     this.debugText = text;
     this.dirty = true;
   }
-  homeSync(o: { name: string; color: string; best: number; avatar: number; bolts: number; weekRank: number | null; allRank?: number | null; dailyBadge: number; bonus: { live: boolean; name: string; theme: string; text: string }; sale: boolean; pass: boolean }) {
+  homeSync(o: { name: string; color: string; best: number; avatar: number; avatarPicked?: boolean; bolts: number; weekRank: number | null; allRank?: number | null; dailyBadge: number; bonus: { live: boolean; name: string; theme: string; text: string }; sale: boolean; pass: boolean }) {
     this.home = o;
     this.dirty = true;
   }
@@ -680,7 +680,7 @@ export class UI {
   }
   rocketWait() {
     this.hud.rocketWaitT = this.t();
-    this.toast(`<b>Save it!</b> Tap ROADSTER when the button lights up`, '#9b6bff');
+    this.toast(`<b>Save it!</b> Tap ROADSTER when the button lights up`, '#c86a2a');
   }
   danger(hint: string | null) {
     this.rocketReady = hint === 'rocket';

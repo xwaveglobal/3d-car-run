@@ -248,6 +248,15 @@ export class Renderer {
       // Home: painted key art + the car, straight to the canvas (no bloom: the art keeps its colours)
       this.renderer.setRenderTarget(null);
       this.renderer.render(this.home.scene, this.home.camera);
+      // v4.0 native: the canvas UI (top bar, signs, tap areas) is composited on top of the key art too
+      if (this.uiPass) {
+        const r = this.renderer;
+        const auto = r.autoClear;
+        r.autoClear = false;
+        r.clearDepth();
+        this.uiPass(r);
+        r.autoClear = auto;
+      }
       return;
     }
     if (this.composer) this.composer.render();

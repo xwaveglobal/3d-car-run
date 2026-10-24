@@ -5,7 +5,7 @@
         "label": "rw_revive",
         "ads": [
           {
-            "id": "<AD UNIT ID>",
+            "id": "ad7699423177315469319",
             "config": {
               "cooldown": 30
             }
@@ -16,7 +16,7 @@
         "label": "rw_end_bonus",
         "ads": [
           {
-            "id": "<AD UNIT ID>",
+            "id": "ad7699414834114840594",
             "config": {
               "cooldown": 30
             }
@@ -27,7 +27,7 @@
         "label": "rw_free_coins",
         "ads": [
           {
-            "id": "<AD UNIT ID>",
+            "id": "ad7699414196535052296",
             "config": {
               "cooldown": 30
             }
@@ -38,7 +38,7 @@
         "label": "rw_head_start",
         "ads": [
           {
-            "id": "<AD UNIT ID>",
+            "id": "ad7699406374372427783",
             "config": {
               "cooldown": 30
             }
@@ -49,7 +49,7 @@
         "label": "int_race_end",
         "ads": [
           {
-            "id": "<AD UNIT ID>",
+            "id": "ad7699420040583989266",
             "config": {
               "cooldown": 90
             }

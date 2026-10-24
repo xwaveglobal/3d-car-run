@@ -1,13 +1,14 @@
-/** v3 native UI — race HUD, ROADSTER / SOS buttons, notices, pops, flyers */
+/** v3 native UI — race HUD, special buttons (Launcher / Eagle / Rescue), notices, pops, flyers */
+import { HUD_EAGLE, HUD_LAUNCH } from '../../western/items.ts';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { C, Gfx, bar, cssColor, fmt, rankBadge, shade } from './gfx.ts';
+import { C, Gfx, bar, cssColor, fmt, rankBadge } from './gfx.ts';
 import type { UI } from './NativeUI.ts';
 import { ARROW, BOLT, CHEV, ICON } from './consts.ts';
 import { CLASSES, CLASS_COLOR, CLASS_MIN, classFor } from '../../meta/Rank.ts';
 import { withAlpha } from './svg.ts';
 import { belowCap, capRow, safeTop, safeBottom } from './layout.ts';
 
-const CHIP_COL: Record<string, string> = { coin2: '#ffd24a', shield: '#3d9bff', magnet: '#ff3b4e', turbo: '#b6ff2e', double: '#ffc21a', super: '#9b6bff', hyper: '#ffc21a', dash: '#2ee6c8' };
+const CHIP_COL: Record<string, string> = { coin2: '#ffd24a', shield: '#3d9bff', magnet: '#ff3b4e', turbo: '#b6ff2e', double: '#ffc21a', super: '#c86a2a', hyper: '#ffc21a', dash: '#2ee6c8' };
 const CHIP_IC: Record<string, string> = { coin2: ICON.coin, shield: ICON.shield, magnet: ICON.magnet, turbo: ICON.bolt, double: ICON.x2, super: ICON.rocket, hyper: ICON.hyper, dash: ICON.dash };
 
 /** where HUD things are (flyers aim here) */
@@ -23,7 +24,7 @@ export function drawHud(ui: UI, g: Gfx) {
   {
     const k = 'pause';
     const pr = g.isPressed(k);
-    g.rr(12, top, 44, 44, 14, pr ? '#2a3f8f' : '#24378a', 'rgba(170,200,255,.55)', 1.2); // flat (v4.6)
+    g.rr(12, top, 44, 44, 14, pr ? '#8a5a30' : '#6a4020', 'rgba(190,150,100,.7)', 1.2); // flat (v4.6)
     g.icon(ICON.pause, 23, top + 11, 22, '#ffffff');
     g.hit(8, top - 4, 52, 52, k, () => ui.h.pause());
   }
@@ -31,7 +32,7 @@ export function drawHud(ui: UI, g: Gfx) {
     // (no race state yet) Skip stays reachable during training
     if (ui.trainHud) {
       const k = 'tutskip';
-      g.rr(12, top + 52, 72, 30, 15, g.isPressed(k) ? 'rgba(255,255,255,.3)' : 'rgba(8,14,40,.75)', 'rgba(255,255,255,.3)');
+      g.rr(12, top + 52, 72, 30, 15, g.isPressed(k) ? 'rgba(255,255,255,.3)' : 'rgba(36,20,8,.78)', 'rgba(255,255,255,.3)');
       g.text('Skip ›', 48, top + 67, { size: 13, align: 'center' });
       g.hit(8, top + 48, 80, 38, k, () => ui.h.skipTutorial());
     }
@@ -77,7 +78,7 @@ export function drawHud(ui: UI, g: Gfx) {
   const bh = foot ? 86 : 58;
   const by = top - 1;
   g.shadow('rgba(0,0,0,.35)', 10, 3);
-  g.rr(bx, by, bw, bh, 16, g.lin(0, by, 0, by + bh, [[0, 'rgba(20,34,82,.94)'], [1, 'rgba(8,15,40,.96)']]), 'rgba(98,170,255,.45)', 1.2);
+  g.rr(bx, by, bw, bh, 16, g.lin(0, by, 0, by + bh, [[0, 'rgba(74,44,20,.94)'], [1, 'rgba(36,20,8,.96)']]), 'rgba(190,150,100,.6)', 1.2);
   g.shadow(null);
   const ix = bx + 12,
     rx = bx + bw - 12;
@@ -87,7 +88,7 @@ export function drawHud(ui: UI, g: Gfx) {
   } else {
     // top-left: EXP chip + level tag
     g.icon(BOLT, ix, by + 8, 26, '#fff', 14);
-    if (ui.trainHud) levelPill(g, ix + 31, by + 8, 'TRAINING', '#9fb3dd', '#0b1436');
+    if (ui.trainHud) levelPill(g, ix + 31, by + 8, 'TRAINING', '#d9bf94', '#3a2210');
     else if (ui.hudLevel) {
       const lv = ui.hudLevel.toUpperCase();
       const [lb, lf] = lv === 'HARD' ? ['#ff5a48', '#ffffff'] : lv === 'EASY' ? ['#5ef08e', '#064a22'] : ['#ffc84a', '#5a2a00'];
@@ -121,7 +122,7 @@ export function drawHud(ui: UI, g: Gfx) {
     }
   }
   if (foot) {
-    g.rr(ix, by + 57, bw - 24, 1, 0, 'rgba(160,190,255,.18)');
+    g.rr(ix, by + 57, bw - 24, 1, 0, 'rgba(190,150,100,.3)');
     const fy = by + 67;
     if (showBest) {
       const beat = exp > ui.hudBest;
@@ -142,7 +143,7 @@ export function drawHud(ui: UI, g: Gfx) {
     const hi = nx ? CLASS_MIN[nx] : lo + 1;
     const k = nx ? (exp - lo) / Math.max(1, hi - lo) : 1;
     const beat = showBest && exp > ui.hudBest;
-    bar(g, ix, by + 76, bw - 24, 4, k, beat ? C.gold : g.lin(ix, 0, rx, 0, [[0, '#4fc3ff'], [1, '#a77bff']]));
+    bar(g, ix, by + 76, bw - 24, 4, k, beat ? C.gold : g.lin(ix, 0, rx, 0, [[0, '#ffc848'], [1, '#d98c3a']]));
     if (showBest && ui.hudBest > lo && ui.hudBest < hi) {
       const mx = ix + (bw - 24) * ((ui.hudBest - lo) / Math.max(1, hi - lo));
       g.rr(mx - 1, by + 73, 2, 10, 1, '#ffffff');
@@ -152,7 +153,7 @@ export function drawHud(ui: UI, g: Gfx) {
 
   // ---- speed (H5: "SPEED 91 KM/H", rainbow bar) + hearts
   const r2 = bottomY + 12;
-  g.text(`SPEED ${fmt(ui.hud.speed * 3.6)} KM/H`, 14, r2 + 6, { size: 11.5, font: 'b', weight: 800, color: '#cfe0ff', noTr: true });
+  g.text(`SPEED ${fmt(ui.hud.speed * 3.6)} KM/H`, 14, r2 + 6, { size: 11.5, font: 'b', weight: 800, color: '#f0dcb4', noTr: true });
   bar(g, 14, r2 + 15, 118, 6, ui.hud.speed / Math.max(1, ui.hud.maxSpeed), g.lin(14, 0, 132, 0, [[0, '#39b6ff'], [0.5, '#b6ff2e'], [1, '#ff8a1f']]));
   for (let i = 0; i < run.maxLives; i++) g.icon(i < run.lives ? ICON.heart : ICON.heartEmpty, W - 12 - (run.maxLives - i) * 25, r2 - 1, 23);
   hudPos.hearts = { x: W - 40, y: r2 + 10 };
@@ -161,7 +162,7 @@ export function drawHud(ui: UI, g: Gfx) {
   ui.hudSpecialBottom = spTop + 64;
   if (ui.trainHud) {
     const k = 'tutskip';
-    g.rr(12, spTop, 72, 30, 15, g.isPressed(k) ? 'rgba(255,255,255,.3)' : 'rgba(8,14,40,.75)', 'rgba(255,255,255,.3)');
+    g.rr(12, spTop, 72, 30, 15, g.isPressed(k) ? 'rgba(255,255,255,.3)' : 'rgba(36,20,8,.78)', 'rgba(255,255,255,.3)');
     g.text('Skip ›', 48, spTop + 15, { size: 13, align: 'center' });
     g.hit(8, spTop - 4, 80, 38, k, () => ui.h.skipTutorial());
   }
@@ -203,7 +204,7 @@ export function drawHud(ui: UI, g: Gfx) {
     const k = Math.max(0, Math.min(1, c.left / c.total));
     const col = CHIP_COL[c.kind];
     const blink = c.left < 2 && Math.floor(t / 180) % 2 === 0;
-    g.circle(cx + 20, ly + 20, 19, 'rgba(8,16,44,.82)', 'rgba(255,255,255,.18)', 3);
+    g.circle(cx + 20, ly + 20, 19, 'rgba(36,20,8,.84)', 'rgba(255,255,255,.18)', 3);
     const ctx = g.ctx;
     ctx.beginPath();
     ctx.arc(cx + 20, ly + 20, 19, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k);
@@ -224,11 +225,11 @@ export function drawHud(ui: UI, g: Gfx) {
     const pulse = 0.75 + 0.25 * Math.sin(t / 120);
     g.alpha(ok ? 0.5 : pulse);
     if (dg === 'rocket' || dg === 'sos') {
-      const col = dg === 'rocket' ? '#9b6bff' : '#ff5a3c';
+      const col = dg === 'rocket' ? '#c86a2a' : '#ff5a3c';
       const yy = g.H * 0.42;
       g.rr(W / 2 - 70, yy, 140, 44, 22, withAlpha(col, 0.85), '#fff', 1.5);
       g.icon(dg === 'rocket' ? ICON.rocket : ICON.sos, W / 2 - 60, yy + 8, 28);
-      g.text(dg === 'rocket' ? 'ROADSTER' : 'TAP SOS!', W / 2 + 14, yy + 22, { size: 15, align: 'center' });
+      g.text(dg === 'rocket' ? HUD_LAUNCH : 'TAP RESCUE!', W / 2 + 14, yy + 22, { size: 15, align: 'center' });
     } else {
       const pos: Record<string, [number, number, number]> = { left: [30, g.H * 0.5, 180], right: [W - 30, g.H * 0.5, 0], up: [W / 2, g.H * 0.36, 270], down: [W / 2, g.H * 0.64, 90] };
       const p = pos[dg] ?? pos.up;
@@ -248,7 +249,7 @@ export function drawHud(ui: UI, g: Gfx) {
     const urgent = dg === 'sos';
     const s = urgent ? 1 + 0.06 * Math.sin(t / 90) : 1;
     const sx = rockets > 0 ? bx2 - SP - 8 : bx2;
-    roundBtn(g, 'sos', sx, byy, SP * s, '#ff5a3c', ICON.sos, 'SOS', String(run.escapes), () => ui.h.sos());
+    roundBtn(g, 'sos', sx, byy, SP * s, '#e0502a', ICON.sos, 'RESCUE', String(run.escapes), () => ui.h.sos());
     hudPos.sos = { x: sx + 38, y: byy + SP / 2 };
   }
   if (rockets > 0) {
@@ -257,8 +258,8 @@ export function drawHud(ui: UI, g: Gfx) {
     const ready = ui.rocketReady || call;
     const wait = t - ui.hud.rocketWaitT < 600 ? Math.sin((t - ui.hud.rocketWaitT) / 40) * 4 : 0;
     const s = ready ? 1 + 0.07 * Math.sin(t / 110) : 1;
-    if (ready) g.circle(bx2 + 38 + wait, byy + SP / 2, SP * 0.66, withAlpha(hyper ? '#ffc21a' : '#9b6bff', 0.25 + 0.15 * Math.sin(t / 110)));
-    roundBtn(g, 'rocket', bx2 + wait, byy, SP * s, hyper ? '#ffb31a' : '#8a4dff', hyper ? ICON.hyper : ICON.rocket, ready ? 'TAP!' : hyper ? 'HYPER' : 'ROADSTER', String(rockets), () => ui.h.rocket(), hyper ? { c0: '#ffe07a', c1: '#e79a00', rim: 'rgba(255,255,255,.8)', text: '#3a2000' } : { c0: '#2a1d5c', c1: '#120a33', rim: '#b48cff', text: '#e6dcff' });
+    if (ready) g.circle(bx2 + 38 + wait, byy + SP / 2, SP * 0.66, withAlpha(hyper ? '#ffc21a' : '#c86a2a', 0.25 + 0.15 * Math.sin(t / 110)));
+    roundBtn(g, 'rocket', bx2 + wait, byy, SP * s, hyper ? '#d99a1a' : '#d9822e', hyper ? ICON.hyper : ICON.rocket, ready ? 'TAP!' : hyper ? HUD_EAGLE : HUD_LAUNCH, String(rockets), () => ui.h.rocket());
     hudPos.rocket = { x: bx2 + 38, y: byy + SP / 2 };
   }
   // ---- mission (bottom)
@@ -293,19 +294,26 @@ function pill(g: Gfx, x: number, y: number, w: number, h: number, html: string, 
   g.ctx.restore();
 }
 
-function roundBtn(g: Gfx, key: string, x: number, y: number, s: number, col: string, icon: string, label: string, n: string, fn: () => void, look?: { c0: string; c1: string; rim: string; text: string }) {
+function roundBtn(g: Gfx, key: string, x: number, y: number, s: number, col: string, icon: string, label: string, n: string, fn: () => void, _look?: { c0: string; c1: string; rim: string; text: string }) {
+  // v4.0 (3D Car Run, web v1.0.5): a parchment disc in a dark leather + brass ring — reads on any sky —
+  // the item icon in its own colour, the label on a small wood plaque under the disc
   const cx = x + 38 * (s / 76) + (76 - s) / 2,
-    cy = y + s / 2;
-  const r = s / 2;
+    cy = y + s / 2 - 6;
+  const r = s / 2 - 6;
   const pr = g.isPressed(key);
   const rr = pr ? r * 0.92 : r;
-  g.circle(cx, cy, rr, g.rad(cx, cy - rr * 0.3, rr * 0.1, rr * 1.15, look ? [[0, look.c0], [0.75, look.c1], [1, look.c1]] : [[0, shade(col, 0.35)], [1, shade(col, -0.25)]]));
-  g.circle(cx, cy, rr - 1, null, look?.rim ?? 'rgba(255,255,255,.7)', 2);
-  g.icon(icon, cx - rr * 0.38, cy - rr * 0.64, rr * 0.76);
-  g.text(label, cx, cy + rr * 0.45, { size: Math.max(9, rr * 0.27), align: 'center', maxW: rr * 1.7, color: look?.text ?? '#fff', italic: true });
-  g.circle(cx + rr * 0.72, cy - rr * 0.72, 11, '#fff');
-  g.text(n, cx + rr * 0.72, cy - rr * 0.72 + 0.5, { size: 12, align: 'center', color: '#1a1040', shadow: null, noTr: true });
-  g.hit(cx - r - 6, cy - r - 6, r * 2 + 12, r * 2 + 12, key, fn, true);
+  g.circle(cx, cy, rr + 5, '#3a1a06');
+  g.circle(cx, cy, rr + 3.2, null, '#d9a24a', 2.2);
+  g.circle(cx, cy, rr, g.rad(cx - rr * 0.2, cy - rr * 0.36, rr * 0.1, rr * 1.15, [[0, '#fffaf0'], [0.48, '#f6e3bc'], [1, '#d9b47a']]));
+  g.circle(cx, cy, rr, null, '#3a1a06', 2.4);
+  g.icon(icon, cx - rr * 0.5, cy - rr * 0.5, rr, col);
+  const lab = label.toUpperCase();
+  const lw = Math.max(rr * 1.4, g.measure(lab, { size: 9 }) + 14);
+  g.rr(cx - lw / 2, cy + rr + 4, lw, 15, 6, g.lin(0, cy + rr + 4, 0, cy + rr + 19, [[0, '#5a3618'], [1, '#2e1a09']]), '#ad8a58', 1.2);
+  g.text(lab, cx, cy + rr + 11.5, { size: 9, align: 'center', color: '#fff1d0', shadow: null, noTr: true });
+  g.circle(cx + rr * 0.78, cy - rr * 0.78, 10.5, '#fff1d0', '#5a2e08', 1.5);
+  g.text(n, cx + rr * 0.78, cy - rr * 0.78 + 0.5, { size: 11.5, align: 'center', color: '#5a2e08', shadow: null, noTr: true });
+  g.hit(cx - r - 6, cy - r - 6, r * 2 + 12, r * 2 + 30, key, fn, true);
 }
 
 // =============================================================== notices / pops / flyers
@@ -403,7 +411,7 @@ export { ARROW };
 /** H5 class badge: a shield with the class letters (white → class colour) */
 export function shieldBadge(g: Gfx, cls: string, x: number, y: number, h: number) {
   if (g.dry) return;
-  const cc = CLASS_COLOR[cls as keyof typeof CLASS_COLOR] ?? '#9fb3dd';
+  const cc = CLASS_COLOR[cls as keyof typeof CLASS_COLOR] ?? '#d9bf94';
   const w = h * 0.92;
   const c = g.ctx;
   c.beginPath();
@@ -418,7 +426,7 @@ export function shieldBadge(g: Gfx, cls: string, x: number, y: number, h: number
   c.strokeStyle = 'rgba(0,0,0,.35)';
   c.lineWidth = 1;
   c.stroke();
-  g.text(cls, x + w / 2, y + h * 0.47, { size: h * (cls.length > 2 ? 0.34 : cls.length > 1 ? 0.42 : 0.55), align: 'center', color: '#0b1436', shadow: null, noTr: true, italic: true });
+  g.text(cls, x + w / 2, y + h * 0.47, { size: h * (cls.length > 2 ? 0.34 : cls.length > 1 ? 0.42 : 0.55), align: 'center', color: '#3a2210', shadow: null, noTr: true, italic: true });
 }
 
 /** the EASY / NORMAL / HARD tag next to EXP */

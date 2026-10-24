@@ -36,7 +36,7 @@ function modal(ui: UI, g: Gfx, id: string, o: ModalOpts, content: (x: number, y:
     H = g.H;
   const close = o.close ?? 'ov';
   // backdrop
-  g.rr(0, 0, W, H, 0, 'rgba(2,4,16,.66)');
+  g.rr(0, 0, W, H, 0, 'rgba(16,8,2,.66)');
   g.block(0, 0, W, H, close === 'modal' ? () => ui.h.closeModal() : () => {});
   const pw = Math.min(W - 24, o.w ?? 380);
   const pad = 16;
@@ -55,8 +55,11 @@ function modal(ui: UI, g: Gfx, id: string, o: ModalOpts, content: (x: number, y:
   if (!o.bare) panel(g, 0, 0, pw, ph, 20, o.rim);
   g.block(0, 0, pw, ph);
   if (o.title) {
+    // v4.0: a wood header band with the title in Rye and a bronze rule under it (web: .mhead)
+    g.rr(2, 2, pw - 4, headH - 2, 18, g.lin(0, 0, 0, headH, [[0, 'rgba(110,70,36,.55)'], [1, 'rgba(40,24,10,.2)']]));
+    g.rr(10, headH - 1, pw - 20, 2, 1, '#ad8a58');
     if (o.icon) g.icon(o.icon, pad, 12, 24);
-    g.text(o.title, o.icon ? pad + 30 : pad, 25, { size: 17, italic: true, maxW: pw - 100 });
+    g.text(o.title.toUpperCase(), o.icon ? pad + 30 : pad, 25, { size: 18, font: 't', color: '#f6e3b4', maxW: pw - 100, stroke: '#2a1204', strokeW: 3, shadow: null });
     if (close !== 'none') iconBtn(g, `x-${id}`, pw - 46, 8, 34, ICON.close, close === 'modal' ? () => ui.h.closeModal() : () => ui.hideOverlay(id));
   }
   if (h > ph + 1) {
@@ -94,6 +97,7 @@ const OV: Record<string, (ui: UI, g: Gfx) => void> = {
   account: accountOv,
   cloudpick: cloudpickOv,
   popup: popupOv,
+  more: moreOv,
 };
 export function drawOverlay(ui: UI, g: Gfx, id: string) {
   OV[id]?.(ui, g);
@@ -284,7 +288,7 @@ function runrankOv(ui: UI, g: Gfx) {
         g.shadow(`rgba(255,210,74,${glow})`, 16);
         g.rr(x, yy, w, 50, 12, 'rgba(255,194,26,.2)', '#ffd24a', 2);
         g.shadow(null);
-      } else g.rr(x, yy, w, 50, 12, 'rgba(10,20,52,.78)', 'rgba(130,175,255,.16)');
+      } else g.rr(x, yy, w, 50, 12, 'rgba(10,20,52,.78)', 'rgba(190,150,100,.35)');
       const shownRank = me && up ? Math.round(o.before + (y0.rank - o.before) * e) : r.rank;
       g.text(unranked ? '—' : `#${fmt(shownRank)}`, x + 32, yy + 25, { size: 13, align: 'center', maxW: 56, noTr: true });
       g.icon(avatarSvg(r.av ?? avatarForName(r.name)), x + 64, yy + 7, 36);
@@ -362,9 +366,9 @@ function classupOv(ui: UI, g: Gfx) {
       iw = 190,
       gap = 10;
     const x0 = W / 2 - (cw + iw + gap) / 2;
-    card(g, x0, y, cw, 44, 14, 'rgba(255,255,255,.16)', 'rgba(10,14,40,.72)');
+    card(g, x0, y, cw, 44, 14, 'rgba(255,255,255,.16)', 'rgba(36,20,8,.74)');
     g.rich(`${ICON.coin}<b>+${fmt(o.reward.coins)}</b>`, x0, y + 12, cw, { size: 17, align: 'center' });
-    card(g, x0 + cw + gap, y, iw, 44, 14, 'rgba(255,255,255,.16)', 'rgba(10,14,40,.72)');
+    card(g, x0 + cw + gap, y, iw, 44, 14, 'rgba(255,255,255,.16)', 'rgba(36,20,8,.74)');
     g.rich(`${ITEM_ICON[o.reward.item]}<b>+1 ${ITEM_NAME[o.reward.item]}</b>`, x0 + cw + gap, y + 12, iw, { size: 15, align: 'center' });
     y += 56;
   }
@@ -501,7 +505,7 @@ function tutdoneOv(ui: UI, g: Gfx) {
     y += 70;
     g.text(p ? `${SPECIAL_SHORT[p].toUpperCase()} PRACTICE DONE` : 'TRAINING COMPLETE', x + w / 2, y, { size: 20, align: 'center', italic: true, maxW: w });
     y += 18;
-    y += g.rich(p ? 'Nice! In a race, carry it in from your <b>Magic Bag</b> — 1 special per race.' : "You're ready! <b>Distance = EXP</b>, and EXP is your rank. Every new rank is guarded by a hard <b>rank gate</b>.", x, y, w, { size: 12.5, align: 'center', font: 'b', color: '#cfe0ff' }) + 8;
+    y += g.rich(p ? 'Nice! In a race, carry it in from your <b>Magic Bag</b> — 1 special per race.' : "You're ready! <b>Distance = EXP</b>, and EXP is your rank. Every new rank is guarded by a hard <b>rank gate</b>.", x, y, w, { size: 12.5, align: 'center', font: 'b', color: '#f0dcb4' }) + 8;
     if (!p) {
       y += g.rich(`${badge('D')} → ${badge('C')} <small>≈ 3 min on Hard</small>`, x, y, w, { size: 14, align: 'center' }) + 8;
     }
@@ -516,7 +520,7 @@ function tutdoneOv(ui: UI, g: Gfx) {
 
 function tutintroOv(ui: UI, g: Gfx) {
   modal(ui, g, 'tutintro', { title: 'TUTORIAL', icon: TUT_ICON, close: 'modal' }, (x, y, w) => {
-    y += g.rich("Learn the moves and practise each special. You can't crash in training.", x, y, w, { size: 12, font: 'b', color: '#cfe0ff', align: 'center' }) + 8;
+    y += g.rich("Learn the moves and practise each special. You can't crash in training.", x, y, w, { size: 12, font: 'b', color: '#f0dcb4', align: 'center' }) + 8;
     g.text('1  Basics · first flight', x, y + 8, { size: 13, color: C.cyan });
     y += 22;
     const tiles: [string, string, string][] = [
@@ -544,7 +548,7 @@ function tutintroOv(ui: UI, g: Gfx) {
     (['super', 'hyper', 'escape'] as ItemKey[]).forEach((k, i) => {
       const ix = x + i * (iw + 8);
       const key = `bt-${k}`;
-      g.rr(ix, y, iw, 76, 12, g.isPressed(key) ? 'rgba(79,195,255,.25)' : 'rgba(10,20,52,.8)', SPECIAL_COLOR[k as SpecialKey]);
+      g.rr(ix, y, iw, 76, 12, g.isPressed(key) ? 'rgba(255,200,90,.22)' : 'rgba(46,28,12,.82)', SPECIAL_COLOR[k as SpecialKey]);
       g.icon(ITEM_ICON[k], ix + iw / 2 - 15, y + 8, 30);
       g.text(ITEM_NAME[k], ix + iw / 2, y + 50, { size: 10, align: 'center', maxW: iw - 6 });
       g.rich(`${ICON.target} <small>Practise</small>`, ix, y + 58, iw, { size: 11, align: 'center', color: C.cyan });
@@ -597,7 +601,7 @@ function settingsOv(ui: UI, g: Gfx) {
     }
     y += 228;
     const row = (key: string, ic: string, label: string, val: string, fn: () => void) => {
-      g.rr(x, y, w, 44, 12, g.isPressed(key) ? 'rgba(79,195,255,.2)' : 'rgba(10,20,52,.8)', 'rgba(130,175,255,.2)');
+      g.rr(x, y, w, 44, 12, g.isPressed(key) ? 'rgba(255,200,90,.18)' : 'rgba(46,28,12,.82)', 'rgba(190,150,100,.4)');
       g.text(ic, x + 18, y + 22, { size: 16, align: 'center', noTr: true });
       g.text(label, x + 38, y + 22, { size: 13 });
       g.text(val, x + w - 30, y + 22, { size: 12, align: 'right', font: 'b', color: C.muted, maxW: w / 2, noTr: true });
@@ -610,7 +614,7 @@ function settingsOv(ui: UI, g: Gfx) {
     button(g, 's-prof', x, y, bw, 40, `${ICON.user} Profile`, () => ui.h.profile(), { style: 'ghost', size: 12 });
     button(g, 's-help', x + bw + 8, y, bw, 40, `${ICON.info} How to play`, () => ui.h.help(), { style: 'ghost', size: 12 });
     y += 50;
-    g.text(`Sky Roadster ${ui.version}`, x + w / 2, y + 6, { size: 10, align: 'center', font: 'b', color: C.muted, noTr: true });
+    g.text(`3D Car Run ${ui.version}`, x + w / 2, y + 6, { size: 10, align: 'center', font: 'b', color: C.muted, noTr: true });
     // hidden test info: tap the version 5 times (colour calibration, GPU, audio)
     g.hit(x + w / 2 - 60, y - 6, 120, 24, 's-ver', () => {
       ui.verTaps = (ui.verTaps ?? 0) + 1;
@@ -645,14 +649,14 @@ function logsOv(ui: UI, g: Gfx) {
     if (y > H - safeBottom(g) - 14) break;
     const tm = new Date(l.t);
     const ts = `${String(tm.getHours()).padStart(2, '0')}:${String(tm.getMinutes()).padStart(2, '0')}:${String(tm.getSeconds()).padStart(2, '0')}`;
-    const col = l.lv === 'error' ? '#ff8a8a' : l.lv === 'warn' ? '#ffd27a' : '#c9d8f5';
+    const col = l.lv === 'error' ? '#ff8a8a' : l.lv === 'warn' ? '#ffd27a' : '#e8d4b0';
     y += g.para(`${ts} ${l.msg}`, 10, y, W - 20, { size: 9.5, font: 'b', color: col, noTr: true }) + 3;
   }
 }
 
 function guideOv(ui: UI, g: Gfx) {
   modal(ui, g, 'guide', { title: 'ROADSTER JUMP', close: 'modal' }, (x, y, w) => {
-    y += g.rich('The rocket jump that clears <b>two rows</b> of obstacles and rolls 360° in the sky.', x, y, w, { size: 12, font: 'b', color: '#cfe0ff', align: 'center' }) + 8;
+    y += g.rich('The rocket jump that clears <b>two rows</b> of obstacles and rolls 360° in the sky.', x, y, w, { size: 12, font: 'b', color: '#f0dcb4', align: 'center' }) + 8;
     const steps: [string, string][] = [
       ['Spot the purple rocket', 'Appears after 250 m, floating in a lane. Swipe into its lane to grab it.'],
       ['The ROADSTER button appears', 'A purple ROADSTER button shows bottom-right with how many you hold.'],
@@ -671,7 +675,7 @@ function guideOv(ui: UI, g: Gfx) {
     });
     card(g, x, y, w, 64, 12, C.gold);
     g.icon(ICON.hyper, x + 10, y + 14, 34);
-    g.text('Mythic HYPER JUMP', x + 52, y + 16, { size: 13, color: C.gold });
+    g.text('Mythic Eagle Jump', x + 52, y + 16, { size: 13, color: C.gold });
     g.para('7.4 m high, double roll, golden trail. Fires from the same button (gold).', x + 52, y + 26, w - 60, { size: 10.5, font: 'b', color: C.muted });
     y += 72;
     button(g, 'g-train', x, y, w, 48, `${ICON.play} Practice it`, () => ui.h.boostTrain('super'), { style: 'blue', size: 16 });
@@ -707,7 +711,7 @@ function profileOv(ui: UI, g: Gfx) {
     avatar(g, o.avatar, x, y, 76, o.cls);
     // name: tap to change (native text prompt)
     const nk = 'pname';
-    g.rr(x + 90, y + 6, w - 90, 40, 10, g.isPressed(nk) ? 'rgba(79,195,255,.25)' : 'rgba(255,255,255,.08)', 'rgba(255,255,255,.25)');
+    g.rr(x + 90, y + 6, w - 90, 40, 10, g.isPressed(nk) ? 'rgba(255,200,90,.22)' : 'rgba(255,255,255,.08)', 'rgba(255,255,255,.25)');
     g.text(o.name, x + 102, y + 26, { size: 16, maxW: w - 140, noTr: true });
     g.text('✎', x + w - 18, y + 26, { size: 15, align: 'center', color: C.cyan, noTr: true });
     g.hit(x + 90, y + 6, w - 90, 40, nk, () => void askText('Pilot name', o.name, 14).then((n) => n !== null && ui.h.setName(n)));
@@ -730,7 +734,7 @@ function profileOv(ui: UI, g: Gfx) {
     button(g, 'avrand', x + w - 44, y + 4, 44, 44, '🎲', () => ui.h.randomAvatar(), { style: 'purple', size: 18 });
     y += s + 16;
     const rowBtn = (key: string, icon: string, small: string, big: string, act: string, fn: () => void) => {
-      g.rr(x, y, w, 50, 12, g.isPressed(key) ? 'rgba(79,195,255,.2)' : 'rgba(10,20,52,.8)', 'rgba(130,175,255,.2)');
+      g.rr(x, y, w, 50, 12, g.isPressed(key) ? 'rgba(255,200,90,.18)' : 'rgba(46,28,12,.82)', 'rgba(190,150,100,.4)');
       if (icon.startsWith('<svg')) g.icon(icon, x + 10, y + 11, 28);
       else g.text(icon, x + 24, y + 25, { size: 22, align: 'center', noTr: true });
       g.text(small, x + 48, y + 16, { size: 9.5, font: 'b', color: C.muted });
@@ -837,7 +841,7 @@ function bonusOv(ui: UI, g: Gfx) {
       `${ICON.rocket}<b>Rare specials</b> fire by themselves`,
       `${ICON.gift}<b>Every ${o.everyHours === 1 ? 'hour' : `${o.everyHours} h`}</b> · open ${o.openMinutes} min · new place`,
     ];
-    for (const r of rules) y += g.rich(r, x + 4, y, w - 8, { size: 12, font: 'b', color: '#dfe8ff' }) + 4;
+    for (const r of rules) y += g.rich(r, x + 4, y, w - 8, { size: 12, font: 'b', color: '#fff1d0' }) + 4;
     y += 6;
     if (o.live && !o.played) button(g, 'bonusgo', x, y, w, 54, `${ICON.play} Race · ${o.playsLeft} / ${o.maxPlays} left`, () => ui.h.bonusGo(), { style: 'gold', size: 18 });
     else button(g, 'bonusgo', x, y, w, 46, o.live ? `${ICON.check} ${o.maxPlays} plays used · next ${o.opensAt}` : `${ICON.lock} Opens ${o.opensAt}`, () => {}, { style: 'ghost', disabled: true, size: 13 });
@@ -855,7 +859,7 @@ function specialpickOv(ui: UI, g: Gfx) {
     y += 24;
     const k = s.special && s.items[s.special] > 0 ? s.special : null;
     const key = 'bagpick';
-    const cc = k ? SPECIAL_COLOR[k] : '#8a52f0';
+    const cc = k ? SPECIAL_COLOR[k] : '#b0603a';
     g.rr(x, y, w, 84, 16, g.isPressed(key) ? `${cc}66` : `${cc}2a`, cc, 2);
     g.icon(k ? ITEM_ICON[k] : BAG_ICON, x + 14, y + 14, 56);
     g.text(k ? SPECIAL_SHORT[k] : 'No special', x + 84, y + 34, { size: 20, italic: true, maxW: w - 120 });
@@ -889,7 +893,7 @@ function bagOv(ui: UI, g: Gfx) {
       const tx = x + i * (tw + 8);
       const key = `bg-${k}`;
       g.alpha(n > 0 ? 1 : 0.45);
-      g.rr(tx, y, tw, 96, 14, on ? `${SPECIAL_COLOR[k]}55` : g.isPressed(key) ? 'rgba(79,195,255,.2)' : 'rgba(10,20,52,.85)', on ? SPECIAL_COLOR[k] : 'rgba(255,255,255,.2)', on ? 2.5 : 1);
+      g.rr(tx, y, tw, 96, 14, on ? `${SPECIAL_COLOR[k]}55` : g.isPressed(key) ? 'rgba(255,200,90,.18)' : 'rgba(46,28,12,.86)', on ? SPECIAL_COLOR[k] : 'rgba(255,255,255,.2)', on ? 2.5 : 1);
       g.icon(ITEM_ICON[k], tx + tw / 2 - 20, y + 10, 40);
       g.text(SPECIAL_SHORT[k], tx + tw / 2, y + 64, { size: 13, align: 'center', maxW: tw - 6 });
       g.text(`×${n}`, tx + tw / 2, y + 82, { size: 12, align: 'center', color: C.gold, noTr: true });
@@ -906,7 +910,7 @@ function bagOv(ui: UI, g: Gfx) {
     if (pick) {
       const key = 'bg-none';
       const on = !s.special;
-      g.rr(x, y, w, 40, 12, on ? 'rgba(255,255,255,.14)' : 'rgba(10,20,52,.8)', on ? '#fff' : 'rgba(255,255,255,.2)');
+      g.rr(x, y, w, 40, 12, on ? 'rgba(255,255,255,.14)' : 'rgba(46,28,12,.82)', on ? '#fff' : 'rgba(255,255,255,.2)');
       g.rich(`${on ? ICON.check : '—'} Race without a special`, x, y + 11, w, { size: 12.5, align: 'center' });
       g.hit(x, y, w, 40, key, () => ui.h.chooseSpecial(''));
       y += 48;
@@ -923,7 +927,7 @@ function bagOv(ui: UI, g: Gfx) {
       g.icon(LOCKED_ICON[l.id] ?? ICON.lock, lx + lw / 2 - 13, y, 26);
       g.text(l.short, lx + lw / 2, y + 36, { size: 9.5, align: 'center', font: 'b', noTr: true });
       g.alpha(1);
-      g.hit(lx, y - 4, lw, 46, `lk-${l.id}`, () => ui.toast(`${ICON.lock} Opens at rank AAA · try it now in a Bonus event`, '#b7a6ff'));
+      g.hit(lx, y - 4, lw, 46, `lk-${l.id}`, () => ui.toast(`${ICON.lock} Opens at rank AAA · try it now in a Bonus event`, '#e8c890'));
     });
     g.rich(`${ICON.lock}${badge('AAA')}`, x + w - 60, y + 10, 60, { size: 12, align: 'right' });
     return y + 46;
@@ -961,7 +965,7 @@ function boostinfoOv(ui: UI, g: Gfx) {
     g.icon(ITEM_ICON[b.k], x + w / 2 - 30, y + 20, 60);
     g.text(`×${b.owned}`, x + w / 2 + 44, y + 86, { size: 16, color: C.gold, noTr: true });
     y += 110;
-    y += g.para(sk ? SPECIAL_HOW[sk] : BOOST_WHAT[b.k], x, y, w, { size: 13, font: 'b', color: '#dfe8ff', align: 'center' }) + 10;
+    y += g.para(sk ? SPECIAL_HOW[sk] : BOOST_WHAT[b.k], x, y, w, { size: 13, font: 'b', color: '#fff1d0', align: 'center' }) + 10;
     if (sk) {
       button(g, 'bi-train', x, y, w, 50, `${ICON.target} Practice`, () => ui.h.boostTrain(b.k), { style: 'blue', size: 17 });
       y += 58;
@@ -981,7 +985,7 @@ function spconfirmOv(ui: UI, g: Gfx) {
     y += 100;
     g.text(`Take ${SPECIAL_SHORT[k]}?`, x + w / 2, y, { size: 20, align: 'center', italic: true });
     y += 18;
-    y += g.para(`${SPECIAL_LINE[k]}. It is used only if you tap it in the race.`, x, y, w, { size: 12, font: 'b', color: '#cfe0ff', align: 'center' }) + 10;
+    y += g.para(`${SPECIAL_LINE[k]}. It is used only if you tap it in the race.`, x, y, w, { size: 12, font: 'b', color: '#f0dcb4', align: 'center' }) + 10;
     const bw = (w - 8) / 2;
     button(g, 'spc-no', x, y, bw, 46, 'Cancel', () => ui.hideOverlay('spconfirm'), { style: 'ghost', size: 14 });
     button(g, 'spc-ok', x + bw + 8, y, bw, 46, `${ICON.check} Take it`, () => {
@@ -1055,7 +1059,7 @@ function cloudpickOv(ui: UI, g: Gfx) {
   const c = ui.cloudPick;
   if (!c) return;
   modal(ui, g, 'cloudpick', { title: 'WHICH PROGRESS?', close: 'none' }, (x, y, w) => {
-    y += g.para('This phone and your account have different progress. Pick the one to keep — the other is replaced.', x, y, w, { size: 12, font: 'b', color: '#cfe0ff', align: 'center' }) + 8;
+    y += g.para('This phone and your account have different progress. Pick the one to keep — the other is replaced.', x, y, w, { size: 12, font: 'b', color: '#f0dcb4', align: 'center' }) + 8;
     const cw = (w - 8) / 2;
     ([['device', 'THIS PHONE', c.device], ['cloud', 'ACCOUNT (CLOUD)', c.cloud]] as const).forEach(([k, t, s], i) => {
       const cx = x + i * (cw + 8);
@@ -1168,7 +1172,7 @@ function popupOv(ui: UI, g: Gfx) {
       case 'invite': {
         y = head(giftBox(46), 'ENTRY REWARD', x, y, w);
         const done = hs.entryDone();
-        y = steps([['Go to your TikTok profile', done], ['Open "TikTok Minis"', done], ['Open Sky Roadster from there', done], ['Come back and get the reward', done]], x, y, w);
+        y = steps([['Go to your TikTok profile', done], ['Open "TikTok Minis"', done], ['Open 3D Car Run from there', done], ['Come back and get the reward', done]], x, y, w);
         y = coinBig(rewardOf(hs.entryReward(), 300), x, y + 4, w, '+');
         if (done) button(g, 'pe-go', x, y, w, 50, `${ICON.check} Reward claimed`, () => {}, { style: 'ghost', disabled: true });
         else button(g, 'pe-go', x, y, w, 54, 'GO', once('entry', () => hs.entryStart()), { style: 'blue', size: 22 });
@@ -1190,7 +1194,7 @@ function popupOv(ui: UI, g: Gfx) {
         g.text('Share the game with friends', x + w / 2, y + 4, { size: 14, align: 'center' });
         y += 20;
         const key = 'ps-card';
-        g.rr(x, y, w, 120, 14, g.isPressed(key) ? 'rgba(79,195,255,.25)' : 'rgba(10,20,52,.85)', 'rgba(130,190,255,.35)');
+        g.rr(x, y, w, 120, 14, g.isPressed(key) ? 'rgba(255,200,90,.22)' : 'rgba(46,28,12,.86)', 'rgba(130,190,255,.35)');
         g.img(carImage(String(d.vehicle ?? 'zenith')), x + 10, y + 8, w - 20, 84, 'contain');
         g.icon(avatarSvg(Number(d.avatar ?? 0)), x + 12, y + 10, 40);
         g.rich(`${ICON.share} Tap to share`, x, y + 96, w, { size: 12, align: 'center', color: C.cyan });
@@ -1198,7 +1202,7 @@ function popupOv(ui: UI, g: Gfx) {
           if (shareBusy) return; // the share sheet is already open
           shareBusy = true;
           void hs
-            .share('Sky Roadster', `Race me in Sky Roadster! Rank ${ui.myClass}.`)
+            .share('3D Car Run', `Race me in 3D Car Run! Rank ${ui.myClass}.`)
             .then((r) => {
               // a rewarded share shows "Reward Claimed!" from HSGame's 'given' event (main.ts)
               if (r === 'shared' && !rw) ui.toast(`${ICON.check} Shared — thanks!`, 'var(--green)');
@@ -1219,7 +1223,7 @@ function popupOv(ui: UI, g: Gfx) {
       case 'rate': {
         // no store rating inside a mini game: thank the player instead
         y = head(starBig(40), 'ENJOYING IT?', x, y, w);
-        y += g.rich('Thanks for racing Sky Roadster!<br/>Share it with a friend if you like it.', x, y, w, { size: 13, align: 'center', font: 'b' }) + 10;
+        y += g.rich('Thanks for racing 3D Car Run!<br/>Share it with a friend if you like it.', x, y, w, { size: 13, align: 'center', font: 'b' }) + 10;
         button(g, 'pr-ok', x, y, w, 48, 'OK', close, { style: 'blue', size: 18 });
         return y + 52;
       }
@@ -1242,7 +1246,7 @@ function countryOv(ui: UI, g: Gfx) {
   const list = [...COUNTRIES].map((c) => ({ c, n: countryName(c) })).sort((a, b) => a.n.localeCompare(b.n));
   const W = g.W,
     H = g.H;
-  g.rr(0, 0, W, H, 0, 'rgba(2,4,16,.66)');
+  g.rr(0, 0, W, H, 0, 'rgba(16,8,2,.66)');
   g.block(0, 0, W, H);
   const pw = Math.min(W - 24, 360);
   const px = (W - pw) / 2,
@@ -1261,7 +1265,7 @@ function countryOv(ui: UI, g: Gfx) {
     const y = top + i * 44 - off;
     if (y < top - 44 || y > top + lh) return;
     const key = `ct-${c}`;
-    g.rr(px + 10, y, pw - 20, 38, 10, g.isPressed(key) ? 'rgba(79,195,255,.25)' : 'rgba(255,255,255,.04)');
+    g.rr(px + 10, y, pw - 20, 38, 10, g.isPressed(key) ? 'rgba(255,200,90,.22)' : 'rgba(255,255,255,.04)');
     g.icon(flagSvg(c), px + 18, y + 11, 24);
     g.text(n, px + 52, y + 19, { size: 13, font: 'b', maxW: pw - 80, noTr: true });
     g.hit(px + 10, y, pw - 20, 38, key, () => {
@@ -1281,7 +1285,7 @@ function langOv(ui: UI, g: Gfx) {
         by = y + Math.floor(i / 2) * 50;
       const on = l.code === ui.lang;
       const key = `lg-${l.code}`;
-      g.rr(bx, by, bw, 42, 12, on ? 'rgba(79,195,255,.25)' : g.isPressed(key) ? 'rgba(255,255,255,.12)' : 'rgba(10,20,52,.8)', on ? C.cyan : 'rgba(255,255,255,.15)');
+      g.rr(bx, by, bw, 42, 12, on ? 'rgba(255,200,90,.22)' : g.isPressed(key) ? 'rgba(255,255,255,.12)' : 'rgba(46,28,12,.82)', on ? C.cyan : 'rgba(255,255,255,.15)');
       g.icon(flagSvg(codeOfFlag(l.flag)), bx + 8, by + 13, 24);
       g.text(l.name, bx + 40, by + 21, { size: 12, font: 'b', maxW: bw - 64, noTr: true });
       if (on) g.icon(ICON.check, bx + bw - 24, by + 12, 18, C.green);
@@ -1291,5 +1295,40 @@ function langOv(ui: UI, g: Gfx) {
       });
     });
     return y + Math.ceil(LANGS.length / 2) * 50;
+  });
+}
+
+// ------------------------------------------------------------------ v4.0 More (web: #more, 6 tiles)
+function moreOv(ui: UI, g: Gfx) {
+  modal(ui, g, 'more', { title: 'More', w: 360 }, (x, y, w) => {
+    const items: [string, string, string, string, () => void, number][] = [
+      ['m-ranks', ICON.podium, 'Top Pilots', 'Weekly & all-time ranks', () => ui.h.ranks(), 0],
+      ['m-daily', ICON.calendar, 'Daily Rewards', 'Check in every day', () => ui.h.daily(), ui.home?.dailyBadge ?? 0],
+      ['m-help', ICON.info, 'How to Play', 'Training & guides', () => ui.h.help(), 0],
+      ['m-bag', ICON.bag, 'Saddle Bag', 'Your specials', () => ui.h.bag(), 0],
+      ['m-settings', ICON.gear, 'Settings', 'Sound, graphics, language', () => ui.h.settings(), 0],
+      ['m-events', ICON.gift, 'Gold Rush', '3-minute bonus run', () => ui.h.events(), 0],
+    ];
+    const cw = (w - 10) / 2,
+      ch = 84;
+    items.forEach(([key, icon, title, sub, fn, n], i) => {
+      const cx = x + (i % 2) * (cw + 10),
+        cy = y + Math.floor(i / 2) * (ch + 10);
+      const pr = g.isPressed(key);
+      g.rr(cx, cy, cw, ch, 12, g.lin(0, cy, 0, cy + ch, [[0, pr ? 'rgba(140,92,50,.75)' : 'rgba(110,72,40,.6)'], [1, 'rgba(36,22,10,.85)']]), '#ad8a58', 1.5);
+      for (const [rx, ry] of [[cx + 7, cy + 7], [cx + cw - 7, cy + 7], [cx + 7, cy + ch - 7], [cx + cw - 7, cy + ch - 7]]) g.circle(rx, ry, 2, '#8a6a40');
+      g.icon(icon, cx + cw / 2 - 11, cy + 10, 22, '#ffd27a');
+      g.text(title, cx + cw / 2, cy + 46, { size: 13.5, align: 'center', maxW: cw - 16 });
+      g.text(sub, cx + cw / 2, cy + 64, { size: 10.5, align: 'center', font: 'b', color: C.muted, maxW: cw - 16, shadow: null });
+      if (n > 0) {
+        g.circle(cx + cw - 6, cy + 4, 10, '#c8301a', '#fff1d0', 1.4);
+        g.text(String(n), cx + cw - 6, cy + 4.5, { size: 11, align: 'center', shadow: null, noTr: true, font: 'b', weight: 800 });
+      }
+      g.hit(cx, cy, cw, ch, key, () => {
+        ui.hideOverlay('more');
+        fn();
+      });
+    });
+    return y + 3 * (ch + 10);
   });
 }

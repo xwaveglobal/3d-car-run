@@ -16,7 +16,9 @@ import { setAdProvider, type RewardPlacement } from '../ads/Ads.ts';
 import { platform } from '../platform.ts';
 import { Game } from '../Game.ts';
 import type { UI } from './ui/NativeUI.ts';
-import { Gfx } from './ui/gfx.ts';
+import { Gfx, setFonts } from './ui/gfx.ts';
+import alfaTtf from './fonts/alfa-slab-one.ttf';
+import ryeTtf from './fonts/rye.ttf';
 import { SAFE } from './ui/layout.ts';
 
 declare const GameGlobal: any;
@@ -31,7 +33,18 @@ try {
   /* not Android */
 }
 platform.canvas = screenCanvas;
-platform.share = (text) => hs.share('Sky Roadster', text).then((r) => r === 'shared');
+platform.share = (text) => hs.share('3D Car Run', text).then((r) => r === 'shared');
+
+// ---------------------------------------------------------------- v4.0: the Western fonts (bundled TTFs, OFL)
+try {
+  const fam = (url: string) => {
+    const f = T?.loadFont?.(url);
+    return typeof f === 'string' && f ? f : null;
+  };
+  setFonts(fam(alfaTtf), fam(ryeTtf));
+} catch (e) {
+  console.warn('[fonts]', e);
+}
 setAdProvider({
   name: 'hs',
   rewarded: (p: RewardPlacement) => hs.rewarded(p),
@@ -130,7 +143,7 @@ function bootError(e: unknown) {
     const k = screenCanvas.width / viewW;
     c.font = `${Math.round(16 * k)}px sans-serif`;
     c.textAlign = 'center';
-    c.fillText('Sky Roadster could not start the 3D view', screenCanvas.width / 2, screenCanvas.height * 0.42);
+    c.fillText('3D Car Run could not start the 3D view', screenCanvas.width / 2, screenCanvas.height * 0.42);
     c.font = `${Math.round(12 * k)}px sans-serif`;
     c.fillStyle = '#9fb3dd';
     c.fillText(String((e as Error)?.message ?? e).slice(0, 70), screenCanvas.width / 2, screenCanvas.height * 0.42 + 28 * k);

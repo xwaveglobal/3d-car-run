@@ -58,7 +58,7 @@ const common = {
   target: 'es2018',
   define: { 'process.env.NODE_ENV': '"production"', __NATIVE__: 'true' },
   // the approved 3D car (GLB) is read by our own parser from a data URL (no fetch in the mini game)
-  loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.json': 'json', '.glb': 'dataurl' },
+  loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.json': 'json', '.glb': 'dataurl', '.ttf': 'file' },
   assetNames: 'assets/[name]-[hash]',
   publicPath: '',
 };

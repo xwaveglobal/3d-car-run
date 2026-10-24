@@ -25,9 +25,10 @@ const hsModule = require('./hs-game.js');
 const HSGame = hsModule && typeof hsModule.profile === 'function' ? hsModule : (typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis as any).HSGame;
 
 /** HS credentials: Game ID = the TikTok App ID; SDK key from the HS dashboard (never the TikTok Client Secret). */
-// 3D Car Run has its own TikTok app: fill both in when it is registered (the game plays offline until then)
-const GAME_ID = '';
-const SDK_KEY = '';
+// 3D Car Run's own TikTok app (App ID 7700006034421647378) and its HS game's SDK key (public by design — the TikTok
+// Client Secret is never in the game)
+const GAME_ID = '7700006034421647378';
+const SDK_KEY = 'sk_live_b3eb164f781d940a4e6e3b3a95590fda8f63b6daa2866b4ff86dfae27cd2918d';
 
 /**
  * What each moment gives (offline defaults; the HS dashboard overrides them, no new build).

@@ -13,7 +13,7 @@ ROOT = os.path.join(os.path.dirname(__file__), '..')
 SRC = os.path.join(ROOT, 'src/assets/images')
 OUT = os.path.join(ROOT, 'src/native/img')
 # longest side in pixels for each kind (the canvas UI draws at ≤ 2× its layout size)
-MAX = {'cars': 320, 'images': 900, 'home': 1600}
+MAX = {'cars': 320, 'images': 900, 'home': 1400}
 REAR_MAX = 560
 
 os.makedirs(OUT, exist_ok=True)
@@ -40,7 +40,7 @@ for d, _, files in os.walk(SRC):
             q.save(p, optimize=True)
         else:
             p = os.path.join(OUT, name + '.jpg')
-            im.convert('RGB').save(p, quality=82, optimize=True, progressive=False)
+            im.convert('RGB').save(p, quality=78 if folder == 'home' else 82, optimize=True, progressive=False)
         total += os.path.getsize(p)
         print(f'{os.path.relpath(p, ROOT)}  {im.size[0]}×{im.size[1]}  {os.path.getsize(p) // 1024} KB')
 print(f'total {total / 1024:.0f} KB')
