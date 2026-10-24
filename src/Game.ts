@@ -1766,7 +1766,7 @@ export class Game {
       this.ui.pop(`+${p.coins}`, '#ffd060', x.name.toUpperCase(), -6);
     }
     // after the special's own safe time is set (same tap), add the extra seconds on top
-    if (p.safe) queueMicrotask(() => (r.invulnT += p.safe!));
+    if (p.safe) void Promise.resolve().then(() => (r.invulnT += p.safe!)); // (no queueMicrotask on TikTok Android)
   }
   private goRace() {
     this.ui.hideOverlay('specialpick');

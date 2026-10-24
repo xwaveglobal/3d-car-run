@@ -8,10 +8,19 @@
  * All generated: no samples, no licensed material. Any SFX can be overridden by a real file via
  * `loadOverride(name, url)` (assets/manifest.ts).
  */
+import { platform } from '../platform.ts';
 import { campPlan, ridePlan, renderBell, renderPluck, renderStrum, type Plan } from './westernSynth.ts';
 
 /** render rate of the music / SFX buffers (guitar, whistle, drums sound complete at 24 kHz) */
 const SYNTH_SR = 24000;
+/**
+ * v4.0 native (owner: "tiếng hơi bị rè … lúc đâm bị xẹt"): the mini-game Web Audio has no AudioParam automation
+ * (envelopes became hard steps = clicks / crackle) and may lack the compressor (= clipping) and resample 24 kHz
+ * buffers crudely. On native every SFX is BAKED once into a PCM buffer with sample-accurate envelopes (same
+ * recipes), music + SFX render at the context's own rate, gain fades step in small increments, and the master is
+ * lower (headroom instead of a compressor).
+ */
+const NATIVE_MASTER = 0.6;
 export type Sfx =
   | 'coin' | 'lane' | 'up' | 'down' | 'land' | 'power' | 'shield' | 'shieldBreak' | 'crash' | 'explode'
   | 'near' | 'ring' | 'beep' | 'go' | 'mission' | 'click' | 'turbo' | 'respawn' | 'bump' | 'combo' | 'warp' | 'expire' | 'fanfare';
@@ -116,6 +125,13 @@ export class Audio {
   private rendering = false;
   private layers: Partial<Record<'camp' | 'base' | 'drums' | 'nitro', { src: AudioBufferSourceNode; g: GainNode }>> = {};
   private sfxBufs: Record<string, AudioBuffer> = {};
+  /** v4.0 native: bake SFX (see NATIVE_MASTER) */
+  private baked = platform.native;
+  /** render rate: the context's own on native (no runtime resampling), 24 kHz on the web */
+  private sr = SYNTH_SR;
+  /** the buffer a recipe writes into while baking (null = live Web Audio nodes) */
+  private rt: Float32Array | null = null;
+  private bakedSfx = new Map<string, AudioBuffer>();
   private _intensity = 0;
   /** 0 = Home / menus (Campfire), 1 = racing (Gallop), 2 = Nitro (+ banjo) */
   get intensity() {
@@ -173,8 +189,9 @@ export class Audio {
       if (c.state === 'running') this.onRunning?.();
     });
     if (c.state !== 'running') c.resume().catch(() => undefined);
+    if (this.baked) this.sr = Math.min(48000, Math.max(22050, Math.round(c.sampleRate || 44100)));
     this.master = c.createGain();
-    this.master.gain.value = 0.8;
+    this.master.gain.value = this.baked ? NATIVE_MASTER : 0.8;
     const comp = c.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.ratio.value = 4;
@@ -205,10 +222,11 @@ export class Audio {
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     this.buildSfx();
+    this.prebake();
     for (const [n, u] of this.pendingOverrides) void this.loadOverride(n, u);
     this.pendingOverrides.length = 0;
     this.prime();
-    if (c.state === 'running') queueMicrotask(() => this.onRunning?.());
+    if (c.state === 'running') void Promise.resolve().then(() => this.onRunning?.()); // (no queueMicrotask on TikTok Android)
   }
 
   /** silent 1-sample buffer started from the current gesture (WebKit output unlock) */
@@ -252,7 +270,7 @@ export class Audio {
   }
   /** silence everything while an ad plays */
   duck(on: boolean) {
-    if (this.ctx) this.master.gain.value = on ? 0 : 0.8;
+    if (this.ctx) this.master.gain.value = on ? 0 : this.baked ? NATIVE_MASTER : 0.8;
   }
 
   setMusic(on: boolean) {
@@ -262,6 +280,7 @@ export class Audio {
 
   // ---------------------------------------------------------------- helpers
   private osc(type: OscillatorType, f0: number, f1: number, t0: number, dur: number, vol: number, bus?: AudioNode, pan = 0) {
+    if (this.rt) return bakeOsc(this.rt, this.sr, type, f0, f1, t0, dur, vol);
     const c = this.ctx!;
     const o = c.createOscillator();
     const g = c.createGain();
@@ -285,6 +304,7 @@ export class Audio {
   }
 
   private noise(t0: number, dur: number, vol: number, f0: number, f1: number, q = 1, type: BiquadFilterType = 'bandpass', bus?: AudioNode, pan = 0) {
+    if (this.rt) return bakeNoise(this.rt, this.sr, t0, dur, vol, f0, f1, q, type);
     const c = this.ctx!;
     const s = c.createBufferSource();
     s.buffer = this.noiseBuf;
@@ -325,13 +345,90 @@ export class Audio {
       return;
     }
     const pan = opt.pan ?? 0;
+    let step = 0;
+    if (name === 'coin') {
+      // rising pitch on fast streaks
+      if (t - this.coinPitchT > 0.6) this.coinPitch = 0;
+      this.coinPitchT = t;
+      step = Math.min(this.coinPitch, 12);
+      this.coinPitch++;
+    }
+    if (this.baked) {
+      const b = this.bakedBuf(name, step);
+      if (b) this.playBaked(b, t, pan);
+      return;
+    }
+    this.recipe(name, t, pan, step);
+  }
+
+  /** v4.0 native: one SFX rendered into a buffer (cached; coin per pitch step) */
+  private bakedBuf(name: Sfx, step = 0) {
+    const key = name === 'coin' ? `coin${step}` : name;
+    let b = this.bakedSfx.get(key);
+    if (b) return b;
+    const c = this.ctx;
+    if (!c) return null;
+    const len = Math.round(this.sr * 2.4);
+    const out = new Float32Array(len);
+    this.rt = out;
+    try {
+      this.recipe(name, 0.004, 0, step);
+    } finally {
+      this.rt = null;
+    }
+    // headroom (no compressor on some runtimes; Crash + Explosion play together): peaks ≤ 0.5
+    let peak = 0;
+    for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(out[i]));
+    if (peak > 0.5) for (let i = 0; i < len; i++) out[i] *= 0.5 / peak;
+    // trim the silent tail, fade the last 5 ms (never a click at the end)
+    let end = len;
+    while (end > 1 && Math.abs(out[end - 1]) < 1e-4) end--;
+    end = Math.min(len, end + 32);
+    const fade = Math.min(end, Math.round(this.sr * 0.005));
+    for (let i = 0; i < fade; i++) out[end - 1 - i] *= i / fade;
+    b = c.createBuffer(1, Math.max(1, end), this.sr);
+    b.getChannelData(0).set(out.subarray(0, Math.max(1, end)));
+    this.bakedSfx.set(key, b);
+    return b;
+  }
+  private playBaked(b: AudioBuffer, t: number, pan: number) {
+    const c = this.ctx!;
+    const s = c.createBufferSource();
+    s.buffer = b;
+    let out: AudioNode = s;
+    if (pan && typeof c.createStereoPanner === 'function') {
+      const p = c.createStereoPanner();
+      p.pan.value = pan;
+      s.connect(p);
+      out = p;
+    }
+    out.connect(this.sfxBus);
+    s.start(t);
+  }
+  /** v4.0 native: bake every SFX a little at a time after start (the first play never waits) */
+  private prebake() {
+    if (!this.baked) return;
+    const all: [Sfx, number][] = (['crash', 'coin', 'lane', 'land', 'up', 'down', 'near', 'power', 'click', 'go', 'beep', 'bump', 'shield', 'shieldBreak', 'explode', 'ring', 'fanfare', 'mission', 'combo', 'turbo', 'respawn', 'warp', 'expire'] as Sfx[]).map((n) => [n, 0]);
+    for (let i = 1; i <= 12; i++) all.push(['coin', i]);
+    const next = () => {
+      const j = all.shift();
+      if (!j) return;
+      try {
+        this.bakedBuf(j[0], j[1]);
+      } catch (e) {
+        console.warn('[audio] bake', e);
+      }
+      setTimeout(next, 8);
+    };
+    setTimeout(next, 30);
+  }
+
+  /** the SFX recipes (live Web Audio nodes on the web, written into a buffer while baking) */
+  private recipe(name: Sfx, t: number, pan: number, step: number) {
     switch (name) {
       case 'coin': {
         // gold "ching": bright metal ping + a short shimmer; rising pitch on fast streaks
-        if (t - this.coinPitchT > 0.6) this.coinPitch = 0;
-        this.coinPitchT = t;
-        const base = 1568 * Math.pow(2, Math.min(this.coinPitch, 12) / 24);
-        this.coinPitch++;
+        const base = 1568 * Math.pow(2, step / 24);
         this.osc('triangle', base, base, t, 0.08, 0.08);
         this.osc('sine', base * 2.01, base * 2.01, t + 0.02, 0.22, 0.06);
         this.osc('sine', base * 1.5, base * 1.5, t + 0.05, 0.18, 0.09);
@@ -368,7 +465,7 @@ export class Audio {
         this.osc('sine', 600, 1350, t + 0.04, 0.35, 0.06);
         break;
       case 'shieldBreak':
-        this.noise(t, 0.45, 0.4, 6000, 1200, 2);
+        this.noise(t, 0.45, 0.28, 3800, 1000, 1.6); // softer (v4.0)
         this.osc('triangle', 900, 200, t, 0.35, 0.12);
         break;
       case 'crash':
@@ -385,7 +482,7 @@ export class Audio {
       case 'near':
         // whip crack: a fast rising swish ending in a sharp snap
         this.noise(t, 0.12, 0.22, 900, 5000, 1.5, 'bandpass', undefined, pan);
-        this.noise(t + 0.11, 0.035, 0.5, 6000, 3000, 0.8, 'highpass', undefined, pan);
+        this.noise(t + 0.11, 0.035, 0.2, 5000, 2600, 0.8, 'highpass', undefined, pan); // softer (v4.0: no harsh hiss)
         break;
       case 'ring':
         [0, 7, 12].forEach((n, i) => this.osc('sine', 880 * Math.pow(2, n / 12), 880 * Math.pow(2, n / 12), t + i * 0.04, 0.3, 0.09));
@@ -450,27 +547,28 @@ export class Audio {
   // ---------------------------------------------------------------- Western SFX buffers
   private buf(x: Float32Array) {
     const c = this.ctx!;
-    const b = c.createBuffer(1, x.length, SYNTH_SR);
+    const b = c.createBuffer(1, x.length, this.sr);
     b.getChannelData(0).set(x);
     return b;
   }
   private buildSfx() {
     this.sfxBufs = {
-      bell: this.buf(renderBell(SYNTH_SR, 1318, 0.9)),
-      bellLow: this.buf(renderBell(SYNTH_SR, 784, 1.2)),
-      strumG: this.buf(renderStrum(SYNTH_SR, [43, 50, 55, 59, 62, 67], 0.22, 0.018)),
-      strumD: this.buf(renderStrum(SYNTH_SR, [50, 57, 62, 66, 69], 0.22, 0.012)),
-      twang: this.buf(renderPluck(SYNTH_SR, 40, 0.5, 1.2)),
-      b1: this.buf(renderPluck(SYNTH_SR, 67, 0.9, 0.5)),
-      b2: this.buf(renderPluck(SYNTH_SR, 71, 0.9, 0.5)),
-      b3: this.buf(renderPluck(SYNTH_SR, 74, 0.9, 0.5)),
-      b4: this.buf(renderPluck(SYNTH_SR, 79, 0.9, 0.7)),
+      bell: this.buf(renderBell(this.sr, 1318, 0.9)),
+      bellLow: this.buf(renderBell(this.sr, 784, 1.2)),
+      strumG: this.buf(renderStrum(this.sr, [43, 50, 55, 59, 62, 67], 0.22, 0.018)),
+      strumD: this.buf(renderStrum(this.sr, [50, 57, 62, 66, 69], 0.22, 0.012)),
+      twang: this.buf(renderPluck(this.sr, 40, 0.5, 1.2)),
+      b1: this.buf(renderPluck(this.sr, 67, 0.9, 0.5)),
+      b2: this.buf(renderPluck(this.sr, 71, 0.9, 0.5)),
+      b3: this.buf(renderPluck(this.sr, 74, 0.9, 0.5)),
+      b4: this.buf(renderPluck(this.sr, 79, 0.9, 0.7)),
     };
   }
   private playBuf(k: string, t: number, vol: number, pan = 0, rate = 1) {
     const c = this.ctx!;
     const b = this.sfxBufs[k];
     if (!b) return;
+    if (this.rt) return bakeMix(this.rt, this.sr, b.getChannelData(0), b.sampleRate, t, vol, rate);
     const s = c.createBufferSource();
     s.buffer = b;
     s.playbackRate.value = rate;
@@ -516,9 +614,9 @@ export class Audio {
       return p.done();
     };
     try {
-      this.songs.camp = this.buf(await run(campPlan(SYNTH_SR)));
+      this.songs.camp = this.buf(await run(campPlan(this.sr)));
       this.applyIntensity(-1);
-      const ride = await run(ridePlan(SYNTH_SR));
+      const ride = await run(ridePlan(this.sr));
       this.songs.base = this.buf(ride.base);
       this.songs.drums = this.buf(ride.drums);
       this.songs.nitro = this.buf(ride.nitro);
@@ -528,10 +626,40 @@ export class Audio {
     }
   }
 
+  /** v4.0 native: a gain fade in many small steps on a timer (no AudioParam automation there) */
+  private fadeGain(g: GainNode, to: number, sec: number) {
+    if (!this.baked) return false;
+    const from = g.gain.value;
+    const n = Math.max(1, Math.round((sec * 1000) / 16));
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      try {
+        g.gain.value = from + (to - from) * Math.min(1, i / n);
+      } catch {
+        /* read-only on some runtimes */
+      }
+      if (i >= n) clearInterval(id);
+    }, 16);
+    return true;
+  }
+
   private stopLayer(k: keyof typeof this.layers, fade = 0.4) {
     const L = this.layers[k];
     if (!L || !this.ctx) return;
     const t = this.ctx.currentTime;
+    if (this.fadeGain(L.g, 0, fade)) {
+      const src = L.src;
+      setTimeout(() => {
+        try {
+          src.stop();
+        } catch {
+          /* already stopped */
+        }
+      }, fade * 1000 + 60);
+      delete this.layers[k];
+      return;
+    }
     L.g.gain.cancelScheduledValues(t);
     L.g.gain.setValueAtTime(L.g.gain.value, t);
     L.g.gain.linearRampToValueAtTime(0, t + fade);
@@ -554,8 +682,13 @@ export class Audio {
       src.buffer = b;
       src.loop = true;
       const g = c.createGain();
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(vols[i], t + fade);
+      if (this.baked) {
+        g.gain.value = 0;
+        this.fadeGain(g, vols[i], fade);
+      } else {
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vols[i], t + fade);
+      }
       src.connect(g);
       g.connect(this.musicBus);
       g.connect(this.reverb);
@@ -567,6 +700,7 @@ export class Audio {
   private setLayer(k: keyof typeof this.layers, v: number, tc = 0.25) {
     const L = this.layers[k];
     if (!L || !this.ctx) return;
+    if (this.fadeGain(L.g, v, tc * 3)) return;
     L.g.gain.setTargetAtTime(v, this.ctx.currentTime, tc);
   }
 
@@ -588,5 +722,70 @@ export class Audio {
       return;
     }
     this.setLayer('nitro', this._intensity >= 2 ? V.nitro : 0, this._intensity >= 2 ? 0.08 : 0.5);
+  }
+}
+
+// ---------------------------------------------------------------- v4.0 native: offline renderers for the recipes
+const env = (i: number, n: number, a: number, vol: number) => {
+  // exponential attack 0.0001 → vol over `a` samples, then exponential decay to 0.0001 at n (as the live ramps)
+  if (i < a) return 0.0001 * Math.pow(vol / 0.0001, i / a);
+  return vol * Math.pow(0.0001 / vol, (i - a) / Math.max(1, n - a));
+};
+function bakeOsc(out: Float32Array, sr: number, type: OscillatorType, f0: number, f1: number, t0: number, dur: number, vol: number) {
+  const s0 = Math.round(t0 * sr);
+  const n = Math.round(dur * sr);
+  const a = Math.max(1, Math.round(0.008 * sr));
+  const fe = Math.max(20, f1);
+  let ph = 0;
+  for (let i = 0; i < n && s0 + i < out.length; i++) {
+    const f = f0 === f1 ? f0 : f0 * Math.pow(fe / f0, i / n);
+    ph += f / sr;
+    ph -= Math.floor(ph);
+    let v: number;
+    if (type === 'sine') v = Math.sin(ph * Math.PI * 2);
+    else if (type === 'triangle') v = 1 - 4 * Math.abs(ph - 0.5);
+    else if (type === 'square') v = ph < 0.5 ? 0.8 : -0.8;
+    else v = 2 * ph - 1; // sawtooth
+    if (s0 + i >= 0) out[s0 + i] += v * env(i, n, a, vol);
+  }
+}
+function bakeNoise(out: Float32Array, sr: number, t0: number, dur: number, vol: number, f0: number, f1: number, q: number, type: BiquadFilterType) {
+  const s0 = Math.round(t0 * sr);
+  const n = Math.round(dur * sr);
+  const a = Math.max(1, Math.round(0.01 * sr));
+  const fe = Math.max(30, f1);
+  let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+  let b0 = 0, b1 = 0, b2 = 0, a1 = 0, a2 = 0;
+  for (let i = 0; i < n && s0 + i < out.length; i++) {
+    if (i % 32 === 0) {
+      // RBJ biquad, frequency swept exponentially (as the live filter)
+      const f = Math.min(sr * 0.45, f0 * Math.pow(fe / f0, i / n));
+      const w = (2 * Math.PI * f) / sr;
+      const cs = Math.cos(w);
+      const al = Math.sin(w) / (2 * Math.max(0.0001, q));
+      const a0 = 1 + al;
+      if (type === 'lowpass') {
+        b0 = (1 - cs) / 2 / a0; b1 = (1 - cs) / a0; b2 = b0;
+      } else if (type === 'highpass') {
+        b0 = (1 + cs) / 2 / a0; b1 = -(1 + cs) / a0; b2 = b0;
+      } else {
+        b0 = al / a0; b1 = 0; b2 = -al / a0;
+      }
+      a1 = (-2 * cs) / a0;
+      a2 = (1 - al) / a0;
+    }
+    const x = Math.random() * 2 - 1;
+    const y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+    x2 = x1; x1 = x; y2 = y1; y1 = y;
+    if (s0 + i >= 0) out[s0 + i] += y * env(i, n, a, vol);
+  }
+}
+function bakeMix(out: Float32Array, sr: number, src: Float32Array, srcSr: number, t0: number, vol: number, rate: number) {
+  const s0 = Math.round(t0 * sr);
+  const step = (rate * srcSr) / sr;
+  for (let i = 0, p = 0; p < src.length - 1 && s0 + i < out.length; i++, p += step) {
+    const k = Math.floor(p);
+    const fr = p - k;
+    if (s0 + i >= 0) out[s0 + i] += (src[k] * (1 - fr) + src[k + 1] * fr) * vol;
   }
 }

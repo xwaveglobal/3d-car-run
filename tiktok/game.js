@@ -10308,7 +10308,7 @@ void main() {
         grd.addColorStop(0, "rgba(255,255,255,.85)"), grd.addColorStop(1, "rgba(255,255,255,0)"), g.fillStyle = grd, g.beginPath(), g.arc(x, y, rr, 0, Math.PI * 2), g.fill();
     } return puffTex = new CanvasTexture(c2), puffTex.colorSpace = SRGBColorSpace, puffTex; }
     var HomeView = class {
-        constructor(art, env) {
+        constructor(art, env2) {
             __publicField(this, "scene", new Scene);
             __publicField(this, "camera", new PerspectiveCamera(HOME_SHOW.fov, 1, .1, 200));
             __publicField(this, "active", !1);
@@ -10321,7 +10321,7 @@ void main() {
             __publicField(this, "vh", 1);
             __publicField(this, "slide", null);
             __publicField(this, "slideX", 0);
-            this.scene.environment = env, this.scene.environmentIntensity = .9, this.camera.layers.enableAll();
+            this.scene.environment = env2, this.scene.environmentIntensity = .9, this.camera.layers.enableAll();
             let tex3 = new TextureLoader().load(art);
             tex3.colorSpace = NoColorSpace, tex3.generateMipmaps = !0, tex3.minFilter = LinearMipmapLinearFilter, tex3.wrapS = tex3.wrapT = ClampToEdgeWrapping;
             let mat3 = new ShaderMaterial({ uniforms: { tMap: { value: tex3 }, uView: { value: new Vector2(1, 1) }, uStage: { value: new Vector4(0, 0, 1, 1) }, uExt: { value: HOME_ART.ext / HOME_ART.h }, uDpr: { value: 1 }, uLinearOut: { value: 0 } }, vertexShader: "void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }", fragmentShader: `
@@ -12689,8 +12689,8 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         buf[i] /= pk || 1; let loss = Math.pow(.001, 1 / (decay * hz)), n2 = Math.min(out.length - at, Math.floor(dur * sr)), last = 0, w = 0; for (let i = 0; i < n2; i++) {
         let pos = w - D2, i0 = Math.floor(pos), f = pos - i0, a = buf[(i0 % M + M) % M], b = buf[((i0 + 1) % M + M) % M], y = a + (b - a) * f;
         buf[w] = (y * (1 - damp3) + last * damp3) * loss, last = y, w = (w + 1) % M;
-        let env = Math.min(1, i / (sr * .002)) * (i > n2 - sr * .02 ? (n2 - i) / (sr * .02) : 1);
-        out[at + i] += y * vol * env;
+        let env2 = Math.min(1, i / (sr * .002)) * (i > n2 - sr * .02 ? (n2 - i) / (sr * .02) : 1);
+        out[at + i] += y * vol * env2;
     } }
     function harmonica(out, sr, at, hz, vol, dur, seed = 3) { let r = rng3(seed), n2 = Math.min(out.length - at, Math.floor(dur * sr)), parts = [1, .55, .42, .22, .16, .08], ph = 0, breath = 0; for (let i = 0; i < n2; i++) {
         let t = i / sr, vib = 1 + .006 * Math.sin(2 * Math.PI * 5.2 * t) * Math.min(1, t / .25);
@@ -12758,7 +12758,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
     function renderStrum(sr, tones, vol = .25, gap = .016) { let out = new Float32Array(Math.round(sr * 1.4)); return tones.forEach((m, i) => pluck(out, sr, Math.round(i * gap * sr), mtof(m), vol, 1.3, .6, 1.2, i + 3)), master(out, .85); }
     function renderBell(sr, hz, dur = 1.2) { let out = new Float32Array(Math.round(sr * dur)); return bell(out, sr, 0, hz, .5, dur), master(out, .8); }
     function renderPluck(sr, midi, bright = .7, dur = .9) { let out = new Float32Array(Math.round(sr * dur)); return pluck(out, sr, 0, mtof(midi), .5, dur, bright, dur * .9, midi), master(out, .8); }
-    var SYNTH_SR = 24e3;
+    var SYNTH_SR = 24e3, NATIVE_MASTER = .6;
     function compat(c2) { let fixParam = p => { if (!p || typeof p != "object")
         return p; let at = (t, fn) => { var _a13; let ms = Math.max(0, (t - ((_a13 = c2.currentTime) != null ? _a13 : 0)) * 1e3); ms < 4 ? fn() : setTimeout(fn, ms); }, set = v => { try {
         p.value = v;
@@ -12780,7 +12780,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         n2 = null;
     } return !n2 && fallback && (n2 = fallback()), fixNode(n2); }; }; wrap("createGain", null), wrap("createOscillator", null), wrap("createBufferSource", null), wrap("createDynamicsCompressor", () => passThrough({ threshold: fakeParam(-14), ratio: fakeParam(4) })), wrap("createBiquadFilter", () => passThrough({ type: "lowpass", frequency: fakeParam(1e3), Q: fakeParam(1) })), wrap("createDelay", () => passThrough({ delayTime: fakeParam(0) })), typeof c2.createStereoPanner == "function" && wrap("createStereoPanner", null), wrap("createConvolver", () => passThrough({ buffer: null })); }
     var _Audio = class _Audio {
-        constructor() { __publicField(this, "ctx", null); __publicField(this, "master"); __publicField(this, "sfxBus"); __publicField(this, "musicBus"); __publicField(this, "noiseBuf"); __publicField(this, "overrides", new Map); __publicField(this, "pendingOverrides", []); __publicField(this, "sfxOn", !0); __publicField(this, "musicOn", !0); __publicField(this, "coinPitch", 0); __publicField(this, "coinPitchT", 0); __publicField(this, "reverb"); __publicField(this, "songs", {}); __publicField(this, "rendering", !1); __publicField(this, "layers", {}); __publicField(this, "sfxBufs", {}); __publicField(this, "_intensity", 0); __publicField(this, "playing", !1); __publicField(this, "onRunning", null); __publicField(this, "lastPlayed", {}); }
+        constructor() { __publicField(this, "ctx", null); __publicField(this, "master"); __publicField(this, "sfxBus"); __publicField(this, "musicBus"); __publicField(this, "noiseBuf"); __publicField(this, "overrides", new Map); __publicField(this, "pendingOverrides", []); __publicField(this, "sfxOn", !0); __publicField(this, "musicOn", !0); __publicField(this, "coinPitch", 0); __publicField(this, "coinPitchT", 0); __publicField(this, "reverb"); __publicField(this, "songs", {}); __publicField(this, "rendering", !1); __publicField(this, "layers", {}); __publicField(this, "sfxBufs", {}); __publicField(this, "baked", platform.native); __publicField(this, "sr", SYNTH_SR); __publicField(this, "rt", null); __publicField(this, "bakedSfx", new Map); __publicField(this, "_intensity", 0); __publicField(this, "playing", !1); __publicField(this, "onRunning", null); __publicField(this, "lastPlayed", {}); }
         get intensity() { return this._intensity; }
         set intensity(v) { if (v === this._intensity)
             return; let was = this._intensity; this._intensity = v, this.applyIntensity(was); }
@@ -12799,15 +12799,15 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         }
         catch (e) {
             console.warn("[audio] compat", e);
-        } (_a13 = c2.addEventListener) == null || _a13.call(c2, "statechange", () => { var _a14; c2.state === "running" && ((_a14 = this.onRunning) == null || _a14.call(this)); }), c2.state !== "running" && c2.resume().catch(() => { }), this.master = c2.createGain(), this.master.gain.value = .8; let comp = c2.createDynamicsCompressor(); comp.threshold.value = -14, comp.ratio.value = 4, this.master.connect(comp).connect(c2.destination), this.sfxBus = c2.createGain(), this.sfxBus.gain.value = this.sfxOn ? .9 : 0, this.sfxBus.connect(this.master), this.musicBus = c2.createGain(), this.musicBus.gain.value = this.musicOn ? .42 : 0, this.musicBus.connect(this.master), this.reverb = c2.createConvolver(); let ir = c2.createBuffer(2, Math.round(c2.sampleRate * 1.8), c2.sampleRate); for (let ch = 0; ch < 2; ch++) {
+        } (_a13 = c2.addEventListener) == null || _a13.call(c2, "statechange", () => { var _a14; c2.state === "running" && ((_a14 = this.onRunning) == null || _a14.call(this)); }), c2.state !== "running" && c2.resume().catch(() => { }), this.baked && (this.sr = Math.min(48e3, Math.max(22050, Math.round(c2.sampleRate || 44100)))), this.master = c2.createGain(), this.master.gain.value = this.baked ? NATIVE_MASTER : .8; let comp = c2.createDynamicsCompressor(); comp.threshold.value = -14, comp.ratio.value = 4, this.master.connect(comp).connect(c2.destination), this.sfxBus = c2.createGain(), this.sfxBus.gain.value = this.sfxOn ? .9 : 0, this.sfxBus.connect(this.master), this.musicBus = c2.createGain(), this.musicBus.gain.value = this.musicOn ? .42 : 0, this.musicBus.connect(this.master), this.reverb = c2.createConvolver(); let ir = c2.createBuffer(2, Math.round(c2.sampleRate * 1.8), c2.sampleRate); for (let ch = 0; ch < 2; ch++) {
             let d2 = ir.getChannelData(ch), lp = 0;
             for (let i = 0; i < d2.length; i++) {
                 let k2 = i / d2.length;
                 lp += (Math.random() * 2 - 1 - lp) * (.5 - k2 * .42), d2[i] = lp * Math.pow(1 - k2, 2.6) * (i < c2.sampleRate * .012 ? 0 : 1);
             }
         } this.reverb.buffer = ir; let wet = c2.createGain(); wet.gain.value = .22, this.reverb.connect(wet).connect(this.musicBus), this.noiseBuf = c2.createBuffer(1, c2.sampleRate, c2.sampleRate); let d = this.noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++)
-            d[i] = Math.random() * 2 - 1; this.buildSfx(); for (let [n2, u] of this.pendingOverrides)
-            this.loadOverride(n2, u); this.pendingOverrides.length = 0, this.prime(), c2.state === "running" && queueMicrotask(() => { var _a14; return (_a14 = this.onRunning) == null ? void 0 : _a14.call(this); }); }
+            d[i] = Math.random() * 2 - 1; this.buildSfx(), this.prebake(); for (let [n2, u] of this.pendingOverrides)
+            this.loadOverride(n2, u); this.pendingOverrides.length = 0, this.prime(), c2.state === "running" && Promise.resolve().then(() => { var _a14; return (_a14 = this.onRunning) == null ? void 0 : _a14.call(this); }); }
         prime() { let c2 = this.ctx; if (!c2)
             return; let b = c2.createBuffer(1, 1, 22050), s = c2.createBufferSource(); s.buffer = b, s.connect(c2.destination), s.start(0); }
         setHidden(hidden) { let c2 = this.ctx; c2 && (hidden ? c2.state === "running" && c2.suspend().catch(() => { }) : c2.state !== "running" && c2.resume().catch(() => { })); }
@@ -12823,13 +12823,15 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         }
         catch (e) { } }
         setSfx(on2) { this.sfxOn = on2, this.ctx && (this.sfxBus.gain.value = on2 ? .9 : 0); }
-        duck(on2) { this.ctx && (this.master.gain.value = on2 ? 0 : .8); }
+        duck(on2) { this.ctx && (this.master.gain.value = on2 ? 0 : this.baked ? NATIVE_MASTER : .8); }
         setMusic(on2) { this.musicOn = on2, this.ctx && (this.musicBus.gain.value = on2 ? .42 : 0); }
-        osc(type, f0, f1, t0, dur, vol, bus, pan = 0) { let c2 = this.ctx, o = c2.createOscillator(), g = c2.createGain(); o.type = type, o.frequency.setValueAtTime(f0, t0), f1 !== f0 && o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur), g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .008), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur); let out = g; if (pan && c2.createStereoPanner) {
+        osc(type, f0, f1, t0, dur, vol, bus, pan = 0) { if (this.rt)
+            return bakeOsc(this.rt, this.sr, type, f0, f1, t0, dur, vol); let c2 = this.ctx, o = c2.createOscillator(), g = c2.createGain(); o.type = type, o.frequency.setValueAtTime(f0, t0), f1 !== f0 && o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur), g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .008), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur); let out = g; if (pan && c2.createStereoPanner) {
             let p = c2.createStereoPanner();
             p.pan.value = pan, g.connect(p), out = p;
         } o.connect(g), out.connect(bus != null ? bus : this.sfxBus), o.start(t0), o.stop(t0 + dur + .02); }
-        noise(t0, dur, vol, f0, f1, q = 1, type = "bandpass", bus, pan = 0) { let c2 = this.ctx, s = c2.createBufferSource(); s.buffer = this.noiseBuf; let f = c2.createBiquadFilter(); f.type = type, f.Q.value = q, f.frequency.setValueAtTime(f0, t0), f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur); let g = c2.createGain(); g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .01), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur), s.connect(f).connect(g); let out = g; if (pan && c2.createStereoPanner) {
+        noise(t0, dur, vol, f0, f1, q = 1, type = "bandpass", bus, pan = 0) { if (this.rt)
+            return bakeNoise(this.rt, this.sr, t0, dur, vol, f0, f1, q, type); let c2 = this.ctx, s = c2.createBufferSource(); s.buffer = this.noiseBuf; let f = c2.createBiquadFilter(); f.type = type, f.Q.value = q, f.frequency.setValueAtTime(f0, t0), f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur); let g = c2.createGain(); g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .01), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur), s.connect(f).connect(g); let out = g; if (pan && c2.createStereoPanner) {
             let p = c2.createStereoPanner();
             p.pan.value = pan, g.connect(p), out = p;
         } out.connect(bus != null ? bus : this.sfxBus), s.start(t0, Math.random() * .5), s.stop(t0 + dur + .02); }
@@ -12838,11 +12840,43 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             let s = c2.createBufferSource();
             s.buffer = ov, s.connect(this.sfxBus), s.start(t);
             return;
-        } let pan = (_b3 = opt.pan) != null ? _b3 : 0; switch (name) {
+        } let pan = (_b3 = opt.pan) != null ? _b3 : 0, step2 = 0; if (name === "coin" && (t - this.coinPitchT > .6 && (this.coinPitch = 0), this.coinPitchT = t, step2 = Math.min(this.coinPitch, 12), this.coinPitch++), this.baked) {
+            let b = this.bakedBuf(name, step2);
+            b && this.playBaked(b, t, pan);
+            return;
+        } this.recipe(name, t, pan, step2); }
+        bakedBuf(name, step2 = 0) { let key = name === "coin" ? `coin${step2}` : name, b = this.bakedSfx.get(key); if (b)
+            return b; let c2 = this.ctx; if (!c2)
+            return null; let len2 = Math.round(this.sr * 2.4), out = new Float32Array(len2); this.rt = out; try {
+            this.recipe(name, .004, 0, step2);
+        }
+        finally {
+            this.rt = null;
+        } let peak = 0; for (let i = 0; i < len2; i++)
+            peak = Math.max(peak, Math.abs(out[i])); if (peak > .5)
+            for (let i = 0; i < len2; i++)
+                out[i] *= .5 / peak; let end = len2; for (; end > 1 && Math.abs(out[end - 1]) < 1e-4;)
+            end--; end = Math.min(len2, end + 32); let fade = Math.min(end, Math.round(this.sr * .005)); for (let i = 0; i < fade; i++)
+            out[end - 1 - i] *= i / fade; return b = c2.createBuffer(1, Math.max(1, end), this.sr), b.getChannelData(0).set(out.subarray(0, Math.max(1, end))), this.bakedSfx.set(key, b), b; }
+        playBaked(b, t, pan) { let c2 = this.ctx, s = c2.createBufferSource(); s.buffer = b; let out = s; if (pan && typeof c2.createStereoPanner == "function") {
+            let p = c2.createStereoPanner();
+            p.pan.value = pan, s.connect(p), out = p;
+        } out.connect(this.sfxBus), s.start(t); }
+        prebake() { if (!this.baked)
+            return; let all = ["crash", "coin", "lane", "land", "up", "down", "near", "power", "click", "go", "beep", "bump", "shield", "shieldBreak", "explode", "ring", "fanfare", "mission", "combo", "turbo", "respawn", "warp", "expire"].map(n2 => [n2, 0]); for (let i = 1; i <= 12; i++)
+            all.push(["coin", i]); let next = () => { let j = all.shift(); if (j) {
+            try {
+                this.bakedBuf(j[0], j[1]);
+            }
+            catch (e) {
+                console.warn("[audio] bake", e);
+            }
+            setTimeout(next, 8);
+        } }; setTimeout(next, 30); }
+        recipe(name, t, pan, step2) { switch (name) {
             case "coin": {
-                t - this.coinPitchT > .6 && (this.coinPitch = 0), this.coinPitchT = t;
-                let base = 1568 * Math.pow(2, Math.min(this.coinPitch, 12) / 24);
-                this.coinPitch++, this.osc("triangle", base, base, t, .08, .08), this.osc("sine", base * 2.01, base * 2.01, t + .02, .22, .06), this.osc("sine", base * 1.5, base * 1.5, t + .05, .18, .09);
+                let base = 1568 * Math.pow(2, step2 / 24);
+                this.osc("triangle", base, base, t, .08, .08), this.osc("sine", base * 2.01, base * 2.01, t + .02, .22, .06), this.osc("sine", base * 1.5, base * 1.5, t + .05, .18, .09);
                 break;
             }
             case "lane":
@@ -12867,7 +12901,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
                 this.osc("sine", 400, 900, t, .35, .12), this.osc("sine", 600, 1350, t + .04, .35, .06);
                 break;
             case "shieldBreak":
-                this.noise(t, .45, .4, 6e3, 1200, 2), this.osc("triangle", 900, 200, t, .35, .12);
+                this.noise(t, .45, .28, 3800, 1e3, 1.6), this.osc("triangle", 900, 200, t, .35, .12);
                 break;
             case "crash":
                 this.noise(t, .6, .55, 2e3, 120, .7, "lowpass"), this.osc("sine", 110, 35, t, .6, .42), this.noise(t + .02, .3, .3, 700, 300, 2.5, "bandpass"), this.playBuf("bellLow", t + .03, .14, 0, .55);
@@ -12876,7 +12910,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
                 this.noise(t, 1.2, .7, 1200, 60, .6, "lowpass"), this.osc("sine", 80, 25, t, 1, .5);
                 break;
             case "near":
-                this.noise(t, .12, .22, 900, 5e3, 1.5, "bandpass", void 0, pan), this.noise(t + .11, .035, .5, 6e3, 3e3, .8, "highpass", void 0, pan);
+                this.noise(t, .12, .22, 900, 5e3, 1.5, "bandpass", void 0, pan), this.noise(t + .11, .035, .2, 5e3, 2600, .8, "highpass", void 0, pan);
                 break;
             case "ring":
                 [0, 7, 12].forEach((n2, i) => this.osc("sine", 880 * Math.pow(2, n2 / 12), 880 * Math.pow(2, n2 / 12), t + i * .04, .3, .09));
@@ -12912,10 +12946,11 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
                 this.osc("triangle", 700, 350, t, .25, .08);
                 break;
         } }
-        buf(x) { let b = this.ctx.createBuffer(1, x.length, SYNTH_SR); return b.getChannelData(0).set(x), b; }
-        buildSfx() { this.sfxBufs = { bell: this.buf(renderBell(SYNTH_SR, 1318, .9)), bellLow: this.buf(renderBell(SYNTH_SR, 784, 1.2)), strumG: this.buf(renderStrum(SYNTH_SR, [43, 50, 55, 59, 62, 67], .22, .018)), strumD: this.buf(renderStrum(SYNTH_SR, [50, 57, 62, 66, 69], .22, .012)), twang: this.buf(renderPluck(SYNTH_SR, 40, .5, 1.2)), b1: this.buf(renderPluck(SYNTH_SR, 67, .9, .5)), b2: this.buf(renderPluck(SYNTH_SR, 71, .9, .5)), b3: this.buf(renderPluck(SYNTH_SR, 74, .9, .5)), b4: this.buf(renderPluck(SYNTH_SR, 79, .9, .7)) }; }
+        buf(x) { let b = this.ctx.createBuffer(1, x.length, this.sr); return b.getChannelData(0).set(x), b; }
+        buildSfx() { this.sfxBufs = { bell: this.buf(renderBell(this.sr, 1318, .9)), bellLow: this.buf(renderBell(this.sr, 784, 1.2)), strumG: this.buf(renderStrum(this.sr, [43, 50, 55, 59, 62, 67], .22, .018)), strumD: this.buf(renderStrum(this.sr, [50, 57, 62, 66, 69], .22, .012)), twang: this.buf(renderPluck(this.sr, 40, .5, 1.2)), b1: this.buf(renderPluck(this.sr, 67, .9, .5)), b2: this.buf(renderPluck(this.sr, 71, .9, .5)), b3: this.buf(renderPluck(this.sr, 74, .9, .5)), b4: this.buf(renderPluck(this.sr, 79, .9, .7)) }; }
         playBuf(k2, t, vol, pan = 0, rate = 1) { let c2 = this.ctx, b = this.sfxBufs[k2]; if (!b)
-            return; let s = c2.createBufferSource(); s.buffer = b, s.playbackRate.value = rate; let g = c2.createGain(); g.gain.value = vol, s.connect(g); let out = g; if (pan && c2.createStereoPanner) {
+            return; if (this.rt)
+            return bakeMix(this.rt, this.sr, b.getChannelData(0), b.sampleRate, t, vol, rate); let s = c2.createBufferSource(); s.buffer = b, s.playbackRate.value = rate; let g = c2.createGain(); g.gain.value = vol, s.connect(g); let out = g; if (pan && c2.createStereoPanner) {
             let p = c2.createStereoPanner();
             p.pan.value = pan, g.connect(p), out = p;
         } out.connect(this.sfxBus), s.start(t); }
@@ -12925,21 +12960,33 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         async renderSongs() { if (this.rendering || this.songs.camp)
             return; this.rendering = !0; let run = async (p) => { let t0 = performance.now(); for (let j of p.jobs)
             j(), performance.now() - t0 > 6 && (await new Promise(r => setTimeout(r, 0)), t0 = performance.now()); return p.done(); }; try {
-            this.songs.camp = this.buf(await run(campPlan(SYNTH_SR))), this.applyIntensity(-1);
-            let ride = await run(ridePlan(SYNTH_SR));
+            this.songs.camp = this.buf(await run(campPlan(this.sr))), this.applyIntensity(-1);
+            let ride = await run(ridePlan(this.sr));
             this.songs.base = this.buf(ride.base), this.songs.drums = this.buf(ride.drums), this.songs.nitro = this.buf(ride.nitro), this.applyIntensity(-1);
         }
         finally {
             this.rendering = !1;
         } }
+        fadeGain(g, to, sec) { if (!this.baked)
+            return !1; let from = g.gain.value, n2 = Math.max(1, Math.round(sec * 1e3 / 16)), i = 0, id2 = setInterval(() => { i++; try {
+            g.gain.value = from + (to - from) * Math.min(1, i / n2);
+        }
+        catch (e) { } i >= n2 && clearInterval(id2); }, 16); return !0; }
         stopLayer(k2, fade = .4) { let L = this.layers[k2]; if (!L || !this.ctx)
-            return; let t = this.ctx.currentTime; L.g.gain.cancelScheduledValues(t), L.g.gain.setValueAtTime(L.g.gain.value, t), L.g.gain.linearRampToValueAtTime(0, t + fade); try {
+            return; let t = this.ctx.currentTime; if (this.fadeGain(L.g, 0, fade)) {
+            let src = L.src;
+            setTimeout(() => { try {
+                src.stop();
+            }
+            catch (e) { } }, fade * 1e3 + 60), delete this.layers[k2];
+            return;
+        } L.g.gain.cancelScheduledValues(t), L.g.gain.setValueAtTime(L.g.gain.value, t), L.g.gain.linearRampToValueAtTime(0, t + fade); try {
             L.src.stop(t + fade + .05);
         }
         catch (e) { } delete this.layers[k2]; }
         startLayers(keys, vols, fade = .6) { let c2 = this.ctx, t = c2.currentTime + .06; keys.forEach((k2, i) => { let b = this.songs[k2]; if (!b || this.layers[k2])
-            return; let src = c2.createBufferSource(); src.buffer = b, src.loop = !0; let g = c2.createGain(); g.gain.setValueAtTime(0, t), g.gain.linearRampToValueAtTime(vols[i], t + fade), src.connect(g), g.connect(this.musicBus), g.connect(this.reverb), src.start(t), this.layers[k2] = { src, g }; }); }
-        setLayer(k2, v, tc = .25) { let L = this.layers[k2]; !L || !this.ctx || L.g.gain.setTargetAtTime(v, this.ctx.currentTime, tc); }
+            return; let src = c2.createBufferSource(); src.buffer = b, src.loop = !0; let g = c2.createGain(); this.baked ? (g.gain.value = 0, this.fadeGain(g, vols[i], fade)) : (g.gain.setValueAtTime(0, t), g.gain.linearRampToValueAtTime(vols[i], t + fade)), src.connect(g), g.connect(this.musicBus), g.connect(this.reverb), src.start(t), this.layers[k2] = { src, g }; }); }
+        setLayer(k2, v, tc = .25) { let L = this.layers[k2]; !L || !this.ctx || this.fadeGain(L.g, v, tc * 3) || L.g.gain.setTargetAtTime(v, this.ctx.currentTime, tc); }
         applyIntensity(was) { if (!this.ctx || !this.playing)
             return; let V = _Audio.VOL; if (!(this._intensity >= 1)) {
             if (was >= 1 || was === -1)
@@ -12953,7 +13000,25 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         } this.setLayer("nitro", this._intensity >= 2 ? V.nitro : 0, this._intensity >= 2 ? .08 : .5); }
     };
     __publicField(_Audio, "VOL", { camp: .9, base: .85, drums: .7, nitro: .55 });
-    var Audio = _Audio;
+    var Audio = _Audio, env = (i, n2, a, vol) => i < a ? 1e-4 * Math.pow(vol / 1e-4, i / a) : vol * Math.pow(1e-4 / vol, (i - a) / Math.max(1, n2 - a));
+    function bakeOsc(out, sr, type, f0, f1, t0, dur, vol) { let s0 = Math.round(t0 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.008 * sr)), fe = Math.max(20, f1), ph = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
+        let f = f0 === f1 ? f0 : f0 * Math.pow(fe / f0, i / n2);
+        ph += f / sr, ph -= Math.floor(ph);
+        let v;
+        type === "sine" ? v = Math.sin(ph * Math.PI * 2) : type === "triangle" ? v = 1 - 4 * Math.abs(ph - .5) : type === "square" ? v = ph < .5 ? .8 : -.8 : v = 2 * ph - 1, s0 + i >= 0 && (out[s0 + i] += v * env(i, n2, a, vol));
+    } }
+    function bakeNoise(out, sr, t0, dur, vol, f0, f1, q, type) { let s0 = Math.round(t0 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.01 * sr)), fe = Math.max(30, f1), x1 = 0, x2 = 0, y1 = 0, y2 = 0, b0 = 0, b1 = 0, b2 = 0, a1 = 0, a2 = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
+        if (i % 32 === 0) {
+            let f = Math.min(sr * .45, f0 * Math.pow(fe / f0, i / n2)), w = 2 * Math.PI * f / sr, cs = Math.cos(w), al = Math.sin(w) / (2 * Math.max(1e-4, q)), a0 = 1 + al;
+            type === "lowpass" ? (b0 = (1 - cs) / 2 / a0, b1 = (1 - cs) / a0, b2 = b0) : type === "highpass" ? (b0 = (1 + cs) / 2 / a0, b1 = -(1 + cs) / a0, b2 = b0) : (b0 = al / a0, b1 = 0, b2 = -al / a0), a1 = -2 * cs / a0, a2 = (1 - al) / a0;
+        }
+        let x = Math.random() * 2 - 1, y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+        x2 = x1, x1 = x, y2 = y1, y1 = y, s0 + i >= 0 && (out[s0 + i] += y * env(i, n2, a, vol));
+    } }
+    function bakeMix(out, sr, src, srcSr, t0, vol, rate) { let s0 = Math.round(t0 * sr), step2 = rate * srcSr / sr; for (let i = 0, p = 0; p < src.length - 1 && s0 + i < out.length; i++, p += step2) {
+        let k2 = Math.floor(p), fr = p - k2;
+        s0 + i >= 0 && (out[s0 + i] += (src[k2] * (1 - fr) + src[k2 + 1] * fr) * vol);
+    } }
     var GLTFLoader = class {
         loadAsync() { return Promise.reject(new Error("GLTF loading is disabled in the single-file build")); }
     };
@@ -14772,7 +14837,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             return;
         } this.save.wallet -= price; let items = (_d2 = (_c3 = this.save).arsenalItems) != null ? _d2 : _c3.arsenalItems = {}; owned ? (items[x.id] = ((_f3 = items[x.id]) != null ? _f3 : 0) + 1, this.audio.play("power"), this.ui.toast(`${ICON.bag} +1 ${x.name} \xB7 in your bag`, "#ffb02e")) : (this.save.arsenal.push(x.id), items[x.id] = ((_e2 = items[x.id]) != null ? _e2 : 0) + 1, this.audio.play("fanfare"), this.ui.toast(`${ICON.lock} <b>UNLOCKED \xB7 ${x.name.toUpperCase()}</b> \xB7 1 charge in your bag`, "#ffc848")), (this.bagPickMode || !this.save.special && !this.save.specialX) && (this.save.specialX = x.id), this.persist(), this.ui.isShown("bagbuy") && this.ui.buySync(this.save), this.ui.isShown("bag") && this.ui.bagSync(this.save, this.bagPickMode), this.ui.isShown("specialpick") && this.ui.specialPick(this.save, this.pickLabel()), this.ui.isShown("shop") && this.ui.shopSync(this.save), this.ui.refreshProfile(this.save); }
         arsenalPerks() { var _a13; let x = this.xRun, r = this.run; if (!x || !r || this.tutorialMode)
-            return; let p = x.perks; p.magnet && (r.magnetT = Math.max(r.magnetT, p.magnet)), p.shield && (r.shield = !0, r.shieldHits = Math.max((_a13 = r.shieldHits) != null ? _a13 : 0, p.shield), r.shieldT = 0), p.coins && (r.coins += p.coins, this.ui.pop(`+${p.coins}`, "#ffd060", x.name.toUpperCase(), -6)), p.safe && queueMicrotask(() => r.invulnT += p.safe); }
+            return; let p = x.perks; p.magnet && (r.magnetT = Math.max(r.magnetT, p.magnet)), p.shield && (r.shield = !0, r.shieldHits = Math.max((_a13 = r.shieldHits) != null ? _a13 : 0, p.shield), r.shieldT = 0), p.coins && (r.coins += p.coins, this.ui.pop(`+${p.coins}`, "#ffd060", x.name.toUpperCase(), -6)), p.safe && Promise.resolve().then(() => r.invulnT += p.safe); }
         goRace() { this.ui.hideOverlay("specialpick"), this.startTrack(this.pickTrackId); }
         openBonus() { var _a13, _b3; this.audio.play("click"); let bs = bonusState(), now2 = Date.now(); this.ui.bonusSync({ live: !!bs.live, theme: ((_a13 = bs.live) != null ? _a13 : bs.next).theme, name: BONUS_NAME[((_b3 = bs.live) != null ? _b3 : bs.next).theme], left: bs.live ? fmtLeft(bs.live.end - now2) : "", opens: bs.live ? "" : `${localTime(bs.next.start)} \xB7 in ${fmtLeft(bs.next.start - now2)}`, opensAt: localTime(bs.next.start), next: bs.live ? `${BONUS_NAME[bs.next.theme]} \xB7 ${localTime(bs.next.start)}` : "", finish: Math.round(BONUS.finishCoins * LEVELS[this.save.settings.speed].reward), minutes: BONUS.raceMinutes, played: !!bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) >= BONUS.maxPlays, playsLeft: bs.live ? Math.max(0, BONUS.maxPlays - bonusPlaysUsed(this.save.bonusPlays, bs.live.key)) : BONUS.maxPlays, maxPlays: BONUS.maxPlays, openMinutes: BONUS.openMinutes, everyHours: BONUS.everyHours }); }
         startBonus() { let bs = bonusState(); if (!bs.live) {
