@@ -11,6 +11,7 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
   pixels (`src/ui/homeStage.ts`), + the 3D car (`src/render/HomeView.ts`, tuning `HOME_SHOW` in config.ts).
 - Swipe the car on Home (all 6 cars; owned = selected, locked = silhouette). Other car models: later (owner).
 - Header coin bar, Back / Close buttons, avatars 0–5, dice and logo now use the sheet graphics.
+- Checks: typecheck, `npm test` 13 / 13, real-build regression 68 / 68 (after making the gold Back / Close buttons flat and adding hidden labels to the image buttons), swipe test (owned → selected, locked → silhouette), Home at 360×640 / 390×844 / 820×1180.
 - Half-done / next: owner review on a phone; real per-car models; the cowboy portrait is the default avatar on Home
   until the player picks one (other screens still show the emblem).
 
