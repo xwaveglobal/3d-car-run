@@ -4,6 +4,27 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-25 — v4.0.0 (branch `v4.0`): native TikTok mini game — WIP
+
+- Branch `v4.0` = `main` (v1.0.9) + the native layer of Sky Roadster `v5.0` (same v4.6.1 base, merged), HS kit
+  3.2.4 / SDK 1.1.3 (`hs-sdk/`, `tiktok/hs-game.js`, `tiktok/hs-sdk.min.js`). `main` stays the H5 1.x game.
+- Owner's answers: new TikTok app (App ID 7700006034421647378 → `tiktok/project.config.json`, `GAME_ID` in
+  `src/native/hs.ts`), its HS SDK key in `hs.ts`, SAVE local, ads only (no shop), 5 places with the owner's ad unit
+  ids in `tiktok.hs-dashboard.json` (rw_revive / rw_end_bonus / rw_free_coins / rw_head_start 30 s, int_race_end
+  90 s; first 3 races ad-free). On native our own ad caps / pacing are off (kit 3.2.4 "no own ad guards").
+- Native UI reskinned: Western palette + fonts (Alfa Slab One / Rye TTF via tt.loadFont, `src/native/fonts/`), wood
+  panels, brass buttons, desert page background, wood header + coin bar, Home on the key art (HOME_LAYOUT; top bar
+  pinned under TikTok's capsule; DAILY sign; Launch / Share / Entry round buttons; More popup), Western special
+  buttons, Gold Rush clock. Audio: our Western audio + the mini-game Web Audio compat layer from v5.
+- Commands: `python3 scripts/native-images.py` · `node scripts/build-tiktok.mjs` · `node scripts/tiktok-tools.mjs
+  check|preview|pack` (pack → `tiktok-tiktok.zip`). hs-check: 0 fail, 0 warn. Package 3.83 MB (limit 4 MB).
+- NOT done yet: the full native QA (`scripts/qa/native.mjs`, its v5 hit keys) was not re-run to the end; the other
+  canvas screens are only recoloured (not checked one by one); the v1.0.5–1.0.9 web features are not in the canvas
+  UI yet (Outlaw Arsenal, 20 locked missions, tomorrow's dailies, rebuilt profile, Western avatars in some places).
+- Next: run native QA, check every screen, port the missing features, then upload (owner approves the upload).
+
+---
+
 ## 2026-10-24 — v1.0.9: Entry button stays on Home
 
 - Web upload build: `node scripts/build-esbuild.mjs --web` → `dist-web/` (index.html + main.js 1.2 MB + assets/ with
