@@ -275,3 +275,36 @@ html, body { background: var(--bg); }
 #ui .tcard .label, #ui .tcard .tmeta { font-family: var(--font-body) !important; font-weight: 700 !important; letter-spacing: .2px !important; text-transform: none !important; }
 #ui .lvtag { background: linear-gradient(180deg, #ffd77a, #e0951e) !important; color: #3a1c04 !important; border: 1px solid #6a3a08 !important; font-family: var(--font-body) !important; font-style: normal !important; }
 #ui .tcard.mystery .tinfo b { letter-spacing: .5px !important; }
+
+/* ------------------------------------------------------------- GOLD RUSH (v1.0.0) */
+#hud .grtimer { position: absolute; left: 50%; top: calc(var(--safe-t) + 118px); transform: translateX(-50%); z-index: 3;
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 132px; padding: 6px 14px 8px; border-radius: 12px;
+  background: var(--rivets), linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.42)), var(--wood-dark) center / 220px auto, #2a1608;
+  border: 2.5px solid #ffc848; color: #fff1d0; pointer-events: none; }
+#hud .grtimer .grl { font: 400 10px var(--font); letter-spacing: 2px; color: #ffd98a; }
+#hud .grtimer b { font: 400 30px var(--font-title); line-height: 1; color: #fff1d0; letter-spacing: 1px; }
+#hud .grtimer i { display: block; width: 100%; height: 5px; border-radius: 3px; background: rgba(0,0,0,.5); overflow: hidden; }
+#hud .grtimer i em { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ffd060, #e0861a); }
+#hud .grtimer.warn { border-color: #e0402a; }
+#hud .grtimer.warn b { color: #ff8a6a; animation: grPulse 1s ease-in-out infinite; }
+#hud .grtimer.warn i em { background: linear-gradient(90deg, #ff6a3a, #c8201a); }
+@keyframes grPulse { 50% { transform: scale(1.12); } }
+#hud .grcount { position: absolute; left: 0; right: 0; top: 34%; text-align: center; pointer-events: none; z-index: 4;
+  font: 400 120px var(--font-title); color: #ffd27a; -webkit-text-stroke: 3px #3a1a06; text-shadow: 0 6px 0 #3a1a06, 0 10px 24px rgba(0,0,0,.5); }
+#hud .grcount.pop { animation: grCount .9s ease-out both; }
+@keyframes grCount { 0% { transform: scale(1.8); opacity: 0; } 20% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: scale(.85); opacity: 0; } }
+#bonus .gr-lead { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; margin: 4px 0 10px; }
+#bonus .gr-lead b { font: 400 18px var(--font-title); color: #ffd27a; letter-spacing: 1px; }
+#bonus .gr-lead span { font: 600 12.5px/1.4 var(--font-body); color: var(--muted); }
+#bonus .gr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+#bonus .gr-stats div { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px; border-radius: 10px;
+  background: linear-gradient(180deg, rgba(110,66,30,.55), rgba(40,22,10,.7)); border: 1px solid rgba(214,160,90,.5); }
+#bonus .gr-stats svg { width: 20px; height: 20px; }
+#bonus .gr-stats b { font: 400 18px var(--font); color: #fff1d0; }
+#bonus .gr-stats small { font: 700 10px var(--font-body); color: var(--muted); letter-spacing: .5px; text-transform: uppercase; }
+
+/* result / pause nav rows: wood like every other button (the old blue / purple variables lose) */
+#ui .screen .navrow .btn.nav, #ui .screen:not(#start) .navrow .btn.nav.blue, #ui .screen:not(#start) .navrow .btn.nav.purple, #ui .screen:not(#start) .navrow .btn.nav.dark {
+  background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important; border: 2px solid #c8924a !important; color: #fff1d0 !important; }
+#ui .screen:not(#start) .navrow .btn.nav.blue { background: linear-gradient(180deg, rgba(255,215,122,.92), rgba(224,149,30,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border-color: #7a4a14 !important; }
+#ui .finish-title { font-size: 26px !important; }

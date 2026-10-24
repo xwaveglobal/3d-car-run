@@ -354,38 +354,76 @@ export class Debris {
 }
 
 /** Big glowing portal ring that marks a world boundary on the road ahead. */
+/**
+ * v1.0.0 (3D Car Run): the world-change marker is a wooden welcome gate over the road whose sign names
+ * the next place ("WELCOME TO GHOST TOWN"); setColor tints its lantern strip with the place's accent.
+ */
 export function makePortal() {
   const g = new THREE.Group();
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x39b6ff, toneMapped: false });
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(7.5, 0.45, 12, 64), ringMat);
-  ring.position.y = 3.5;
-  g.add(ring);
-  const inner = new THREE.Mesh(
-    new THREE.CircleGeometry(7.1, 48),
-    new THREE.MeshBasicMaterial({ color: 0x39b6ff, transparent: true, opacity: 0.18, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }),
-  );
-  inner.position.y = 3.5;
-  g.add(inner);
-  const segs = new THREE.Group();
-  segs.position.y = 3.5;
-  for (let i = 0; i < 6; i++) {
-    const s = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.5, 0.6), ringMat);
-    const a = (i / 6) * Math.PI * 2;
-    s.position.set(Math.cos(a) * 8.3, Math.sin(a) * 8.3, 0);
-    s.rotation.z = a;
-    segs.add(s);
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6a4428, roughness: 0.9, flatShading: true });
+  for (const s2 of [-1, 1]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 9, 9), wood);
+    post.position.set(5.6 * s2, 4.1, 0);
+    g.add(post);
   }
-  g.add(segs);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(12.8, 0.7, 0.8), wood);
+  beam.position.y = 8.6;
+  g.add(beam);
+  const c = document.createElement('canvas');
+  c.width = 1024;
+  c.height = 160;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const draw = (label: string) => {
+    const x = c.getContext('2d')!;
+    x.fillStyle = '#5a3a1e';
+    x.fillRect(0, 0, 1024, 160);
+    for (let i = 0; i < 2; i++) {
+      x.fillStyle = `rgba(0,0,0,${0.1 + i * 0.08})`;
+      x.fillRect(0, i * 80, 1024, 80);
+    }
+    x.strokeStyle = '#c8924a';
+    x.lineWidth = 10;
+    x.strokeRect(6, 6, 1012, 148);
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.fillStyle = '#ffd98a';
+    x.font = '34px "Alfa Slab One", Georgia, serif';
+    x.fillText('WELCOME TO', 512, 42);
+    let sz = 76;
+    x.font = `${sz}px "Rye", Georgia, serif`;
+    while (x.measureText(label).width > 940 && sz > 20) x.font = `${(sz -= 4)}px "Rye", Georgia, serif`;
+    x.lineWidth = 8;
+    x.strokeStyle = '#2a1206';
+    x.strokeText(label, 512, 106);
+    x.fillStyle = '#fff1d0';
+    x.fillText(label, 512, 106);
+    tex.needsUpdate = true;
+  };
+  draw('THE WEST');
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(11, 1.72), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+  sign.position.set(0, 7.3, 0.12);
+  g.add(sign);
+  const board = new THREE.Mesh(new THREE.BoxGeometry(11.3, 2.0, 0.2), wood);
+  board.position.set(0, 7.3, 0);
+  g.add(board);
+  const lampMat = new THREE.MeshBasicMaterial({ color: 0xffc860, toneMapped: false });
+  for (const x2 of [-4.5, -1.5, 1.5, 4.5]) {
+    const lamp = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.4, 0.32), lampMat);
+    lamp.position.set(x2, 8.0, 0.5);
+    g.add(lamp);
+  }
   g.visible = false;
+  let last = '';
   return {
     group: g,
-    setColor(c: THREE.Color) {
-      ringMat.color.copy(c);
-      (inner.material as THREE.MeshBasicMaterial).color.copy(c);
+    setColor(col: THREE.Color) {
+      lampMat.color.copy(col).lerp(new THREE.Color(0xffc860), 0.6);
     },
-    update(dt: number) {
-      segs.rotation.z += dt * 0.8;
-      ring.rotation.z -= dt * 0.3;
+    /** name the place behind the gate */
+    setLabel(label: string) {
+      if (label !== last) draw((last = label));
     },
+    update(_dt: number) {},
   };
 }

@@ -1,14 +1,15 @@
-// v2.2 Bonus roads: tunnel sections (rock / trees / barn / sea glass) placed along the road.
+// v2.2 Bonus roads: tunnel sections placed along the road (v1.0.0: mine / log / barn / sea cave).
 // Pure visuals — the spawner decides where they are (Spawner.tunnels()); Tunnel Rider uses them.
 import * as THREE from 'three';
 
 type Theme = 'desert' | 'forest' | 'country' | 'sea';
 
+// v1.0.0 (3D Car Run): Gold Rush tunnels — gold mine, pine-log tunnel, red barn, sea cave; timber ribs, lantern strip
 const LOOK: Record<Theme, { shell: number; rib: number; glow: number; opacity: number }> = {
-  desert: { shell: 0x8a4e2a, rib: 0x5e3218, glow: 0xffb35a, opacity: 1 },
-  forest: { shell: 0x1f5a24, rib: 0x4a2f1a, glow: 0xb6ff6a, opacity: 1 },
-  country: { shell: 0x8e2a20, rib: 0xd9b47a, glow: 0xffd27a, opacity: 1 },
-  sea: { shell: 0x2fa8e8, rib: 0xe8f6ff, glow: 0x7fe6ff, opacity: 0.32 },
+  desert: { shell: 0x7a4428, rib: 0x5a3a1e, glow: 0xffc860, opacity: 1 },
+  forest: { shell: 0x5a4a3a, rib: 0x4a2f1a, glow: 0xffc860, opacity: 1 },
+  country: { shell: 0xa8342a, rib: 0xd9b47a, glow: 0xffd27a, opacity: 1 },
+  sea: { shell: 0x6a5e52, rib: 0x4a3e32, glow: 0xffc070, opacity: 1 },
 };
 
 const R = 9.5;

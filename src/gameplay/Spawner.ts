@@ -301,8 +301,9 @@ export class Spawner {
   tunnels(): { from: number; to: number }[] {
     const c = this.course;
     if (!c?.bonus) return [];
+    const span = c.span ?? c.length;
     return BONUS_SET.tunnels.map((f) => {
-      const mid = Math.round(c.length * f);
+      const mid = Math.round(span * f);
       return { from: mid - BONUS_SET.tunnelLen / 2, to: mid + BONUS_SET.tunnelLen / 2 };
     });
   }

@@ -101,6 +101,8 @@ export interface SaveData {
   bonusPlayed?: string;
   /** v4.6: plays used in the current Bonus event (key = event start) */
   bonusPlays?: { key: string; n: number };
+  /** v1.0.0 Gold Rush: run ids whose payout was already credited (pay-once ledger, last 24) */
+  goldRushPaid?: string[];
   /** v2.2 career missions: lifetime counters + tiers paid (src/meta/Career.ts) */
   career?: CareerStats;
   /** danger-hint gestures the player has answered (hint stops after 3) */

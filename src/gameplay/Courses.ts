@@ -36,6 +36,8 @@ export interface Course {
   needClass?: 'A';
   /** v2 Bonus event road: coins only, specials on the road fire by themselves */
   bonus?: boolean;
+  /** v1.0.0 Gold Rush: the distance a 180 s run normally covers (tunnels / sections sit inside it; the road is longer) */
+  span?: number;
 }
 
 /**

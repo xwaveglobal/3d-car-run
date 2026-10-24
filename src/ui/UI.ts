@@ -258,8 +258,8 @@ const SPECIAL_SHORT: Record<SpecialKey, string> = { ...SPECIAL_SHORT_W };
 const SPECIAL_HOW: Record<SpecialKey, string> = { ...SPECIAL_HOW_W };
 /** icons of the teaser specials (unlock at AAA, try them in Bonus) */
 /** Bonus places: card colour + emoji */
-const BONUS_COLOR: Record<string, string> = { desert: '#ff9a3c', forest: '#3dbf6a', country: '#e8c040', sea: '#2fb6ff' };
-const BONUS_EMOJI: Record<string, string> = { desert: '🌵', forest: '🌲', country: '🌾', sea: '🌊' };
+const BONUS_COLOR: Record<string, string> = { desert: '#ffb040', forest: '#6aa83e', country: '#e8c040', sea: '#ff8a50' };
+const BONUS_EMOJI: Record<string, string> = { desert: '⛏️', forest: '🌲', country: '🐄', sea: '🌅' };
 const LOCKED_ICON: Record<string, string> = {
   tunnel: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20V12a9 9 0 0 1 18 0v8" fill="none" stroke="#7fe6ff" stroke-width="2"/><path d="M7 20v-7a5 5 0 0 1 10 0v7" fill="none" stroke="#7fe6ff" stroke-width="1.4" opacity=".6"/><rect x="8.5" y="1.6" width="7" height="3.4" rx="1.2" fill="#fff"/></svg>`,
   wall: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18M6 3v18" stroke="#9b6bff" stroke-width="2"/><path d="M9 16l6-4-6-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 16l6-4-6-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></svg>`,
@@ -411,7 +411,7 @@ export class UI {
       <div class="brand">${logo}</div>
       <div class="mid">
       <div class="rail left">
-        <button class="rbtn" data-a="events"><span class="ri g-cups">${ICON.gift}</span><span class="rl">Bonus</span><em class="tag live">OPEN</em></button>
+        <button class="rbtn" data-a="events"><span class="ri g-cups">${ICON.gift}</span><span class="rl">Gold Rush</span><em class="tag live">OPEN</em></button>
         <button class="rbtn" data-a="daily"><span class="ri g-daily">${ICON.calendar}</span><span class="rl">Daily</span><em class="badge" data-k="dailybadge" hidden>1</em></button>
       </div>
       <div class="rail right">
@@ -609,7 +609,7 @@ export class UI {
 
     <section id="bonus" class="screen overlay">
       <div class="panel modal bonusm">
-        <div class="mhead"><h2>${ICON.gift} BONUS</h2><button class="icon-btn sm" data-a="closeov" data-v="bonus" aria-label="Close">${ICON.close}</button></div>
+        <div class="mhead"><h2>GOLD RUSH</h2><button class="icon-btn sm" data-a="closeov" data-v="bonus" aria-label="Close">${ICON.close}</button></div>
         <div data-k="bnbody"></div>
       </div>
     </section>
@@ -636,6 +636,8 @@ export class UI {
         <div class="speed"><div class="label">Speed <span data-h="kmh">0</span> km/h</div><div class="track"><i data-h="speedbar"></i></div></div>
         <div class="hearts" data-h="hearts"></div>
       </div>
+      <div class="grtimer" data-h="grtimer" hidden><span class="grl">GOLD RUSH</span><b data-h="grclock">3:00</b><i><em data-h="grbar"></em></i></div>
+      <div class="grcount" data-h="grcount" hidden></div>
       <div class="gatebar" data-h="gatebar" hidden><b>RANK GATE</b><span data-h="gatenext"></span><div class="track"><i data-h="gatefill"></i></div></div>
       <div class="trackbar panel" data-h="trackbar" hidden>
         <div class="t"><span data-h="tsection">START AREA</span><span data-h="tdist">0 / 3,200 m</span></div>
@@ -1176,7 +1178,7 @@ export class UI {
       this.hset('rankp', classBadge(classOfBolts(run.exp)), true);
     } else if (this.bonusHud) {
       // v2 Bonus road: coins only — the big number is the coins collected
-      this.hset('scorelabel', `${ICON.coin}BONUS COINS`, true);
+      this.hset('scorelabel', `${ICON.coin}GOLD RUSH`, true);
       this.hset('score', fmt(run.coins));
       this.hset('rankp', '', true);
     } else {
@@ -1448,7 +1450,7 @@ export class UI {
     void o.tip;
     // Endless/Outlaw Rush: "FINISH"; from rank C up a special brag card made to be shown off
     const brag = !!o.runRank && CLASSES.indexOf(o.runRank) >= CLASSES.indexOf('C');
-    this.setAll('gotitle', o.bonus ? 'BONUS END' : 'FINISH');
+    this.setAll('gotitle', o.bonus ? 'GOLD RUSH OVER' : 'FINISH');
     const panel = this.screens.gameover.querySelector<HTMLElement>('.result')!;
     panel.classList.toggle('braggy', brag);
     if (brag) panel.style.setProperty('--cc', CLASS_COLOR[o.runRank!]);
@@ -1642,6 +1644,9 @@ export class UI {
 
   finish(o: { track: string; stars: number; score: number; isBest: boolean; time: number; coins: number; coinTarget: number; lost: number; reward: number; hasNext: boolean; rewards: RunRewards | null; speedBonus: number; level: string; leftover?: { pts: number; items: string } | null; bonusItems?: string[]; bonus?: boolean }) {
     this.setAll('ftrack', o.track);
+    // v1.0.0: Gold Rush result headline
+    const ft = this.root.querySelector<HTMLElement>('#finish .finish-title');
+    if (ft && ft.firstChild && ft.firstChild.nodeType === 3) ft.firstChild.textContent = o.bonus ? 'GOLD RUSH COMPLETE! ' : 'FINISH! ';
     $(this.root, '[data-k="fstars"]').innerHTML = o.bonus ? '' : this.starsHtml(o.stars);
     $(this.root, '[data-k="frules"]').hidden = !!o.bonus;
     this.setAll('ffinal', fmt(o.score));
@@ -1796,8 +1801,32 @@ export class UI {
     const c = o.bonus;
     const strip = $(this.root, '[data-k="cupstrip"]');
     strip.style.setProperty('--cc', BONUS_COLOR[c.theme] ?? '#ffc21a');
-    strip.innerHTML = `<span class="ci">${ICON.gift}</span><span class="ct"><b>BONUS · ${c.name}</b><small class="bt">${c.live ? '<em class="live">OPEN</em>' : '<em class="soon">NEXT</em>'}<span>${c.text}</span></small></span><span class="cgo">${ICON.chevR}</span>`;
+    strip.innerHTML = `<span class="ci">${ICON.gift}</span><span class="ct"><b>GOLD RUSH · ${c.name}</b><small class="bt">${c.live ? '<em class="live">OPEN</em>' : '<em class="soon">NEXT</em>'}<span>${c.text}</span></small></span><span class="cgo">${ICON.chevR}</span>`;
     this.root.querySelectorAll<HTMLElement>('.rbtn .tag.live').forEach((t) => (t.hidden = !c.live));
+  }
+
+  /** v1.0.0 Gold Rush HUD: the 3-minute timer plate (null hides it); red under 30 s */
+  grHud(left: number | null, clock = '') {
+    const el = this.root.querySelector<HTMLElement>('[data-h="grtimer"]');
+    if (!el) return;
+    el.hidden = left === null;
+    if (left === null) return;
+    this.hset('grclock', clock);
+    el.classList.toggle('warn', left <= 30);
+    const bar = this.root.querySelector<HTMLElement>('[data-h="grbar"]');
+    if (bar) bar.style.width = `${Math.max(0, Math.min(100, (left / 180) * 100)).toFixed(1)}%`;
+  }
+
+  /** Gold Rush final countdown: big digits for the last 10 seconds (n ≤ 0 hides) */
+  grCount(n: number) {
+    const el = this.root.querySelector<HTMLElement>('[data-h="grcount"]');
+    if (!el) return;
+    el.hidden = n <= 0;
+    if (n <= 0) return;
+    el.textContent = String(n);
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
   }
 
   /** v2 Bonus event card: today's place, time left / next opening, rules, RACE */
@@ -1805,13 +1834,18 @@ export class UI {
     $(this.root, '[data-k="bnbody"]').innerHTML = `
       <div class="bn-hero" style="--cc:${BONUS_COLOR[o.theme] ?? '#ffc21a'}" data-theme="${o.theme}"><span class="bn-ic">${BONUS_EMOJI[o.theme] ?? '🏁'}</span><b>${o.name}</b>
         <small>${o.live ? `<em class="live">OPEN</em> ${o.left} left` : `<em class="soon">NEXT</em> ${o.opens}`}</small></div>
+      <div class="gr-lead"><b>3 MIN BONUS RUN</b><span>Collect as many gold coins as you can before the clock runs out.</span></div>
+      <div class="gr-stats">
+        <div><span>${ICON.clock}</span><b>3:00</b><small>Time</small></div>
+        <div><span>${ICON.coin}</span><b>+${fmt(o.finish)}</b><small>Finish bonus</small></div>
+        <div><span>${ICON.flag}</span><b>${o.playsLeft} / ${o.maxPlays}</b><small>Plays left</small></div>
+      </div>
       <div class="bn-rules">
-        <span>${ICON.clock}<b>${o.minutes} min</b> to the finish · <b>${o.maxPlays} plays</b></span>
-        <span>${ICON.coin}<b>Coins only</b> · finish +${fmt(o.finish)}</span>
+        <span>${ICON.clock}The clock stops while paused · crash = run over (coins kept)</span>
         <span>${ICON.rocket}<b>Rare specials</b> fire by themselves</span>
         <span>${ICON.gift}<b>Every ${o.everyHours === 1 ? 'hour' : `${o.everyHours} h`}</b> · open ${o.openMinutes} min · new place</span>
       </div>
-      ${o.live && !o.played ? `<button class="btn big gold" data-a="bonusgo">${ICON.play} Race · ${o.playsLeft} / ${o.maxPlays} left</button>` : o.live ? `<button class="btn" disabled>${ICON.check} ${o.maxPlays} plays used · next ${o.opensAt}</button>` : `<button class="btn" disabled>${ICON.lock} Opens ${o.opensAt}</button>`}
+      ${o.live && !o.played ? `<button class="btn big gold" data-a="bonusgo">${ICON.play} START · ${o.playsLeft} / ${o.maxPlays} left</button>` : o.live ? `<button class="btn" disabled>${ICON.check} ${o.maxPlays} plays used · next ${o.opensAt}</button>` : `<button class="btn" disabled>${ICON.lock} Opens ${o.opensAt}</button>`}
       ${o.next ? `<div class="label bn-next">Next: ${o.next}</div>` : ''}`;
     this.screens.bonus.classList.add('show');
     this.scheduleFit();

@@ -1,9 +1,10 @@
-/** v2.2 Bonus roads: 5-minute road, set pieces reserved after rare specials, tunnels, fair rows, sorted pickups. */
+/** v2.2 Bonus roads (v1.0.0: GOLD RUSH 3-minute run): set pieces reserved after rare specials, tunnels, fair rows, sorted pickups. */
 declare const process: { exit(code: number): never };
 import { BONUS_SET, LEVELS, type SpeedLevel } from '../src/config.ts';
 import { Spawner } from '../src/gameplay/Spawner.ts';
 import { Rng } from '../src/core/Rng.ts';
 import { BONUS, BONUS_NAME } from '../src/meta/Bonus.ts';
+import { goldRushRoadLength } from '../src/meta/GoldRush.ts';
 import { START_STATE, step } from '../src/gameplay/Fairness.ts';
 import { FAIRNESS } from '../src/config.ts';
 
@@ -29,9 +30,8 @@ for (const theme of Object.keys(BONUS_NAME) as (keyof typeof BONUS_NAME)[])
       sp.level = lv;
       sp.speedMul = LEVELS[lv].speed;
       sp.course = { id: 'probe', name: '', world: theme, length: 1, diffOffset: 900, difficulty: 2, coinTarget: 0, reward: 0, sections: [] };
-      let d = 0;
-      for (let t = 0; t < BONUS.raceMinutes * 60; t += 0.1) d += sp.speed(d) * 0.1;
-      length = Math.round(d / 100) * 100;
+      // v1.0.0: the Gold Rush road (longer than 180 s at full speed + Nitro; the timer ends the run)
+      length = goldRushRoadLength((dd) => sp.speed(dd)).length;
       sp.course = { ...sp.course, length, bonus: true, sections: [{ name: 'a', from: 0, to: length }] };
       sp.reset(0);
       sp.generateUntil(length);
@@ -50,12 +50,12 @@ for (const theme of Object.keys(BONUS_NAME) as (keyof typeof BONUS_NAME)[])
       }
     }
     const per = specials / 6;
-    check(per >= 1 && per <= 7, `${theme} ${lv}: ${length} m road, ${per.toFixed(1)} specials per road (rare), ${tunnelRiders} Tunnel Riders / 6 roads`);
+    check(per >= 1 && per <= 12, `${theme} ${lv}: ${length} m road, ${per.toFixed(1)} specials per road (rare), ${tunnelRiders} Tunnel Riders / 6 roads`);
     check(sorted, `${theme} ${lv}: pickups in road order`);
     check(gapsEmpty, `${theme} ${lv}: set-piece stretches stay empty until the pickup is collected`);
     check(unreachable === 0, `${theme} ${lv}: every row passable`);
   }
-check(BONUS.raceMinutes === 5, 'Bonus road lasts 5 minutes');
+check(BONUS.raceMinutes === 3, 'Gold Rush run lasts 3 minutes');
 check(BONUS_SET.tunnels.length >= 2, 'Bonus roads have tunnel sections');
 console.log(fails ? `${fails} FAILED` : 'ALL PASSED');
 if (fails) process.exit(1);

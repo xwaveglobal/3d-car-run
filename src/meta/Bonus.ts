@@ -2,9 +2,10 @@
  * v2 BONUS events (docs/GAME-DESIGN.md §5) — replace the old cups.
  *
  * v4.6 (owner): every hour (local time: 00:00, 01:00, …) a Bonus road opens for 30 minutes and can be
- * played up to 3 times. Each event is a brand-new everyday place (desert → forest → country → sea,
- * rotating), a 5-minute road with a FINISH line (congratulations + the coins earned), coins only. Special items lie on the road and fire
- * by themselves when picked up. Pure logic — no DOM.
+ * played up to 3 times. Each event is a Gold Rush place (Gold Canyon → Pine Ridge → Prairie Ranch → Sunset
+ * Coast, rotating). v1.0.0 (3D Car Run): GOLD RUSH — every run lasts exactly 3 minutes of active gameplay
+ * (src/meta/GoldRush.ts), coins only, completion reward paid once. Special items lie on the road and
+ * fire by themselves when picked up. Pure logic — no DOM.
  */
 import type { BonusWorld } from '../gameplay/Spawner.ts';
 
@@ -13,8 +14,8 @@ export const BONUS = {
   openMinutes: 30,
   /** plays per event (v4.6) */
   maxPlays: 3,
-  /** non-stop minutes from START to FINISH (v2.2: a short 5-minute road, one play per event) */
-  raceMinutes: 5,
+  /** v1.0.0 Gold Rush: a run lasts 3 minutes of ACTIVE gameplay (the timer, src/meta/GoldRush.ts) */
+  raceMinutes: 3,
   /** coins for reaching the finish line (× speed-level coin multiplier) */
   finishCoins: 300,
   themes: ['desert', 'forest', 'country', 'sea'] as BonusWorld[],

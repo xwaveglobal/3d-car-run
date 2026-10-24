@@ -1,6 +1,7 @@
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
 import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
+import { GOLD_RUSH, GoldRushTimer, creditOnce, fmtClock, goldRushPayout, goldRushRoadLength } from './meta/GoldRush.ts';
 import { ROAD_STYLE } from './render/western/looks.ts';
 import * as THREE from 'three';
 import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, TYRE, RENDER, type SpeedLevel } from './config.ts';
@@ -143,6 +144,12 @@ export class Game {
   private livesLost = 0;
   private finishShown = false;
   private runTime = 0;
+  /** v1.0.0 Gold Rush: the 180 s active-time timer of the current Bonus run (null = not a Bonus run) */
+  private goldRush: GoldRushTimer | null = null;
+  /** pay-once id of the current Gold Rush run (event key : play number) */
+  private goldRushId = '';
+  /** this frame's real elapsed time (unscaled), for the Gold Rush timer */
+  private frameRaw = 0;
   private superRolled = false;
   /** a Roadster/HYPER flight is in progress → landing shockwave clears the road ahead */
   private superFlight = false;
@@ -1618,16 +1625,18 @@ export class Game {
     this.persist();
     const level = this.save.settings.speed;
     const theme = bs.live.theme;
-    // the finish line sits where BONUS.raceMinutes of non-stop driving end (no turbo)
+    // v1.0.0 GOLD RUSH: the run ends when 180 s of active gameplay are over (the timer); the road is
+    // built longer than that distance at full speed + Nitro so it never runs out
     const sp = new Spawner();
     sp.level = level;
     sp.speedMul = LEVELS[level].speed;
     sp.course = { id: 'probe', name: '', world: theme, length: 1, diffOffset: BONUS_DIFF_OFFSET, difficulty: 2, coinTarget: 0, reward: 0, sections: [] };
-    let d = 0;
-    for (let t = 0; t < BONUS.raceMinutes * 60; t += 0.1) d += sp.speed(d) * 0.1;
-    const length = Math.round(d / 100) * 100;
+    const road = goldRushRoadLength((d) => sp.speed(d));
+    const length = road.length;
     const names = BONUS_SECTIONS[theme].slice(0, 3);
-    const seg = length / names.length;
+    const seg = road.expected / names.length;
+    this.goldRush = new GoldRushTimer();
+    this.goldRushId = `${bs.live.key}:${used + 1}`;
     this.tutorialMode = false;
     this.course = {
       id: `bonus-${bs.live.key}`,
@@ -1637,9 +1646,10 @@ export class Game {
       diffOffset: BONUS_DIFF_OFFSET,
       difficulty: 2,
       coinTarget: 0,
-      reward: BONUS.finishCoins,
+      reward: GOLD_RUSH.finishCoins,
       bonus: true,
-      sections: names.map((n, i) => ({ name: n, from: Math.round(i * seg), to: Math.round((i + 1) * seg), density: i === 0 ? 0.75 : 1 })),
+      span: road.expected,
+      sections: names.map((n, i) => ({ name: n, from: Math.round(i * seg), to: i === names.length - 1 ? length : Math.round((i + 1) * seg), density: i === 0 ? 0.75 : 1 })),
     };
     this.startRun();
   }
@@ -1860,6 +1870,9 @@ export class Game {
     this.setPiece = null;
     this.showcaseT = 0;
     this.ui.bonusHud = !!this.course?.bonus;
+    if (!this.course?.bonus) this.goldRush = null; // Gold Rush timer only lives in a Bonus run
+    this.ui.grHud(this.goldRush ? GOLD_RUSH.seconds : null, fmtClock(GOLD_RUSH.seconds));
+    this.ui.grCount(-1);
     this.ui.trainHud = this.tutorialMode;
     // fresh race: redraw the HUD at once (never a frame of the previous race's numbers)
     this.ui.updateHud(this.run, this.world.speed, SPEED.max * SPEED.turboMul * LEVELS[level].speed, null);
@@ -1928,7 +1941,7 @@ export class Game {
     this.ui.tutorial(false);
     this.audio.intensity = 0;
     const c = this.course;
-    this.ui.trackHud(c ? { section: c.sections[0].name, dist: 0, length: c.length, marks: c.sections.slice(1).map((s) => s.from) } : null);
+    this.ui.trackHud(c && !c.bonus ? { section: c.sections[0].name, dist: 0, length: c.length, marks: c.sections.slice(1).map((s) => s.from) } : null); // Gold Rush: the timer plate instead
     if (c) this.ui.banner(`TRACK ${COURSES.indexOf(c) + 1} · ${(c.length / 1000).toFixed(1)} KM`, c.name.toUpperCase());
     else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'BOOST TRAINING' : 'FIRST RIDE', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'DRIVER TRAINING');
   }
@@ -2340,6 +2353,7 @@ export class Game {
     }
     this.time += dt;
     this.stateT += dt;
+    this.frameRaw = rawDt;
     this.trackPerformance(rawDt);
 
     switch (this.state) {
@@ -2580,7 +2594,8 @@ export class Game {
       this.startArch.position.z = -(14 - w.dist);
       this.startArch.visible = w.dist < 40;
       this.finishArch.position.z = -(c.length - w.dist);
-      this.finishArch.visible = c.length - w.dist < 260 && c.length - w.dist > -30;
+      this.finishArch.visible = !c.bonus && c.length - w.dist < 260 && c.length - w.dist > -30;
+      if (c.bonus && this.goldRush) this.updateGoldRush();
       const sec = sectionAt(c, w.dist);
       if (sec.name !== this.sectionName) {
         if (this.sectionName && this.state === 'run') {
@@ -2590,7 +2605,11 @@ export class Game {
         }
         this.sectionName = sec.name;
       }
-      if ((this.state === 'run' || this.state === 'respawn') && w.dist >= c.length) this.onFinish();
+      // Gold Rush ends on its timer; the road is longer than 180 s at full speed (safety: never past its end)
+      if ((this.state === 'run' || this.state === 'respawn') && w.dist >= c.length) {
+        if (c.bonus && this.goldRush) this.goldRush.done = true;
+        this.onFinish();
+      }
       if (this.state === 'finish' && !this.finishShown && this.stateT > 1.9) this.showFinish();
     }
 
@@ -2602,6 +2621,7 @@ export class Game {
     if (this.portal.group.visible) {
       this.portal.group.position.z = -toPortal;
       this.portal.setColor(this.portalColor.set(this.scenery.accent)); // v4.6 perf: no per-frame allocation
+      this.portal.setLabel(WORLD_NAMES[nw.world]); // v1.0.0: the gate names the next place (redraws only on change)
     }
 
     // ---- tutorial
@@ -2618,7 +2638,7 @@ export class Game {
       this.ui.updateHud(run, w.speed, SPEED.max * SPEED.turboMul * LEVELS[this.runLevel].speed, this.questHud(run));
       this.expMilestones(run);
       this.updateSetPiece();
-      if (c) this.ui.trackHud({ section: this.sectionName, dist: w.dist, length: c.length, marks: c.sections.slice(1).map((s) => s.from) });
+      if (c && !c.bonus) this.ui.trackHud({ section: this.sectionName, dist: w.dist, length: c.length, marks: c.sections.slice(1).map((s) => s.from) });
     }
   }
 
@@ -3024,6 +3044,26 @@ export class Game {
     }, 900);
   }
 
+  /** v1.0.0 GOLD RUSH: advance the 180 s active-time timer, warnings, final countdown, end */
+  private updateGoldRush() {
+    const gr = this.goldRush!;
+    const active = this.state === 'run' || this.state === 'respawn';
+    for (const e of gr.step(this.frameRaw, active)) {
+      if (e.k === 'warn') {
+        this.ui.banner('GOLD RUSH', `${e.left} SECONDS LEFT!`);
+        this.audio.play('expire');
+        this.vibrate([20, 40, 20]);
+      } else if (e.k === 'count') {
+        this.ui.grCount(e.n);
+        this.audio.play(e.n <= 3 ? 'beep' : 'click');
+      } else if (e.k === 'end') {
+        this.ui.grCount(0);
+        this.onFinish();
+      }
+    }
+    this.ui.grHud(gr.left, fmtClock(gr.left));
+  }
+
   private onFinish() {
     if (!this.tutorialMode && this.course) this.cashLeftovers();
     this.setState('finish');
@@ -3033,7 +3073,7 @@ export class Game {
     this.ui.tutorial(false);
     this.audio.play('mission');
     this.audio.intensity = 0;
-    this.ui.banner(this.tutorialMode ? 'DRIVER TRAINING' : this.course?.bonus ? 'BONUS ROAD' : 'TRACK COMPLETE', this.tutorialMode ? 'COMPLETE!' : 'FINISH!');
+    this.ui.banner(this.tutorialMode ? 'DRIVER TRAINING' : this.course?.bonus ? 'GOLD RUSH' : 'TRACK COMPLETE', this.tutorialMode ? 'COMPLETE!' : this.course?.bonus ? "TIME'S UP!" : 'FINISH!');
     this.timeScale = this.timeScaleTarget = 1;
     this.ui.tutPrompt(null);
     // confetti + celebration rings
@@ -3053,23 +3093,27 @@ export class Game {
     this.finishShown = true;
     this.missions.endRun();
     if (c.bonus) {
-      // v2 Bonus: finish line pays coins (× speed-level coin multiplier) — no stars, no EXP
+      // v1.0.0 GOLD RUSH: 3 minutes completed → coins + speed bonus + completion reward, paid ONCE per run
       const lv = LEVELS[this.runLevel];
-      const reward = Math.round((BONUS.finishCoins * lv.reward) / 10) * 10;
-      const speedBonus = Math.round(run.coins * (lv.reward - 1));
-      this.save.wallet += run.coins + speedBonus + reward;
-      this.save.totalRuns++;
-      this.recordMeta(true);
+      const pay = goldRushPayout(run.coins, lv.reward, true);
+      const reward = pay.finish;
+      const speedBonus = pay.speedBonus;
+      const fresh = creditOnce((this.save.goldRushPaid ??= []), this.goldRushId || `run-${this.time}`);
+      if (fresh) {
+        this.save.wallet += pay.total;
+        this.save.totalRuns++;
+        this.recordMeta(true);
+      }
       this.persist();
       // celebration: coin shower + banner (the result card opens right after)
-      this.ui.banner('BONUS COMPLETE!', `+${(run.coins + speedBonus + reward).toLocaleString('en-US')} COINS`);
+      this.ui.banner('GOLD RUSH COMPLETE!', `+${pay.total.toLocaleString('en-US')} COINS`);
       this.audio.play('combo');
       this.vibrate([30, 40, 30, 40, 60]);
       {
         const p = this.vehicle.root.position;
         for (let k = 0; k < 6; k++) window.setTimeout(() => this.particles.burst(p.x + (Math.random() - 0.5) * 6, p.y + 4, -6, 22, k % 2 ? 0xffd23d : 0xffffff, 7, 0.22, 1.4, { grav: 6, up: 4 }), k * 160);
       }
-      this.ui.finish({ rewards: null, track: `BONUS · ${c.name}`, stars: 0, score: run.coins + speedBonus + reward, isBest: false, time: this.runTime, coins: run.coins, coinTarget: 0, lost: this.livesLost, reward, speedBonus, level: lv.label, hasNext: false, bonus: true });
+      this.ui.finish({ rewards: null, track: `GOLD RUSH · ${c.name}`, stars: 0, score: pay.total, isBest: false, time: this.goldRush?.active ?? this.runTime, coins: run.coins, coinTarget: 0, lost: this.livesLost, reward, speedBonus, level: lv.label, hasNext: false, bonus: true });
       this.ui.show('finish');
       this.lastResult = { coins: run.coins, reward, doubled: false };
       this.ui.adButton('ad2xf', 'ready');
@@ -3139,7 +3183,9 @@ export class Game {
     this.save.bestDistance = Math.max(this.save.bestDistance, Math.floor(run.distance));
     const lvg = LEVELS[this.runLevel];
     const speedBonus = Math.round(run.coins * (lvg.reward - 1));
-    this.save.wallet += run.coins + speedBonus;
+    // Gold Rush that ended before 180 s: the coins collected (+ speed bonus) once, no completion reward
+    const paidOnce = !this.course?.bonus || creditOnce((this.save.goldRushPaid ??= []), this.goldRushId || `run-${this.time}`);
+    if (paidOnce) this.save.wallet += run.coins + speedBonus;
     this.save.totalRuns++;
     const isBonusRun = !!this.course?.bonus;
     const wkBefore = isBonusRun || this.tutorialMode ? 0 : this.meta.weekly().you.rank;

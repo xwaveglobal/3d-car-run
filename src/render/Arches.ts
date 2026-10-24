@@ -1,87 +1,104 @@
-import { fitText } from './textures.ts';
 import * as THREE from 'three';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { mergeByMaterial } from './merge.ts';
+import { fitText } from './textures.ts';
+import { Model } from './western/kit.ts';
+import { propMaterial } from './western/atlas.ts';
 
+/**
+ * v1.0.0 (3D Car Run): START / FINISH as a wooden ranch gate over the road — two log posts, a timber
+ * crossbeam with a hand-painted sign board, rope ties and a pair of longhorns on top.
+ */
 function signTexture(label: string, kind: 'start' | 'finish') {
   const c = document.createElement('canvas');
   c.width = 1024;
   c.height = 192;
   const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, 0, 192);
-  grad.addColorStop(0, '#16275e');
-  grad.addColorStop(1, '#0a1233');
-  g.fillStyle = grad;
+  // weathered planks
+  g.fillStyle = '#6b4322';
   g.fillRect(0, 0, 1024, 192);
+  for (let i = 0; i < 3; i++) {
+    g.fillStyle = `rgba(0,0,0,${0.08 + i * 0.05})`;
+    g.fillRect(0, i * 64, 1024, 64);
+    g.fillStyle = 'rgba(30,14,4,.6)';
+    g.fillRect(0, i * 64 + 62, 1024, 2);
+  }
+  g.strokeStyle = 'rgba(40,20,8,.35)';
+  for (let k = 0; k < 40; k++) {
+    g.beginPath();
+    const y = (k * 37) % 192;
+    g.moveTo(0, y);
+    for (let x = 0; x <= 1024; x += 32) g.lineTo(x, y + Math.sin(x * 0.02 + k) * 2);
+    g.stroke();
+  }
   if (kind === 'finish') {
-    // checkered borders
     const s = 24;
     for (let y = 0; y < 2; y++)
       for (let x = 0; x < 1024 / s; x++) {
-        g.fillStyle = (x + y) % 2 ? '#ffffff' : '#0a1233';
+        g.fillStyle = (x + y) % 2 ? '#f2ece0' : '#2a1608';
         g.fillRect(x * s, y * s, s, s);
         g.fillRect(x * s, 192 - (2 - y) * s, s, s);
       }
   }
-  // chevrons
-  g.strokeStyle = '#4fc3ff';
-  g.lineWidth = 16;
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  g.shadowColor = '#4fc3ff';
-  g.shadowBlur = 18;
-  for (const [x, d] of [[90, -1], [150, -1], [934, 1], [874, 1]] as const) {
+  // gold stars instead of neon chevrons
+  const star = (cx: number, cy: number, r: number) => {
     g.beginPath();
-    g.moveTo(x - 20 * d, 60);
-    g.lineTo(x + 20 * d, 96);
-    g.lineTo(x - 20 * d, 132);
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rr = i % 2 ? r * 0.42 : r;
+      g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+    }
+    g.closePath();
+    g.fillStyle = '#ffc848';
+    g.fill();
+    g.lineWidth = 4;
+    g.strokeStyle = '#3a1a06';
     g.stroke();
-  }
+  };
+  star(110, 96, 40);
+  star(914, 96, 40);
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.shadowColor = kind === 'finish' ? '#ffc21a' : '#4fc3ff';
-  g.shadowBlur = 26;
-  g.fillStyle = '#ffffff';
-  // stays between the chevrons (x 170..854) with room for the italic slant + glow
-  fitText(g, label, 512, 100, 620, 112, 'italic 900 {s} "Arial Black", Arial, sans-serif');
+  g.lineWidth = 10;
+  g.strokeStyle = '#2a1206';
+  g.fillStyle = '#ffe7a8';
+  const font = '{s} "Rye", "Alfa Slab One", Georgia, serif';
+  fitText(g, label, 512, 100, 620, 116, font, true);
+  fitText(g, label, 512, 100, 620, 116, font);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 4;
   return t;
 }
 
-/** START / FINISH gantry spanning the road. */
+/** START / FINISH ranch gate spanning the road. */
 export function makeArch(kind: 'start' | 'finish') {
   const g = new THREE.Group();
-  const frame = new THREE.MeshStandardMaterial({ color: 0x1d2440, metalness: 0.85, roughness: 0.35 });
-  const neon = new THREE.MeshBasicMaterial({ color: kind === 'finish' ? 0xffc21a : 0x39b6ff, toneMapped: false });
+  const m = new Model();
   for (const s of [-1, 1]) {
-    const leg = new THREE.Mesh(new RoundedBoxGeometry(0.9, 7.2, 1.2, 2, 0.12), frame);
-    leg.position.set(5.2 * s, 3.6, 0);
-    g.add(leg);
-    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 6.6, 1.24), neon);
-    strip.position.set(5.2 * s - 0.46 * s, 3.6, 0);
-    g.add(strip);
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 1.8), frame);
-    foot.position.set(5.2 * s, 0.2, 0);
-    g.add(foot);
+    m.cyl(0.42, 0.5, 8.2, 0x6a4428, 5.3 * s, 3.9, 0, 9);
+    m.cyl(0.6, 0.6, 0.5, 0x4a2c16, 5.3 * s, 0.25, 0, 9);
+    for (const y of [6.2, 6.6]) m.cyl(0.47, 0.47, 0.12, 0xc8a870, 5.3 * s, y, 0, 9);
   }
-  const beam = new THREE.Mesh(new RoundedBoxGeometry(11.6, 2.2, 1.3, 2, 0.15), frame);
-  beam.position.y = 7.6;
-  g.add(beam);
-  const under = new THREE.Mesh(new THREE.BoxGeometry(11.2, 0.12, 1.34), neon);
-  under.position.y = 6.5;
-  g.add(under);
-  mergeByMaterial(g);
+  m.box(12.4, 0.7, 0.8, 0x5a3a1e, 0, 8.2, 0, 0, { atlas: 'planksDark', map: 'all', rep: [3, 1] });
+  m.box(11.2, 2.3, 0.3, 0x6b4322, 0, 6.9, 0.1);
+  // longhorns on top
+  m.push(0, 9.0, 0);
+  m.box(1.1, 0.7, 0.8, 0xe8dcc8, 0, 0, 0);
+  for (const s of [-1, 1]) {
+    m.cone(0.14, 1.9, 0xf4ead8, s * 1.2, 0.35, 0, 7, 0, -s * 1.2);
+    m.cone(0.1, 0.8, 0xf4ead8, s * 2.05, 0.9, 0, 7, 0, -s * 0.2);
+  }
+  m.pop();
+  const frame = new THREE.Mesh(m.bake(), propMaterial());
+  g.add(frame);
   const sign = new THREE.Mesh(
-    new THREE.PlaneGeometry(10.2, 1.9),
-    new THREE.MeshBasicMaterial({ map: signTexture(kind === 'finish' ? 'FINISH' : 'START', kind), toneMapped: false }),
+    new THREE.PlaneGeometry(10.6, 2.0),
+    new THREE.MeshBasicMaterial({ map: signTexture(kind === 'finish' ? 'FINISH' : 'GO WEST!', kind), toneMapped: false }),
   );
-  sign.position.set(0, 7.6, 0.67);
+  sign.position.set(0, 6.9, 0.27);
   g.add(sign);
   const back = sign.clone();
   back.rotation.y = Math.PI;
-  back.position.z = -0.67;
+  back.position.z = -0.07;
   g.add(back);
   g.visible = false;
   return g;

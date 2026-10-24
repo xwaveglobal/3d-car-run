@@ -13,14 +13,15 @@ const cache = new Map<string, THREE.Texture>();
  * Draw text that always fits: shrinks the font size until the text (plus blur margin)
  * is no wider than maxW. Prevents clipped letters on signs and billboards.
  */
-export function fitText(g: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, size: number, style: string) {
+export function fitText(g: CanvasRenderingContext2D, text: string, x: number, y: number, maxW: number, size: number, style: string, stroke = false) {
   let s = size;
   g.font = style.replace('{s}', `${s}px`);
   while (s > 8 && g.measureText(text).width > maxW) {
     s -= 2;
     g.font = style.replace('{s}', `${s}px`);
   }
-  g.fillText(text, x, y);
+  if (stroke) g.strokeText(text, x, y);
+  else g.fillText(text, x, y);
   return s;
 }
 
