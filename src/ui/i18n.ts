@@ -40,7 +40,6 @@ const T: [string, string, string, string, string, string][] = [
   ['Gold Rush', 'Ruée vers l’or', 'ゴールドラッシュ', 'Corrida do Ouro', 'Goldrausch', 'Fiebre del Oro'],
   ['GOLD RUSH', 'RUÉE VERS L’OR', 'ゴールドラッシュ', 'CORRIDA DO OURO', 'GOLDRAUSCH', 'FIEBRE DEL ORO'],
   ['3 MIN BONUS RUN', 'COURSE BONUS 3 MIN', '3分ボーナスラン', 'CORRIDA BÔNUS 3 MIN', '3-MIN-BONUSLAUF', 'CARRERA BONUS 3 MIN'],
-  ['Collect as many gold coins as you can before the clock runs out.', 'Ramasse un max de pièces d’or avant la fin du chrono.', '時間切れまでにできるだけ多くの金貨を集めよう。', 'Pegue o máximo de moedas de ouro antes do tempo acabar.', 'Sammle so viele Goldmünzen wie möglich, bevor die Zeit abläuft.', 'Recoge todas las monedas de oro que puedas antes de que se acabe el tiempo.'],
   ['Time', 'Temps', 'タイム', 'Tempo', 'Zeit', 'Tiempo'],
   ['Finish bonus', 'Bonus d’arrivée', '完走ボーナス', 'Bônus final', 'Zielbonus', 'Bonus final'],
   ['Plays left', 'Parties restantes', '残りプレイ', 'Jogadas restantes', 'Übrige Läufe', 'Partidas restantes'],
@@ -123,7 +122,7 @@ const T: [string, string, string, string, string, string][] = [
   ['Near miss', 'Frôlé', 'ニアミス', 'Por um triz', 'Knapp', 'Roce'],
   ['Time', 'Temps', 'タイム', 'Tempo', 'Zeit', 'Tiempo'],
   ['Lives lost', 'Vies perdues', '失ったライフ', 'Vidas perdidas', 'Verlorene Leben', 'Vidas perdidas'],
-  ['Unused boosts', 'Bonus inutilisés', '未使用ブースト', 'Boosts não usados', 'Ungenutzte Boosts', 'Potenciadores sin usar'],
+  ['Unused specials', 'Spéciaux inutilisés', '未使用スペシャル', 'Especiais não usados', 'Ungenutzte Spezialitems', 'Especiales sin usar'],
   ['TAP!', 'TAPE !', 'タップ!', 'TOQUE!', 'TIPPEN!', '¡TOCA!'],
   ['Reward', 'Récompense', '報酬', 'Prêmio', 'Belohnung', 'Premio'],
   ['Rewards', 'Récompenses', '報酬', 'Prêmios', 'Belohnungen', 'Premios'],
@@ -193,6 +192,43 @@ const T: [string, string, string, string, string, string][] = [
   ['Save', 'Enregistrer', '保存', 'Salvar', 'Speichern', 'Guardar'],
   ['Practice it', 'S’entraîner', '練習する', 'Praticar', 'Üben', 'Practicar'],
   ['PILOT TRAINING', 'ENTRAÎNEMENT', 'パイロット訓練', 'TREINO DE PILOTO', 'PILOTENTRAINING', 'ENTRENAMIENTO'],
+  // v1.0.3 text review: static labels that were missing
+  ['SADDLE BAG', 'SACOCHE', 'サドルバッグ', 'ALFORJE', 'SATTELTASCHE', 'ALFORJA'],
+  ['BUY ITEMS', 'ACHETER', 'アイテム購入', 'COMPRAR ITENS', 'ITEMS KAUFEN', 'COMPRAR OBJETOS'],
+  ['Check-in', 'Présence', 'チェックイン', 'Check-in', 'Check-in', 'Registro diario'],
+  ['Claim today', 'Récupérer', '今日の分を受け取る', 'Coletar hoje', 'Heute abholen', 'Cobrar hoy'],
+  ['Daily missions', 'Missions du jour', 'デイリーミッション', 'Missões diárias', 'Tagesmissionen', 'Misiones diarias'],
+  ['Your items', 'Tes objets', '所持アイテム', 'Seus itens', 'Deine Items', 'Tus objetos'],
+  ['Exchange coins → specials', 'Pièces → spéciaux', 'コイン→スペシャル交換', 'Trocar moedas → especiais', 'Münzen → Spezialitems', 'Canjear monedas → especiales'],
+  ['Pick your special', 'Choisis ton spécial', 'スペシャルを選ぶ', 'Escolha seu especial', 'Wähle dein Spezialitem', 'Elige tu especial'],
+  ['1 special per race', '1 spécial par course', '1レースに1スペシャル', '1 especial por corrida', '1 Spezialitem pro Rennen', '1 especial por carrera'],
+  ['Specials · 1 per race', 'Spéciaux · 1 par course', 'スペシャル・1レース1個', 'Especiais · 1 por corrida', 'Spezialitems · 1 pro Rennen', 'Especiales · 1 por carrera'],
+  ['Special items', 'Objets spéciaux', 'スペシャルアイテム', 'Itens especiais', 'Spezialitems', 'Objetos especiales'],
+  ['Your special', 'Ton spécial', 'あなたのスペシャル', 'Seu especial', 'Dein Spezialitem', 'Tu especial'],
+  ['Tap to pick one', 'Touche pour choisir', 'タップして選ぶ', 'Toque para escolher', 'Tippen zum Wählen', 'Toca para elegir'],
+  ['Swipe left / right', 'Glisse à gauche / droite', '左右にスワイプ', 'Deslize esq. / dir.', 'Links / rechts wischen', 'Desliza izq. / der.'],
+  ['Swipe up', 'Glisse vers le haut', '上にスワイプ', 'Deslize para cima', 'Nach oben wischen', 'Desliza hacia arriba'],
+  ['Swipe down', 'Glisse vers le bas', '下にスワイプ', 'Deslize para baixo', 'Nach unten wischen', 'Desliza hacia abajo'],
+  ['Skip · go racing', 'Passer · course', 'スキップしてレース', 'Pular · correr', 'Überspringen · fahren', 'Saltar · a correr'],
+  ['TUTORIAL', 'TUTORIEL', 'チュートリアル', 'TUTORIAL', 'TUTORIAL', 'TUTORIAL'],
+  ['Replay', 'Rejouer', 'もう一度', 'Repetir', 'Wiederholen', 'Repetir'],
+  ['Again', 'Encore', 'もう一度', 'De novo', 'Nochmal', 'Otra vez'],
+  ['Practice', 'S’entraîner', '練習', 'Praticar', 'Üben', 'Practicar'],
+  ['Country', 'Pays', '国', 'País', 'Land', 'País'],
+  ['Races', 'Courses', 'レース数', 'Corridas', 'Rennen', 'Carreras'],
+  ['Streak', 'Série', '連続', 'Sequência', 'Serie', 'Racha'],
+  ['Avg EXP', 'EXP moy.', '平均EXP', 'EXP médio', 'Ø EXP', 'EXP medio'],
+  ['EXP guide', 'Guide EXP', 'EXPガイド', 'Guia de EXP', 'EXP-Guide', 'Guía de EXP'],
+  ['Track bonus', 'Bonus de circuit', 'コースボーナス', 'Bônus da pista', 'Streckenbonus', 'Bonus de pista'],
+  ['RACE RANK', 'RANG DE COURSE', 'レースランク', 'RANK DA CORRIDA', 'RENNRANG', 'RANGO DE CARRERA'],
+  ['TRAINING', 'ENTRAÎNEMENT', '訓練', 'TREINO', 'TRAINING', 'ENTRENAMIENTO'],
+  ['LOCKED', 'VERROUILLÉ', 'ロック中', 'BLOQUEADO', 'GESPERRT', 'BLOQUEADO'],
+  ['EASY', 'FACILE', 'イージー', 'FÁCIL', 'LEICHT', 'FÁCIL'],
+  ['HARD', 'DIFFICILE', 'ハード', 'DIFÍCIL', 'SCHWER', 'DIFÍCIL'],
+  ['RESCUE', 'SAUVETAGE', 'レスキュー', 'RESGATE', 'RETTUNG', 'RESCATE'],
+  ['LAUNCHER', 'TREMPLIN', 'ランチャー', 'LANÇADOR', 'SCHANZE', 'LANZADOR'],
+  ['EAGLE', 'AIGLE', 'イーグル', 'ÁGUIA', 'ADLER', 'ÁGUILA'],
+  ['Grab as many gold coins as you can before time runs out.', 'Ramasse un max de pièces d’or avant la fin du temps.', '時間切れまでに金貨をできるだけ集めよう。', 'Pegue o máximo de moedas de ouro antes do tempo acabar.', 'Sammle möglichst viele Goldmünzen, bevor die Zeit abläuft.', 'Recoge todas las monedas de oro que puedas antes de que acabe el tiempo.'],
   ['Start training', 'Commencer', '訓練開始', 'Começar treino', 'Training starten', 'Empezar'],
   ['Skip', 'Passer', 'スキップ', 'Pular', 'Überspringen', 'Saltar'],
   ['TRAINING COMPLETE', 'ENTRAÎNEMENT TERMINÉ', '訓練完了', 'TREINO CONCLUÍDO', 'TRAINING FERTIG', 'ENTRENAMIENTO COMPLETO'],
@@ -206,7 +242,11 @@ const T: [string, string, string, string, string, string][] = [
 ];
 
 const IDX: Record<Lang, number> = { en: 0, fr: 1, ja: 2, pt: 3, de: 4, es: 5 };
-const MAP = new Map<string, (typeof T)[number]>(T.map((row) => [row[0].toLowerCase(), row]));
+// v1.0.3: exact text first (keeps "Share" and "SHARE" apart), then case-insensitive
+const EXACT = new Map<string, (typeof T)[number]>(T.map((row) => [row[0], row]));
+const MAP = new Map<string, (typeof T)[number]>();
+for (const row of T) if (!MAP.has(row[0].toLowerCase())) MAP.set(row[0].toLowerCase(), row);
+const find = (k: string) => EXACT.get(k) ?? MAP.get(k.toLowerCase());
 
 let current: Lang = 'en';
 const ORIG = new WeakMap<Text, string>();
@@ -214,7 +254,7 @@ const ORIG = new WeakMap<Text, string>();
 export const getLang = () => current;
 
 export function tr(en: string, lang: Lang = current) {
-  const row = MAP.get(en.trim().toLowerCase());
+  const row = find(en.trim());
   return row ? row[IDX[lang]] : en;
 }
 
@@ -226,8 +266,8 @@ export function translateTree(root: Node, lang: Lang = current) {
     const t = n as Text;
     const orig = ORIG.get(t) ?? t.data;
     const key = orig.trim();
-    if (!key || key.length > 60) continue;
-    const row = MAP.get(key.toLowerCase());
+    if (!key || key.length > 80) continue;
+    const row = find(key);
     if (!row) continue;
     if (!ORIG.has(t)) ORIG.set(t, orig);
     const out = lang === 'en' ? orig : orig.replace(key, row[IDX[lang]]);

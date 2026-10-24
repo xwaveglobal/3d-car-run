@@ -468,7 +468,7 @@ export class Game {
             }
             const bs = bonusState();
             if (bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) < BONUS.maxPlays) return this.startBonus();
-            this.ui.toast(`${ICON.check} Bonus plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
+            this.ui.toast(`${ICON.check} Gold Rush plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
             return this.goHome();
           }
           // v2: every EXP race starts with the special choice (Retry too)
@@ -1507,7 +1507,7 @@ export class Game {
     this.save.special = this.save.items.super > 0 ? 'super' : null;
     this.save.v2 = true;
     this.persist();
-    if (refund > 0) window.setTimeout(() => this.ui.toast(`${ICON.coin} old items & upgrades refunded: +${refund.toLocaleString('en-US')} coins`, '#ffc21a'), 2500);
+    if (refund > 0) window.setTimeout(() => this.ui.toast(`${ICON.coin} Old items & upgrades refunded: +${refund.toLocaleString('en-US')} coins`, '#ffc21a'), 2500);
   }
 
   /** v2: the special carried in this race (taken from the bag only when used) */
@@ -1588,7 +1588,7 @@ export class Game {
     if (this.bagPickMode || !this.save.special) this.save.special = key;
     this.persist();
     this.audio.play('power');
-    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Launcher', hyper: 'Eagle', escape: 'Last Stand' }[key]} · in your bag`, '#ffb02e');
+    this.ui.toast(`${ICON.bag} +1 ${{ super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand' }[key]} · in your bag`, '#ffb02e');
     this.ui.hideOverlay('bagbuy'); // after buying: back to the bag
     if (this.ui.isShown('bag')) this.ui.bagSync(this.save, this.bagPickMode);
     if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
@@ -1627,12 +1627,12 @@ export class Game {
   startBonus() {
     const bs = bonusState();
     if (!bs.live) {
-      this.ui.toast(`${ICON.clock} Next Bonus opens ${localTime(bs.next.start)}`, '#ffc21a');
+      this.ui.toast(`${ICON.clock} Next Gold Rush opens ${localTime(bs.next.start)}`, '#ffc21a');
       return;
     }
     const used = bonusPlaysUsed(this.save.bonusPlays, bs.live.key);
     if (used >= BONUS.maxPlays) {
-      this.ui.toast(`${ICON.check} ${BONUS.maxPlays} Bonus plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
+      this.ui.toast(`${ICON.check} ${BONUS.maxPlays} Gold Rush plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
       return;
     }
     this.ui.hideOverlay('bonus');
@@ -1687,7 +1687,7 @@ export class Game {
       this.setPiece = sp;
       // safety: whatever happens, the stretch the pickup created never costs a heart
       this.run.invulnT = Math.max(this.run.invulnT, (sp.to - w.dist) / Math.max(1, w.speed) + 0.6);
-      const msg: Record<string, string> = { super: 'CAR WALL AHEAD', hyper: 'TRUCK CONVOY AHEAD', escape: 'TRAFFIC JAM AHEAD', wall: 'ROAD BLOCKED AHEAD', rail: 'BUSY STRETCH AHEAD', ghost: 'LASER ZONE AHEAD', tunnel: 'TUNNEL AHEAD' };
+      const msg: Record<string, string> = { super: 'CAR WALL AHEAD', hyper: 'TRUCK CONVOY AHEAD', escape: 'TRAFFIC JAM AHEAD', wall: 'ROAD BLOCKED AHEAD', rail: 'BUSY STRETCH AHEAD', ghost: 'CROSSING GATES AHEAD', tunnel: 'MINE TUNNEL AHEAD' };
       this.ui.toast(`${ICON.rocket} ${msg[k] ?? 'SPECIAL'} · it fires by itself!`, '#ffb02e');
       return;
     }
@@ -1960,8 +1960,8 @@ export class Game {
     this.audio.intensity = 0;
     const c = this.course;
     this.ui.trackHud(c && !c.bonus ? { section: c.sections[0].name, dist: 0, length: c.length, marks: c.sections.slice(1).map((s) => s.from) } : null); // Gold Rush: the timer plate instead
-    if (c) this.ui.banner(`TRACK ${COURSES.indexOf(c) + 1} · ${(c.length / 1000).toFixed(1)} KM`, c.name.toUpperCase());
-    else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'BOOST TRAINING' : 'FIRST RIDE', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'DRIVER TRAINING');
+    if (c) this.ui.banner(c.bonus ? 'GOLD RUSH · 3 MIN' : `TRACK ${COURSES.indexOf(c) + 1} · ${(c.length / 1000).toFixed(1)} KM`, c.name.toUpperCase());
+    else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'SPECIAL TRAINING' : 'FIRST RIDE', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'DRIVER TRAINING');
   }
 
   pause() {
@@ -2274,7 +2274,7 @@ export class Game {
         this.vehicle.barrelRoll(1, dir === -1 ? 1 : -1, 15);
         this.audio.play('ring');
         if (r && this.state === 'run') r.score += 100 * r.scoreMul;
-        this.ui.pop('AIR DASH FLIP!', '#7ff5e2', '', -8);
+        this.ui.pop('CANYON DASH FLIP!', '#7ff5e2', '', -8);
         const c = this.vehicle.root.position;
         for (let i = 0; i < 22; i++) this.particles.emit(c.x, c.y + (Math.random() - 0.5) * 0.6, 0.3 + Math.random(), -dir * (8 + Math.random() * 6), (Math.random() - 0.5) * 2, 3, i % 2 ? 0x2ee6c8 : 0xa8fff0, 0.22, 0.35, { drag: 3, locked: true });
       },
@@ -2286,7 +2286,7 @@ export class Game {
         this.audio.play('ring', { delay: 0.08 });
         this.vehicle.boostKick(0.6);
         this.rig.fovKick += 3;
-        this.ui.pop('AIR DASH!', '#7ff5e2', '', -8);
+        this.ui.pop('CANYON DASH!', '#7ff5e2', '', -8);
         const c = this.vehicle.root.position;
         for (let i = 0; i < 18; i++) this.particles.emit(c.x, c.y + (Math.random() - 0.5) * 0.4, 0.4 + Math.random(), -dir * (5 + Math.random() * 5), 1 + Math.random() * 2, 3, i % 2 ? 0x2ee6c8 : 0xe8fffb, 0.2, 0.32, { drag: 3, locked: true });
         if (this.run && this.state === 'run') this.run.score += 100 * this.run.scoreMul;
@@ -2903,7 +2903,7 @@ export class Game {
           this.rig.shake(0.35);
           this.particles.burst(this.vehicle.root.position.x, this.vehicle.root.position.y, 0, 18, 0xffcf4a, 8, 0.2, 0.45); // the Sheriff Guard flashes too
           const left = this.run.shield ? this.run.shieldHits : 0;
-          this.ui.pop(left > 0 ? `SHIELD ×${left}` : 'SHIELD GONE', left > 0 ? '#6fc8ff' : '#9fb3dd', '', -8);
+          this.ui.pop(left > 0 ? `GUARD ×${left}` : 'GUARD BROKEN', left > 0 ? '#6fc8ff' : '#9fb3dd', '', -8);
           break;
         }
         case 'smash':
@@ -3111,7 +3111,7 @@ export class Game {
       parts.push(`${n}× ${name}`);
     };
     add(r.superJumps, LEFTOVER_POINTS.super, 'Canyon Launcher');
-    add(r.hyperJumps, LEFTOVER_POINTS.hyper, 'EAGLE JUMP');
+    add(r.hyperJumps, LEFTOVER_POINTS.hyper, 'Eagle Jump');
     add(r.escapes, LEFTOVER_POINTS.escape, 'Last Stand');
     if (pts <= 0) return;
     const total = Math.round(pts * r.scoreMul);
@@ -3119,8 +3119,8 @@ export class Game {
     r.superJumps = r.hyperJumps = r.escapes = 0;
     this.leftover = { pts: total, items: parts.join(' + ') };
     window.setTimeout(() => {
-      this.ui.pop(`+${total.toLocaleString('en-US')}`, '#c9a8ff', 'UNUSED BOOSTS', -18);
-      this.ui.toast(`${ICON.rocket} Unused boosts → points · ${parts.join(' + ')} = +${total.toLocaleString('en-US')}`, '#ffb02e');
+      this.ui.pop(`+${total.toLocaleString('en-US')}`, '#c9a8ff', 'UNUSED SPECIALS', -18);
+      this.ui.toast(`${ICON.rocket} Unused specials → points · ${parts.join(' + ')} = +${total.toLocaleString('en-US')}`, '#ffb02e');
       this.audio.play('combo');
     }, 900);
   }
@@ -3234,7 +3234,7 @@ export class Game {
       if (c.reward < rule.minReward || stars < rule.stars) continue;
       for (const [k, n] of Object.entries(rule.items)) {
         this.save.items[k as ItemKey] += n ?? 0;
-        bonusItems.push(`+${n} ${({ super: 'Canyon Launcher', hyper: 'EAGLE JUMP', escape: 'Last Stand', shield: 'Sheriff Guard' } as Record<string, string>)[k]}`);
+        bonusItems.push(`+${n} ${({ super: 'Canyon Launcher', hyper: 'Eagle Jump', escape: 'Last Stand', shield: 'Sheriff Guard' } as Record<string, string>)[k]}`);
       }
     }
     if (bonusItems.length) window.setTimeout(() => this.ui.toast(`${ICON.bag} Track bonus → Saddle Bag · ${bonusItems.join(' · ')}`, '#e0a040'), 1200);
@@ -3326,7 +3326,7 @@ export class Game {
     this.applyReadability();
     this.track.setOpenAir(this.scenery.openAir);
     const idx = ENDLESS_LADDER.indexOf(id) + 1;
-    this.ui.banner(this.course?.bonus ? 'BONUS' : idx > 0 ? `WORLD ${idx} / ${ENDLESS_LADDER.length}` : 'WORLD', WORLD_NAMES[id]);
+    this.ui.banner(this.course?.bonus ? 'GOLD RUSH' : idx > 0 ? `WORLD ${idx} / ${ENDLESS_LADDER.length}` : 'WORLD', WORLD_NAMES[id]);
     this.ui.flash();
     this.audio.play('warp');
     this.rig.fovKick += 10;

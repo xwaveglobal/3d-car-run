@@ -208,13 +208,13 @@ export interface RunRewards {
 /** what each boost does (info card) */
 const BOOST_INFO: Record<ItemKey, { what: string; how: string; when: string }> = {
   super: { what: 'A canyon launch that clears two rows of obstacles at once and rolls 360° at the top.', how: 'Equip it, then tap the LAUNCHER button on the road (or R / Shift).', when: 'Cars blocking every lane, a wall right behind a wall.' },
-  hyper: { what: 'The mythic Eagle Jump: 7.4 m high, a double roll and a golden trail — clears everything for a long stretch.', how: 'Equip it, then tap the gold EAGLE button on the road. Fires before a Canyon Launcher if you hold both.', when: 'A full road block with no way through, or to grab a coin trail in the sky.' },
+  hyper: { what: 'The mythic Eagle Jump: 7.4 m high, a double roll and a golden trail — clears everything for a long stretch.', how: 'Equip it, then tap the gold EAGLE button on the road. Fires before a Canyon Launcher if you hold both.', when: 'A full road block with no way through, or to grab a coin trail high above the road.' },
   escape: { what: 'Last Stand: a sandstorm vortex lifts you straight up, you cruise safely above the road, then glide back down.', how: 'Tap the red RESCUE button (or press E / Enter) at any moment.', when: 'You are about to crash and there is no time to swipe.' },
-  shield: { what: 'Start the run inside a shield bubble that absorbs one hit.', how: 'Equip it before a run — it is active from the start until it pops.', when: 'Hard tracks and cups: one free mistake.' },
-  turbo: { what: 'Start the run with a Turbo Boost: you blast forward and smash through obstacles for a few seconds.', how: 'Equip it before a run — it fires at the start line.', when: 'Score runs: a fast, safe opening.' },
+  shield: { what: 'Start the run with a Sheriff Guard that absorbs one hit.', how: 'Equip it before a run — it is active from the start until it pops.', when: 'Hard runs and Outlaw Rush: one free mistake.' },
+  turbo: { what: 'Start the run with Dust Storm Nitro: you blast forward and smash through obstacles for a few seconds.', how: 'Equip it before a run — it fires at the start line.', when: 'Score runs: a fast, safe opening.' },
   magnet: { what: 'Start with the Gold Magnet active: coins from every lane fly to you.', how: 'Equip it before a run — active from the start.', when: 'Coin missions and 3-star coin targets.' },
-  double: { what: 'Double EXP: every metre counts twice while it lasts.', how: 'Grab the ×2 on the road — it works at once.', when: 'Chasing your best EXP.' },
-  life: { what: 'Start the run with one extra life (up to 4 hearts).', how: 'Equip it before a run.', when: 'Long tracks, Endless records and cups.' },
+  double: { what: 'Double Bounty: every metre counts twice while it lasts.', how: 'Grab the ×2 on the road — it works at once.', when: 'Chasing your best EXP.' },
+  life: { what: 'Start the run with one extra life (up to 4 hearts).', how: 'Equip it before a run.', when: 'Long runs, Endless records and Outlaw Rush.' },
 };
 
 /** sample rival profile (deterministic from the name) */
@@ -388,10 +388,10 @@ export class UI {
     <section id="finish" class="screen overlay">
       <div class="panel result">
         <div class="res-top"><button class="icon-btn sm" data-a="home" aria-label="Close">${ICON.close}</button><img class="res-logo" src="${logoUrl}" alt="" /><button class="icon-btn sm" data-a="share" aria-label="Share">${ICON.share}</button></div>
-        <div class="finish-title">FINISH! <small class="label" data-k="ftrack">Future City</small></div>
+        <div class="finish-title">FINISH! <small class="label" data-k="ftrack">Desert Valley</small></div>
         <div class="scoreline"><div class="stars big" data-k="fstars"></div><div class="final" data-k="ffinal">0</div><div class="newbest" data-k="fnewbest">${ICON.trophy} NEW BEST!</div></div>
         <div class="leftover bonus" data-k="fbonus" hidden>${BAG_ICON}<span>Track bonus</span><small data-k="fbonustxt"></small><b>BAG</b></div>
-        <div class="leftover" data-k="fleft" hidden>${ICON.rocket}<span>Unused boosts</span><small data-k="flefttxt"></small><b data-k="fleftpts">+0</b></div>
+        <div class="leftover" data-k="fleft" hidden>${ICON.rocket}<span>Unused specials</span><small data-k="flefttxt"></small><b data-k="fleftpts">+0</b></div>
         <div class="stats mini">
           <div class="stat"><span class="label">Time</span><span class="v">${ICON.flag}<span data-k="ftime">0</span></span></div>
           <div class="stat"><span class="label">Coins</span><span class="v">${ICON.coin}<span data-k="fcoins">0</span></span></div>
@@ -485,16 +485,16 @@ export class UI {
     <section id="guide" class="screen overlay">
       <div class="panel modal guide">
         <div class="mhead"><h2>CANYON LAUNCHER</h2><button class="icon-btn sm" data-a="closemodal" aria-label="Close">${ICON.close}</button></div>
-        <p class="tut-lead">The canyon launch that clears <b>two rows</b> of obstacles and rolls 360° in the sky.</p>
+        <p class="tut-lead">The canyon launch that clears <b>two rows</b> of obstacles and rolls 360° in mid-air.</p>
         <div class="gsteps">
           <button class="gstep" data-a="gstep"><img src="${guide1}" alt="" /><b><i>1</i> Spot the launch-ramp pickup</b><small>Appears after 250 m, floating in a lane. Swipe into its lane to grab it.</small>
-            <div class="gmore"><b>Details</b>The launch-ramp pickup floats at driving height in one lane and turns up every few hundred metres after the first 250 m. Drive or hop into that lane to collect it — a golden flash ring confirms the pickup. You can carry up to 2. You can also start with one: equip <em>Canyon Launcher</em> on the track screen (daily check-in day 5, Gold Rush and the shop give them).</div><em class="gtap">${ICON.info} tap for details</em></button>
+            <div class="gmore"><b>Details</b>The launch-ramp pickup floats at driving height in one lane and turns up every few hundred metres after the first 250 m. Drive or hop into that lane to collect it — a golden flash ring confirms the pickup. You can carry up to 2. You can also start with one: equip <em>Canyon Launcher</em> on the track screen (daily check-in day 7, class C promotion and the shop give them).</div><em class="gtap">${ICON.info} tap for details</em></button>
           <button class="gstep" data-a="gstep"><img src="${guide2}" alt="" /><b><i>2</i> The LAUNCHER button appears</b><small>A gold LAUNCHER button shows under your hearts with how many you hold.</small>
             <div class="gmore"><b>Details</b>While you hold a charge, a round gold <em>LAUNCHER</em> button sits under your hearts (it reads EAGLE for an Eagle Jump). A normal swipe UP is always just a small hop — only the button fires the launcher, so you never waste it by accident. Keyboard: <em>R</em> or <em>Shift</em>.</div><em class="gtap">${ICON.info} tap for details</em></button>
           <button class="gstep" data-a="gstep"><img src="${guide3}" alt="" /><b><i>3</i> Tap LAUNCHER to jump</b><small>Flies 5.6 m over trucks blocking every lane, barrel roll at the top.</small>
-            <div class="gmore"><b>Details</b>When a truck blockade (a big truck + pickups across all 3 lanes) appears, a toast warns you ~120 m ahead. Tap the button on the road: the car launches 5.6 m up, clears both rows of trucks, rolls 360° and lands safely — you are protected for the whole flight. Pressed in the air? It fires the moment your wheels touch the road. No launcher? Collect one, buy one, or use Last Stand.</div><em class="gtap">${ICON.info} tap for details</em></button>
+            <div class="gmore"><b>Details</b>When a truck blockade (a big truck + pickups across all 3 lanes) appears, a toast warns you ~120 m ahead. Tap the button on the road: the car launches 5.6 m up, clears both rows of trucks, rolls 360° and lands safely — you are protected for the whole jump. Pressed in the air? It fires the moment your wheels touch the road. No launcher? Collect one, buy one, or use Last Stand.</div><em class="gtap">${ICON.info} tap for details</em></button>
         </div>
-        <div class="gmyth">${ICON.hyper}<div><b>Mythic EAGLE JUMP</b><small>Win it in Gold Rush, Day-7 check-in or the Shop: 7.4 m high, double roll, golden trail. Fires from the same button (EAGLE).</small></div></div>
+        <div class="gmyth">${ICON.hyper}<div><b>Mythic Eagle Jump</b><small>Earn it at class B or exchange coins for it in the Shop: 7.4 m high, double roll, golden trail. Fires from the same button (EAGLE).</small></div></div>
         <button class="btn big" data-a="boosttrain" data-v="super">${ICON.play} Practice it</button>
       </div>
     </section>
@@ -664,16 +664,16 @@ export class UI {
     </section>
 
     <div id="pops"></div>
-    <div id="banner"><div class="w" data-k="bw">WORLD 1</div><div class="n" data-k="bn">FUTURE CITY</div></div>
-    <div id="tutorial"><div class="hand">${ICON.hand}</div><div class="txt">SWIPE TO DODGE<small>← → change lane · ↑ fly up · ↓ fly down</small></div></div>
+    <div id="banner"><div class="w" data-k="bw">WORLD 1</div><div class="n" data-k="bn">DESERT VALLEY</div></div>
+    <div id="tutorial"><div class="hand">${ICON.hand}</div><div class="txt">SWIPE TO DODGE<small>← → change lane · ↑ jump · ↓ dive</small></div></div>
     <div id="flash"></div>
 
     <section id="tutintro" class="screen overlay">
       <div class="panel tut-panel">
         <div class="mhead"><h2>${TUT_ICON} TUTORIAL</h2><button class="icon-btn sm" data-a="closemodal" aria-label="Close">${ICON.close}</button></div>
-        <p class="tut-lead">Learn the moves and practise each special. You can't crash in training.</p>
+        <p class="tut-lead">Learn the moves and practice each special. You can't crash in training.</p>
         <div class="tuthub">
-          <div class="th-sec"><div class="th-h"><i>1</i><b>Basics · first flight</b></div>
+          <div class="th-sec"><div class="th-h"><i>1</i><b>Basics · first ride</b></div>
             <div class="tut-grid">
               <div class="tut-tile"><span class="g g-lr"><i>←</i><i>→</i></span><b>Swipe left / right</b><small>Exactly one lane per swipe</small></div>
               <div class="tut-tile"><span class="g g-up"><i>↑</i></span><b>Swipe up</b><small>One hop over low obstacles</small></div>
@@ -683,7 +683,7 @@ export class UI {
             <div class="label tut-keys">Keyboard: arrow keys or W A S D</div>
             <button class="btn" data-a="tutstart">${ICON.play} Start training</button></div>
           <div class="th-sec"><div class="th-h"><i>2</i><b>Special items</b></div>
-            <div class="th-items">${(['super', 'hyper', 'escape'] as ItemKey[]).map((k) => `<button class="th-it ${k}" data-a="boosttrain" data-v="${k}"><span>${ITEM_ICON[k]}</span><b>${ITEM_NAME[k]}</b><small>${ICON.target} Practise</small></button>`).join('')}</div></div>
+            <div class="th-items">${(['super', 'hyper', 'escape'] as ItemKey[]).map((k) => `<button class="th-it ${k}" data-a="boosttrain" data-v="${k}"><span>${ITEM_ICON[k]}</span><b>${ITEM_NAME[k]}</b><small>${ICON.target} Practice</small></button>`).join('')}</div></div>
         </div>
         <button class="btn ghost sm" data-a="tutskip">Skip · go racing</button>
       </div>
@@ -885,7 +885,7 @@ export class UI {
         case 'bagpick': return this.h.bagPick();
         case 'sgo': return this.h.goRace();
         case 'bonusgo': return this.h.bonusGo();
-        case 'slocked': return this.toast(`${ICON.lock} Opens at rank AAA · try it now in a Bonus event`, '#b7a6ff');
+        case 'slocked': return this.toast(`${ICON.lock} Opens at rank AAA · try it now in Gold Rush`, '#b7a6ff');
         case 'soon': return this.toast(`${ICON.lock} Reach rank ${el.dataset.v ?? 'S'} on Outlaw Rush to open this track`, '#b7a6ff');
         case 'rankgate': return this.rankGuide();
         case 'garage': return this.h.garage();
@@ -1607,9 +1607,9 @@ export class UI {
       btn.removeAttribute('disabled');
     }
     const rows: { k: UpgradeKey; name: string; desc: string; icon: string }[] = [
-      { k: 'engine', name: 'Engine', desc: 'Longer Turbo Boost', icon: ICON.engine },
-      { k: 'shield', name: 'Shield', desc: 'Longer shield bubble', icon: ICON.shield },
-      { k: 'magnet', name: 'Magnet', desc: 'Bigger radius & duration', icon: ICON.magnet },
+      { k: 'engine', name: 'Engine', desc: 'Longer Dust Storm Nitro', icon: ICON.engine },
+      { k: 'shield', name: 'Sheriff Guard', desc: 'Lasts longer', icon: ICON.shield },
+      { k: 'magnet', name: 'Gold Magnet', desc: 'Bigger radius & duration', icon: ICON.magnet },
     ];
     $(this.root, '[data-k="upgrades"]').innerHTML =
       `<div class="label">Upgrades</div>` +
@@ -1906,7 +1906,7 @@ export class UI {
     $(this.root, '[data-k="bnbody"]').innerHTML = `
       <div class="bn-hero" style="--cc:${BONUS_COLOR[o.theme] ?? '#ffc21a'}" data-theme="${o.theme}"><span class="bn-ic">${BONUS_EMOJI[o.theme] ?? '🏁'}</span><b>${o.name}</b>
         <small>${o.live ? `<em class="live">OPEN</em> ${o.left} left` : `<em class="soon">NEXT</em> ${o.opens}`}</small></div>
-      <div class="gr-lead"><b>3 MIN BONUS RUN</b><span>Collect as many gold coins as you can before the clock runs out.</span></div>
+      <div class="gr-lead"><b>3 MIN BONUS RUN</b><span>Grab as many gold coins as you can before time runs out.</span></div>
       <div class="gr-stats">
         <div><span>${ICON.clock}</span><b>3:00</b><small>Time</small></div>
         <div><span>${ICON.coin}</span><b>+${fmt(o.finish)}</b><small>Finish bonus</small></div>
@@ -2393,14 +2393,14 @@ export class UI {
     const road = (n: string) => `<span class="ul">${ICON.flag}${n}</span>`;
     const UNL: Record<RankClass, string> = {
       D: car('zenith', 'Zenith'),
-      C: car('vega', 'Vega'),
-      B: car('volt', 'Volt'),
-      A: car('phantom', 'Phantom'),
+      C: `<span class="ul">${ICON.coin}300 + Canyon Launcher</span>`,
+      B: `<span class="ul">${ICON.coin}500 + Eagle Jump</span>`,
+      A: `<span class="ul">${ICON.coin}800 + Last Stand</span>`,
       AA: car('inferno', 'Inferno'),
       AAA: `${car('nexus', 'Nexus')}${road('Outlaw Rush')}<span class="ul">${ICON.rocket}AAA specials</span>`,
-      S: road('Ocean Drive'),
-      SS: road('Volcano Run'),
-      SSS: road('Aurora Peak'),
+      S: `${car('vega', 'Vega')}${road('Silver Mine')}`,
+      SS: `${car('volt', 'Volt')}${road('Monument Valley')}`,
+      SSS: `${car('phantom', 'Phantom')}${road('Thunder Mesa')}`,
     };
     const ladder = CLASSES.map((c) => `<tr><td>${classBadge(c, 'md')}</td><td>${fmt(CLASS_MIN[c])}</td><td class="uls">${UNL[c]}</td></tr>`).join('');
     $(this.root, '[data-k="rgbody"]').innerHTML = `
@@ -2440,7 +2440,7 @@ export class UI {
     } else if (kind !== 'gift') {
       html = this.perkPopup(kind, d, head);
     } else {
-      html = head(giftBox(46), 'REVISIT GIFT', 'art') +
+      html = head(giftBox(46), 'WELCOME BACK', 'art') +
         `<p class="p3t">Welcome back!<br/>Here's a gift for you!</p>
         <div class="pzbig">${coinPile(230, 126)}${amount(`x${fmt(Number(d.coins))}`, 'xl')}</div>
         ${Number(d.shield) ? `<div class="pzplus">+ <span class="rchip shield">${ICON.shield}×${Number(d.shield)} Sheriff Guard</span></div>` : ''}
@@ -2465,7 +2465,7 @@ export class UI {
         const name = esc(String(d.name || 'Pilot name'));
         const explore = [
           ['daily', ICON.calendar, 'Daily'], ['shop', ICON.bag, 'Shop'], ['garage', ICON.engine, 'Garage'],
-          ['help', TUT_ICON, 'Tutorial'], ['play', ICON.flag, 'Race'], ['events', ICON.cup, 'Cups'],
+          ['help', TUT_ICON, 'Tutorial'], ['play', ICON.flag, 'Race'], ['events', ICON.gift, 'Gold Rush'],
         ];
         return head(giftBox(46), 'ENTRY REWARD', 'art') +
           `<div class="pzsteps">
@@ -2531,7 +2531,7 @@ export class UI {
           `<p class="p3t">Please check your internet<br/>connection and try again.</p>
           <div class="pzbig robot">${wifiRobot(200, 132)}</div>
           <button class="btn big blue" data-a="popa" data-v="retry">${ICON.retry} RETRY</button>
-          <div class="label p3foot">You can still race offline — cups sync when you're back.</div>`;
+          <div class="label p3foot">You can still race offline — your progress syncs when you're back.</div>`;
     }
   }
 
@@ -2623,7 +2623,7 @@ export class UI {
       if (hint === 'sos') {
         d.className = 'danger sosh';
         $(this.root, '[data-k="dgarrow"]').innerHTML = ICON.sos;
-        this.setAll('dgtxt', 'TAP SOS!');
+        this.setAll('dgtxt', 'TAP RESCUE!');
       }
       return;
     }

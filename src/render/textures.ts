@@ -118,7 +118,7 @@ export function rearBadgeTexture(tint: string | null = null) {
       g.textAlign = 'center';
       g.textBaseline = 'middle';
       g.fillStyle = '#c9d0dc';
-      const text = 'INNOVATE BEYOND LIMITS';
+      const text = 'DUST NEVER STOPS';
       // letter-spaced tagline
       const spacing = 9;
       const w = g.measureText(text).width + spacing * (text.length - 1);
@@ -277,19 +277,19 @@ export function billboardTexture(variant: number) {
     g.shadowBlur = 24;
     g.fillStyle = '#ffffff';
     if (variant % 4 === 0) {
-      fitText(g, 'XWAVE', 0, 0, 400, 120, '900 {s} "Arial Black", Arial, sans-serif');
+      fitText(g, '3D CAR RUN', 0, 0, 400, 120, '900 {s} "Arial Black", Arial, sans-serif');
     } else if (variant % 4 === 1) {
-      const s1 = fitText(g, 'BEYOND LIMITS', 0, 36, 400, 64, '900 {s} "Arial Black", Arial, sans-serif');
+      const s1 = fitText(g, 'DUST NEVER STOPS', 0, 36, 400, 64, '900 {s} "Arial Black", Arial, sans-serif');
       g.font = `900 ${s1}px "Arial Black", Arial, sans-serif`;
-      g.fillText('INNOVATE', 0, -40);
+      g.fillText('ROUTE 66', 0, -40);
     } else if (variant % 4 === 2) {
-      fitText(g, 'SKY ROADSTER', 0, -22, 400, 74, '900 {s} "Arial Black", Arial, sans-serif');
+      fitText(g, '3D CAR RUN', 0, -22, 400, 74, '900 {s} "Arial Black", Arial, sans-serif');
       g.fillStyle = accent;
-      fitText(g, 'GO BEYOND', 0, 52, 380, 36, '700 {s} Arial, sans-serif');
+      fitText(g, 'GO WEST!', 0, 52, 380, 36, '700 {s} Arial, sans-serif');
     } else {
       g.font = '900 96px "Arial Black", Arial, sans-serif';
       g.fillText('X', -150, 0);
-      fitText(g, 'FLY · AVOID', 50, -26, 270, 46, '800 {s} Arial, sans-serif');
+      fitText(g, 'DRIVE · DODGE', 50, -26, 270, 46, '800 {s} Arial, sans-serif');
       fitText(g, 'COLLECT', 50, 30, 270, 46, '800 {s} Arial, sans-serif');
     }
     g.restore();

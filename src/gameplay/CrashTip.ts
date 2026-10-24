@@ -3,15 +3,15 @@ import type { LiveObstacle } from './World.ts';
 
 const NAME: Record<string, string> = {
   crate: 'cargo crate',
-  barrier: 'energy barrier',
-  beam: 'overhead beam',
-  drone: 'drone',
-  laser: 'laser wall',
+  barrier: 'roadblock',
+  beam: 'hanging sign',
+  drone: 'tumbleweed',
+  laser: 'crossing gate',
   traffic: 'oncoming car',
-  ring: 'ring',
-  platform: 'sliding platform',
-  asteroid: 'asteroid',
-  gate: 'mega gate',
+  ring: 'horseshoe',
+  platform: 'runaway cart',
+  asteroid: 'boulder',
+  gate: 'stockade gate',
 };
 
 export interface CrashTip {
@@ -51,5 +51,5 @@ export function crashTip(o: LiveObstacle, lane: number, wasAirborne: boolean, wa
       }
     }
   }
-  return { what, move: 'sos', text: `Every lane was blocked — tap SOS or the ROADSTER button to fly over.` };
+  return { what, move: 'sos', text: `Every lane was blocked — tap RESCUE or the LAUNCHER button to get over it.` };
 }

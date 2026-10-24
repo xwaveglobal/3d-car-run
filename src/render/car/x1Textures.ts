@@ -14,21 +14,24 @@ function canvas(w: number, h: number): [Canvas, CanvasRenderingContext2D] {
   return [c, c.getContext('2d')!];
 }
 
-/** glowing XWAVE wordmark on a transparent background (the rear badge, 4:1) */
+/** v1.0.3: glowing "3D CAR RUN" wordmark on a transparent background (the rear badge, 4:1) — warm amber */
 export function x1BadgeCanvas(): Canvas {
   const [c, g] = canvas(512, 128);
   g.clearRect(0, 0, 512, 128);
   g.textAlign = 'center';
   g.textBaseline = 'middle';
-  g.font = 'italic 900 84px "Arial Black", "Helvetica Neue", Arial, sans-serif';
-  // soft blue halo, then the near-white letters (the master shows white letters with a blue glow)
-  g.shadowColor = 'rgba(80,170,255,0.95)';
+  g.font = '900 66px "Alfa Slab One", "Rockwell", "Arial Black", Georgia, serif';
+  const txt = '3D CAR RUN';
+  // fit the width (fonts differ per device)
+  const w = g.measureText(txt).width;
+  if (w > 490) g.font = `900 ${Math.floor((66 * 490) / w)}px "Alfa Slab One", "Rockwell", "Arial Black", Georgia, serif`;
+  g.shadowColor = 'rgba(255,160,60,0.95)';
   g.shadowBlur = 18;
-  g.fillStyle = '#9fd4ff';
-  g.fillText('XWAVE', 256, 68);
+  g.fillStyle = '#ffc77a';
+  g.fillText(txt, 256, 68);
   g.shadowBlur = 0;
-  g.fillStyle = '#f4faff';
-  g.fillText('XWAVE', 256, 68);
+  g.fillStyle = '#fff4e0';
+  g.fillText(txt, 256, 68);
   return c;
 }
 

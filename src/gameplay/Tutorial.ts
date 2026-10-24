@@ -36,15 +36,15 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   { dist: 330, need: 'down', title: 'SWIPE DOWN', sub: 'Tuck the wheels in and slide under the beams.', lead: 0.42 },
   { dist: COMBO_AT, need: 'up', title: 'HOP…', sub: 'Hop the barrier — a beam is right behind it!', lead: 0.62 },
   { dist: COMBO_AT + COMBO_GAP, need: 'down', title: '…AND DROP AT ONCE!', sub: "Don't wait to land: swipe DOWN in the air to drop straight away and slide under the beam.", lead: 0.36 },
-  { dist: 545, need: 'rocket', title: 'TAP ROADSTER!', sub: 'Your free special: a ROADSTER JUMP. Tap the purple button to rocket over the whole block!', lead: 0.6, super: true },
+  { dist: 545, need: 'rocket', title: 'TAP LAUNCHER!', sub: 'Your free special: a CANYON LAUNCHER. Tap the gold LAUNCHER button to jump the whole block!', lead: 0.6, super: true },
 ];
 
 /** Short info captions shown without pausing. */
 export const TUTORIAL_HINTS: { dist: number; text: string }[] = [
   { dist: 8, text: 'Drive as far as you can — distance is your EXP' },
-  { dist: 352, text: 'Coins buy specials like the Roadster Jump' },
-  { dist: 430, text: 'Road power-ups like Magnet, Turbo and ×2 EXP work at once' },
-  { dist: 470, text: 'You carry 1 special per race — today: a free Roadster Jump' },
+  { dist: 352, text: 'Coins buy specials like the Canyon Launcher' },
+  { dist: 430, text: 'Road power-ups like Gold Magnet, Dust Storm Nitro and Double Bounty work at once' },
+  { dist: 470, text: 'You carry 1 special per race — today: a free Canyon Launcher' },
   { dist: 590, text: 'EXP gives your rank D → AAA. Hard rank gates guard every new rank!' },
 ];
 
@@ -247,43 +247,43 @@ export function boostScript(kind: BoostKind): TrainingScript {
   const pickups: PickupSpec[] = [];
   switch (kind) {
     case 'super':
-      hints.push({ dist: 10, text: 'Practice: your Roadster Jump is ready' });
+      hints.push({ dist: 10, text: 'Practice: your Canyon Launcher is ready' });
       for (let d = 220; d <= 250; d += 5) pickups.push({ kind: 'coin', lane: 1, dist: d, y: HEIGHT.NORMAL });
       return {
-        title: 'ROADSTER JUMP',
+        title: 'CANYON LAUNCHER',
         rows: [carWall(140, 1), carWall(156, 0)],
         pickups,
-        steps: [{ dist: 140, need: 'rocket', title: 'TAP ROADSTER!', sub: 'Cars block every lane — tap ROADSTER to hop over.', lead: 0.6, super: true }],
+        steps: [{ dist: 140, need: 'rocket', title: 'TAP LAUNCHER!', sub: 'Cars block every lane — tap LAUNCHER to jump over.', lead: 0.6, super: true }],
         hints,
         length: 270,
         grant: { super: 1 },
       };
     case 'hyper':
-      hints.push({ dist: 10, text: 'Practice: your HYPER JUMP is ready' });
+      hints.push({ dist: 10, text: 'Practice: your Eagle Jump is ready' });
       return {
-        title: 'HYPER JUMP',
+        title: 'EAGLE JUMP',
         rows: [carWall(140, 1), carWall(156, 2), carWall(172, 0)],
         pickups,
-        steps: [{ dist: 140, need: 'rocket', title: 'TAP HYPER!', sub: 'Three walls of cars — tap HYPER to fly over them all.', lead: 0.6, super: true }],
+        steps: [{ dist: 140, need: 'rocket', title: 'TAP EAGLE!', sub: 'Three walls of cars — tap EAGLE to soar over them all.', lead: 0.6, super: true }],
         hints,
         length: 300,
         grant: { hyper: 1 },
       };
     case 'escape':
-      hints.push({ dist: 10, text: 'Practice: your SOS is ready' });
+      hints.push({ dist: 10, text: 'Practice: your Last Stand is ready' });
       return {
-        title: 'SKY ESCAPE',
+        title: 'LAST STAND',
         rows: [carWall(140, 1), carWall(156, 0), carWall(172, 2), carWall(188, 1)],
         pickups,
-        steps: [{ dist: 140, need: 'sos', title: 'TAP SOS!', sub: 'A convoy blocks the road — tap SOS to rocket up.', lead: 0.9 }],
+        steps: [{ dist: 140, need: 'sos', title: 'TAP RESCUE!', sub: 'A convoy blocks the road — tap RESCUE: a dust vortex lifts you out.', lead: 0.9 }],
         hints,
         length: 330,
         grant: { escape: 1 },
       };
     case 'shield':
-      hints.push({ dist: 10, text: 'START SHIELD on: the blue bubble absorbs ONE hit' }, { dist: 90, text: 'Crates in every lane — just drive into them!' }, { dist: 170, text: 'Shield popped — you are safe. Next hit would cost a life' });
+      hints.push({ dist: 10, text: 'SHERIFF GUARD on: it absorbs ONE hit' }, { dist: 90, text: 'Crates in every lane — just drive into them!' }, { dist: 170, text: 'Guard broken — you are safe. The next hit costs a life' });
       return {
-        title: 'START SHIELD',
+        title: 'SHERIFF GUARD',
         rows: [row(140, [0, 1, 2].map((lane) => ({ type: 'crate' as const, lane, variant: lane })))],
         pickups,
         steps: [],

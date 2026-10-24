@@ -38,7 +38,7 @@ export const CHAINS: Chain[] = [
   { id: 'km', icon: 'flag', text: (t) => `Drive ${k(t)} km in total`, tiers: [50, 200, 1000, 5000], rewards: [200, 500, 1200, 3000], value: (s) => Math.floor(c(s).km) },
   { id: 'worlds', icon: 'globe', text: (t) => `Visit ${t} Endless worlds`, tiers: [3, 6, 9, 12], rewards: [200, 400, 700, 1200], value: (s) => c(s).worlds.length },
   { id: 'gates', icon: 'gate', text: (t) => `Break through ${t} rank gates`, tiers: [1, 5, 15, 40], rewards: [200, 400, 900, 2000], value: (s) => c(s).gates },
-  { id: 'bonus', icon: 'gift', text: (t) => `Finish ${t} Bonus road${t > 1 ? 's' : ''}`, tiers: [1, 5, 20, 50], rewards: [200, 400, 900, 2000], value: (s) => c(s).bonus },
+  { id: 'bonus', icon: 'gift', text: (t) => `Finish ${t} Gold Rush${t > 1 ? 'es' : ''}`, tiers: [1, 5, 20, 50], rewards: [200, 400, 900, 2000], value: (s) => c(s).bonus },
   { id: 'specials', icon: 'rocket', text: (t) => `Use ${t} specials`, tiers: [3, 10, 50, 150], rewards: [150, 300, 800, 1800], value: (s) => c(s).specials },
   { id: 'coins', icon: 'coin', text: (t) => `Collect ${k(t)} coins on the road`, tiers: [5000, 25000, 100000, 500000], rewards: [200, 600, 1500, 4000], value: (s) => c(s).coins },
   { id: 'cars', icon: 'car', text: (t) => `Unlock ${t} cars`, tiers: [2, 3, 4, 6], rewards: [300, 600, 1000, 2000], value: (s) => s.unlocked.length },
