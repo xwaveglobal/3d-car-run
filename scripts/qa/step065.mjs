@@ -517,9 +517,9 @@ if (want('congrats')) {
   check(a.shown && /Class A$/.test(a.title) && a.car === null && a.paid.coins === 800 && a.paid.items.escape === 1, 'first-time Class A: celebration, no car, +800 coins, +1 SOS', a);
   check(!a.again.shown && a.again.saved.includes('A') && a.again.paidAgain === 0, 'acknowledged: not shown again', a.again);
   const aa = await cel('AA', 26000, 0, '26_congratulations_class_aa');
-  check(aa.shown && aa.car === 'XWAVE Inferno' && aa.reward === null && aa.paid.coins === 0, 'first-time Class AA: celebration + the one unlocked car (XWAVE Inferno), no coin reward', aa);
+  check(aa.shown && aa.car === 'Inferno' && aa.reward === null && aa.paid.coins === 0, 'first-time Class AA: celebration + the one unlocked car (Inferno), no coin reward', aa);
   const aaa = await cel('AAA', 40000, 0, '27_congratulations_class_aaa');
-  check(aaa.shown && aaa.car === 'XWAVE Nexus', 'first-time Class AAA: celebration + the one unlocked car (XWAVE Nexus)', aaa);
+  check(aaa.shown && aaa.car === 'Nexus', 'first-time Class AAA: celebration + the one unlocked car (XWAVE Nexus)', aaa);
   const s = await cel('S', 40000, 65000, '28_congratulations_class_s');
   check(s.shown && /Class S$/.test(s.title), 'first-time Class S: celebration (only rewards really unlocked)', s);
   R.congrats = { c, b, a, aa, aaa, s };

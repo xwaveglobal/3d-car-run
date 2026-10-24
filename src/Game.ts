@@ -451,6 +451,13 @@ export class Game {
         this.afterResults(() => {
           // Bonus roads: up to BONUS.maxPlays plays per event (Restart = another play while any are left)
           if (this.course?.bonus) {
+            // Restart in the middle of a Gold Rush run: pay what was collected first (same as Home / an early end)
+            if (this.state === 'paused' || this.state === 'run' || this.state === 'respawn' || this.state === 'continue') {
+              const s = this.settleGoldRush(false);
+              if (s.fresh) this.save.totalRuns++;
+              this.persist();
+              if (s.fresh && s.pay.total > 0) this.ui.toast(`${ICON.coin} +${s.pay.total.toLocaleString('en-US')} coins banked`, '#ffc21a');
+            }
             const bs = bonusState();
             if (bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) < BONUS.maxPlays) return this.startBonus();
             this.ui.toast(`${ICON.check} Bonus plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
@@ -1871,6 +1878,7 @@ export class Game {
     this.setPiece = null;
     this.showcaseT = 0;
     this.ui.bonusHud = !!this.course?.bonus;
+    this.grSettled = null;
     if (!this.course?.bonus) this.goldRush = null; // Gold Rush timer only lives in a Bonus run
     this.ui.grHud(this.goldRush ? GOLD_RUSH.seconds : null, fmtClock(GOLD_RUSH.seconds));
     this.ui.grCount(-1);
@@ -3073,8 +3081,26 @@ export class Game {
     this.ui.grHud(gr.left, fmtClock(gr.left));
   }
 
+  /**
+   * v1.0.0 Gold Rush: credit this run's coins (+ speed bonus, + the completion reward when completed) to the
+   * wallet ONCE per run id. Called the moment the run ends (time's up, early end, restart mid-run).
+   */
+  private grSettled: { pay: ReturnType<typeof goldRushPayout>; fresh: boolean } | null = null;
+  private settleGoldRush(completed: boolean) {
+    const pay = goldRushPayout(this.run.coins, LEVELS[this.runLevel].reward, completed);
+    const fresh = creditOnce((this.save.goldRushPaid ??= []), this.goldRushId || `run-${this.time}`);
+    if (fresh) this.save.wallet += pay.total;
+    return (this.grSettled = { pay, fresh });
+  }
+
   private onFinish() {
     if (!this.tutorialMode && this.course) this.cashLeftovers();
+    if (this.course?.bonus && !this.tutorialMode) {
+      // paid now (not when the result card opens) so a refresh during the banner never loses the reward
+      const s = this.settleGoldRush(true);
+      if (s.fresh) this.save.totalRuns++;
+      this.persist();
+    }
     this.setState('finish');
     this.input.enabled = false;
     this.rig.mode = 'garage';
@@ -3104,15 +3130,12 @@ export class Game {
     if (c.bonus) {
       // v1.0.0 GOLD RUSH: 3 minutes completed → coins + speed bonus + completion reward, paid ONCE per run
       const lv = LEVELS[this.runLevel];
-      const pay = goldRushPayout(run.coins, lv.reward, true);
+      // already credited in onFinish (once per run id); this only shows it
+      const settled = this.grSettled ?? this.settleGoldRush(true);
+      const pay = settled.pay;
       const reward = pay.finish;
       const speedBonus = pay.speedBonus;
-      const fresh = creditOnce((this.save.goldRushPaid ??= []), this.goldRushId || `run-${this.time}`);
-      if (fresh) {
-        this.save.wallet += pay.total;
-        this.save.totalRuns++;
-        this.recordMeta(true);
-      }
+      if (settled.fresh) this.recordMeta(true);
       this.persist();
       // celebration: coin shower + banner (the result card opens right after)
       this.ui.banner('GOLD RUSH COMPLETE!', `+${pay.total.toLocaleString('en-US')} COINS`);
@@ -3193,8 +3216,8 @@ export class Game {
     const lvg = LEVELS[this.runLevel];
     const speedBonus = Math.round(run.coins * (lvg.reward - 1));
     // Gold Rush that ended before 180 s: the coins collected (+ speed bonus) once, no completion reward
-    const paidOnce = !this.course?.bonus || creditOnce((this.save.goldRushPaid ??= []), this.goldRushId || `run-${this.time}`);
-    if (paidOnce) this.save.wallet += run.coins + speedBonus;
+    if (this.course?.bonus) this.settleGoldRush(false);
+    else this.save.wallet += run.coins + speedBonus;
     this.save.totalRuns++;
     const isBonusRun = !!this.course?.bonus;
     const wkBefore = isBonusRun || this.tutorialMode ? 0 : this.meta.weekly().you.rank;

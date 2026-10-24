@@ -302,27 +302,30 @@ function tunnel(b: Build) {
   rock.repeat.set(30, 1.2);
   const wallMat = new THREE.MeshStandardMaterial({ map: rock, color: 0x8a6044, roughness: 1, side: THREE.DoubleSide });
   for (const s2 of [-1, 1]) {
-    const wall = new THREE.Mesh(new THREE.PlaneGeometry(320, 10), wallMat);
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(320, 15.4), wallMat);
     wall.rotation.y = (Math.PI / 2) * -s2;
-    wall.position.set(6.6 * s2, GY + 4.6, NEAR - 160);
+    // the right wall's u runs toward +z: mirror it so both walls scroll toward the camera with the road
+    if (s2 === 1) wall.scale.x = -1;
+    wall.position.set(6.6 * s2, GY + 7.3, NEAR - 160);
     b.group.add(wall);
   }
   const ceilTex = rock.clone();
   ceilTex.needsUpdate = true;
   ceilTex.repeat.set(1.2, 30);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(14, 320), new THREE.MeshStandardMaterial({ map: ceilTex, color: 0x5a3e2a, roughness: 1, side: THREE.DoubleSide }));
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(14, 320), new THREE.MeshStandardMaterial({ map: ceilTex, color: 0x5a3e2a, roughness: 1, side: THREE.FrontSide }));
+  // faces down only, above the SKY ESCAPE cruise height + camera (never fills the screen from above)
   ceil.rotation.x = Math.PI / 2;
-  ceil.position.set(0, 8.2, NEAR - 160);
+  ceil.position.set(0, 14.6, NEAR - 160);
   b.group.add(ceil);
   b.anim.push((dist) => {
     rock.offset.x = (dist / (320 / 30)) % 1;
-    ceilTex.offset.y = (dist / (320 / 30)) % 1;
+    ceilTex.offset.y = -(dist / (320 / 30)) % 1; // v runs toward +z on the ceiling
   });
   b.field(P.mineFrame(), { count: 40, x: [0, 0.001], side: 1, yaw: 0, range: 240, y: GY, clear: 0 });
   b.field(P.lantern(), { count: 40, x: [5.25, 5.26], y: 5.2, side: -1, yaw: 0, range: 240, seed: 77, clear: 0 }, true);
   b.field(P.lantern(), { count: 40, x: [5.25, 5.26], y: 5.2, side: 1, yaw: 0, range: 240, seed: 78, zOff: -3, clear: 0 }, true);
   b.field(P.mineCart(), { count: 5, x: [5.6, 5.7], yaw: 0, range: 300, clear: 0 });
-  b.field(P.barrels(), { count: 6, x: [5.5, 5.8], range: 300, clear: 0, scale: [0.7, 0.8] });
+  b.field(P.barrels(), { count: 6, x: [5.4, 5.5], yaw: 0, range: 300, clear: 0, scale: [0.7, 0.8] });
   b.motes(70, 0xffd8a0, 0.35, 0.5, 0.15, 6);
 }
 

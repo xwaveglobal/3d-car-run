@@ -175,7 +175,12 @@ English as before.
 ## 8. Performance
 
 - Roadside: one InstancedMesh per prop type on one shared material (clones per fade distance share the
-  program). Typical place: 10–16 draw calls of scenery (the old night city used ~40 on MEDIUM).
+  program).
+- Measured (real build, MEDIUM, Endless with autopilot, whole frame = scenery + road + obstacles + car + FX,
+  `renderer.info`): **85–109 draw calls per frame** across the places vs **128–277** in Sky Roadster v4.6.1 on
+  the same worlds (about 30–60 % fewer); triangles about the same (42 k–61 k vs 36 k–60 k). Per world
+  (new / old): city 109/140 · harbor 98/144 · cloud 94/141 · solar 97/277 · canyon 88/133 · belt 98/143 ·
+  mega 98/153 · storm 89/128 · volcano 85/128 · country 97/190.
 - Obstacles: one baked mesh per variant on one material (the old neon set used several materials per type).
 - Tyre dust: `DUST.rate` × the preset's particle density (LOW ≈ half). Sandstorm streaks / motes are one draw each.
 - Bundle (esbuild, single-file assets inlined): JS 3.98 MB (was 3.56 MB: +fonts, place art, logo), CSS 0.36 MB.

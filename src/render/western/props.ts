@@ -563,9 +563,10 @@ export const obelisk = () =>
 export const mineFrame = () =>
   baked('mineframe', () => {
     const m = new Model();
-    for (const x of [-5.6, 5.6]) m.box(0.5, 7.4, 0.5, WOOD_D, x, 3.7, 0);
-    m.box(12, 0.55, 0.6, WOOD_D, 0, 7.4, 0);
-    for (const s of [-1, 1]) m.box(0.3, 1.8, 0.3, WOOD, s * 4.9, 6.6, 0, 0, {}, 0, s * 0.75);
+    // tall enough for HYPER (7.4) / SKY ESCAPE (9.6) flights and the camera above them
+    for (const x of [-5.6, 5.6]) m.box(0.5, 13.4, 0.5, WOOD_D, x, 6.7, 0);
+    m.box(12, 0.55, 0.6, WOOD_D, 0, 13.4, 0);
+    for (const s of [-1, 1]) m.box(0.3, 1.8, 0.3, WOOD, s * 4.9, 12.6, 0, 0, {}, 0, s * 0.75);
     return m;
   });
 export const lantern = () =>

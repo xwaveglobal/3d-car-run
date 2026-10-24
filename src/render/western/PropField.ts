@@ -129,7 +129,7 @@ export class PropField {
 const fadeCache = new Map<THREE.Material, Map<number, THREE.Material>>();
 /** a clone of `mat` that fades in from the fog at `spawnZ` (cached per 20 m bucket) */
 export function fadeMaterial(mat: THREE.Material, spawnZ: number) {
-  const key = Math.round(spawnZ / 20) * 20;
+  const key = Math.ceil(spawnZ / 20) * 20; // always the nearer bucket: fully fogged at the spawn point
   let byZ = fadeCache.get(mat);
   if (!byZ) fadeCache.set(mat, (byZ = new Map()));
   let m = byZ.get(key);

@@ -298,7 +298,7 @@ function traffic(set: ObSet): WView {
     big.box(1.7, 0.2, 0.9, 0x5a3a1e, 0, 1.2, 1.4);
     for (const x of [-0.86, 0.86])
       for (const z of [-1.2, 1.2]) {
-        big.push(x, 0.65, z, 0, 0, Math.PI / 2);
+        big.push(x, 0.65, z, Math.PI / 2); // wheel in the YZ plane (rolls along the road, inside the hitbox)
         big.add(new THREE.TorusGeometry(0.62, 0.07, 5, 14), 0x3a2410, 0, 0, 0);
         big.pop();
       }
