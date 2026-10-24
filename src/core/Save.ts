@@ -59,12 +59,18 @@ export interface SaveData {
   carsRelocked?: boolean;
   /** v2: special picked for the next race (one per race) */
   special?: 'super' | 'hyper' | 'escape' | null;
+  /** v1.0.8 Outlaw Arsenal (src/western/arsenal.ts): unlocked ids, charges per id, the one picked for the next race */
+  arsenal?: string[];
+  arsenalItems?: Record<string, number>;
+  specialX?: string | null;
   /** mission rewards waiting for a manual claim (auto-claim off) */
   pendingMissions: { text: string; reward: number }[];
   /** Step 06.5: classes (A and up) whose first-promotion celebration the player has acknowledged */
   classCelebrated?: string[];
   /** v4.6.1: C / B celebrations added — classes already passed were marked as seen (no back-pay) */
   classLowSeen?: boolean;
+  /** v1.0.8: graphics moved to HIGH once for saves made with the old MEDIUM default */
+  gfxHigh?: boolean;
   /** consumable items (equipped on the track screen, used in a run) */
   items: { super: number; hyper: number; shield: number; escape: number; turbo: number; magnet: number; double: number; life: number };
   /** which owned items are equipped for the next run */
@@ -126,7 +132,7 @@ const defaults = (): SaveData => ({
   settings: {
     sound: true,
     music: true,
-    quality: 'medium', // v4.2: MEDIUM until device benchmarks exist (a slow device still steps down)
+    quality: 'high', // v1.0.8 (owner): HIGH by default (a slow device still steps down on its own)
     gfx3: true,
     speed: 'normal',
     assist: true,
@@ -134,6 +140,7 @@ const defaults = (): SaveData => ({
     autoClaim: true,
   },
   settingsRev: SETTINGS_REV,
+  gfxHigh: true,
   track: 'future-city',
   trackStars: {},
   trackBest: {},
@@ -190,6 +197,11 @@ export function loadSave(): SaveData {
     if (p.settings && !p.settings.gfx3) {
       if (p.settings.quality === 'high') p.settings.quality = 'medium';
       p.settings.gfx3 = true;
+    }
+    // v1.0.8 (owner): HIGH by default — saves on the former MEDIUM default move up once (LOW stays LOW)
+    if (p.settings && !p.gfxHigh) {
+      if (p.settings.quality === 'medium') p.settings.quality = 'high';
+      p.gfxHigh = true;
     }
     return {
       ...d,

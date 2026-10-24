@@ -51,6 +51,10 @@ export const HOME_LAYOUT = {
   currency: [480, 65, 248],
   gear: [736, 61, 95],
   menu: [835, 60, 92],
+  /** v1.0.8 (owner): Entry / Launch / Share as small buttons under the menu button (top bar, pinned on tall phones) */
+  pkEntry: [838, 172, 86],
+  pkLaunch: [838, 300, 86],
+  pkShare: [838, 428, 86],
   /** the 3D car: centre of its footprint and its on-screen width */
   car: [470, 1012, 575],
 } as const;

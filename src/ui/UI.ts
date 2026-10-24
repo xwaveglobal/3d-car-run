@@ -1,6 +1,7 @@
 import { COUNTRIES, countryName, flagOf } from '../meta/Country.ts';
 import './ui.css';
 import './western.css';
+import { ARSENAL, arsenalById, perkLine } from '../western/arsenal.ts';
 import { HUD_EAGLE, HUD_LAUNCH, ITEM_NAME_W, SPECIAL_HOW_W, SPECIAL_LINE_W, SPECIAL_SHORT_W } from '../western/items.ts';
 import { ICON } from './icons.ts';
 import { copyText } from './ShareCard.ts';
@@ -30,8 +31,8 @@ import thLaunch from '../assets/images/tracks/canyon-launcher.jpg';
 import guide1 from '../assets/images/guide/guide-1.jpg';
 import guide2 from '../assets/images/guide/guide-2.jpg';
 import guide3 from '../assets/images/guide/guide-3.jpg';
-import { CHAINS, activeChains, pilotLevel } from '../meta/Career.ts';
-import type { SaveData } from '../core/Save.ts';
+import { CHAINS, activeChains, pilotLevel, upcomingMissions } from '../meta/Career.ts';
+import { dayKey, type SaveData } from '../core/Save.ts';
 import { SKINS, carVisibility } from '../render/Vehicle.ts';
 import carZenith from '../assets/images/cars/zenith.webp';
 import carVolt from '../assets/images/cars/volt.webp';
@@ -59,7 +60,7 @@ import { LEVELS } from '../config.ts';
 import type { Run } from '../gameplay/Run.ts';
 import type { PickupKind } from '../gameplay/types.ts';
 import type { Board, LbRow } from '../meta/Leaderboard.ts';
-import { CHECKIN, ITEM_PRICE, LOCKED_SPECIALS, SPECIALS, rewardValue, type ItemKey, type Quest, type Reward, type SpecialKey } from '../meta/Daily.ts';
+import { CHECKIN, ITEM_PRICE, SPECIALS, questsFor, rewardValue, type ItemKey, type Quest, type Reward, type SpecialKey } from '../meta/Daily.ts';
 import { fmtLeft, localTime, type EventInst, type Prize } from '../meta/Events.ts';
 import { PRODUCTS, type Product } from '../meta/Shop.ts';
 import type { EventResult } from '../meta/Meta.ts';
@@ -256,9 +257,13 @@ function carSvg(shape: string, body: number, glow: number) {
 const avaHtml = (av: number, rc: RankClass, cls = '', extra = '') => `<span class="ava img rk-${rc} ${cls}">${avatarSvg(av)}${classCorner(rc)}${extra}</span>`;
 /** EXP logo (rank shield) */
 /** v2.2.8 Home mock-up icons: white rocket (Launch) and an outline car (Garage) */
+/** v1.0.8: filled calendar for the Daily signpost (the sign recolours the icon) */
+const CAL_W = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4H7V2.5h2.2V4h5.6V2.5H17V4h.5A2.5 2.5 0 0 1 20 6.5V19a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 19zm2.2 4V19c0 .3.2.4.4.4h10.8c.2 0 .4-.1.4-.4v-8.5zm2 2h2.6v2.6H8.2zm4.8 0h2.6v2.6H13z"/></svg>`;
 const ROCKET_W = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.8 3.2c2.9-.6 5.4-.4 6 .2.6.6.8 3.1.2 6-.6 3-2.6 5.8-5.3 7.7l.3 2.6-2.6 2-1.1-3.2-3.6-3.6-3.2-1.1 2-2.6 2.6.3C11 8.8 11.8 3.8 14.8 3.2z" fill="#fff"/><circle cx="16" cy="8" r="1.8" fill="#2c4a9a"/><path d="M6.5 14.8c-1.6.4-2.8 2.4-3 5.7 3.3-.2 5.3-1.4 5.7-3z" fill="#7fe6ff"/></svg>`;
 const BOLT = XPT;
 const fmt = (n: number) => Math.floor(n).toLocaleString('en-US');
+/** 5000 → 5k, 125000 → 125k (compact prices on small tiles) */
+const fmtK = (n: number) => (n >= 1000 ? `${Math.round(n / 100) / 10}k` : String(n));
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string) => root.querySelector(sel) as T;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const ITEM_ICON: Record<ItemKey, string> = { super: ICON.rocket, hyper: ICON.hyper, shield: ICON.shield, escape: ICON.sos, turbo: ICON.bolt, magnet: ICON.magnet, double: ICON.x2, life: ICON.heart };
@@ -272,12 +277,6 @@ const SPECIAL_HOW: Record<SpecialKey, string> = { ...SPECIAL_HOW_W };
 /** Bonus places: card colour + emoji */
 const BONUS_COLOR: Record<string, string> = { desert: '#ffb040', forest: '#6aa83e', country: '#e8c040', sea: '#ff8a50' };
 const BONUS_EMOJI: Record<string, string> = { desert: '⛏️', forest: '🌲', country: '🐄', sea: '🌅' };
-const LOCKED_ICON: Record<string, string> = {
-  tunnel: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20V12a9 9 0 0 1 18 0v8" fill="none" stroke="#7fe6ff" stroke-width="2"/><path d="M7 20v-7a5 5 0 0 1 10 0v7" fill="none" stroke="#7fe6ff" stroke-width="1.4" opacity=".6"/><rect x="8.5" y="1.6" width="7" height="3.4" rx="1.2" fill="#fff"/></svg>`,
-  wall: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18M6 3v18" stroke="#9b6bff" stroke-width="2"/><path d="M9 16l6-4-6-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 16l6-4-6-4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></svg>`,
-  ghost: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V11a7 7 0 0 1 14 0v10l-2.4-1.8L14.3 21 12 19.2 9.7 21l-2.3-1.8z" fill="#cfe0ff" fill-opacity=".85"/><circle cx="9.5" cy="11" r="1.3" fill="#1b1450"/><circle cx="14.5" cy="11" r="1.3" fill="#1b1450"/></svg>`,
-  rail: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6h20" stroke="#ffc21a" stroke-width="2.2" stroke-linecap="round"/><path d="M12 6v5" stroke="#fff" stroke-width="1.6"/><rect x="7" y="11" width="10" height="5" rx="2" fill="#fff"/><path d="M3 20l4-3M21 20l-4-3" stroke="#ffc21a" stroke-width="1.4" opacity=".6"/></svg>`,
-};
 
 /** 7-day check-in as a list (mock-up): Day label · reward art · amount · ✓ / 🔒; today glows */
 function checkinList(slot: number, claimedToday: boolean) {
@@ -418,9 +417,7 @@ export class UI {
         <div class="hcarname" data-k="carname" hidden></div>
       </div>
       <button class="hs hot" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><span class="sr">Gold Rush</span><em class="hdot" data-k="bonusdot" hidden></em></button>
-      <button class="hs hot" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><span class="sr">Entry</span><em class="hdot badge" hidden></em></button>
-      <button class="hs hsign blank" data-a="perk" data-v="launch" data-k="pk-launch" style="${hpos('sign')}" aria-label="Launch reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ROCKET_W}</span><span class="slb">LAUNCH</span><em class="hdot badge" hidden></em></button>
-      <button class="hs hsign blank" data-a="perk" data-v="share" data-k="pk-share" style="${hpos('sign')}" aria-label="Share reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ICON.share}</span><span class="slb">SHARE</span><em class="hdot badge" hidden></em></button>
+      <button class="hs hsign blank hdaily" data-a="daily" style="${hpos('sign')}" aria-label="Daily rewards"><img src="${hSign}" alt="" draggable="false" /><span class="sic">${CAL_W}</span><span class="slb">DAILY</span><em class="hdot badge" data-k="hdailydot" hidden></em></button>
       <button class="hs hot hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><span class="sr">Play</span></button>
       <button class="hs hot" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><span class="sr">Garage</span><em class="hdot" data-k="garagedot" hidden></em></button>
       <button class="hs hot" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><span class="sr">Shop</span><em class="msale" data-k="saletag">−80%</em></button>
@@ -439,6 +436,9 @@ export class UI {
         </div>
         <button class="hs hround" data-a="settings" style="${hpos('gear')}" aria-label="Settings"><img src="${hGear}" alt="" draggable="false" /></button>
         <button class="hs hround" data-a="more" style="${hpos('menu')}" aria-label="More"><img src="${hMenu}" alt="" draggable="false" /><em class="hdot" data-k="morebadge" hidden></em></button>
+        <button class="hs hmini" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('pkEntry')}" aria-label="Entry reward"><span class="mic">${ICON.gift}</span><span class="mlb">ENTRY</span><em class="hdot badge" hidden></em></button>
+        <button class="hs hmini" data-a="perk" data-v="launch" data-k="pk-launch" style="${hpos('pkLaunch')}" aria-label="Launch reward"><span class="mic">${ROCKET_W}</span><span class="mlb">LAUNCH</span><em class="hdot badge" hidden></em></button>
+        <button class="hs hmini" data-a="perk" data-v="share" data-k="pk-share" style="${hpos('pkShare')}" aria-label="Share reward"><span class="mic">${ICON.share}</span><span class="mlb">SHARE</span><em class="hdot badge" hidden></em></button>
       </div>
       <span data-k="dailybadge" hidden></span>
       <button class="cupstrip" data-a="events" data-k="cupstrip" hidden></button>
@@ -474,10 +474,8 @@ export class UI {
           <button class="mitem" data-a="ranks"><span class="mi">${ICON.podium}</span><b>Top Pilots</b><small>Weekly &amp; all-time ranks</small></button>
           <button class="mitem" data-a="daily"><span class="mi">${ICON.calendar}</span><b>Daily Rewards</b><small>Check in every day</small><em class="badge" data-k="dailybadge2" hidden>1</em></button>
           <button class="mitem" data-a="help"><span class="mi">${TUT_ICON}</span><b>How to Play</b><small>Training &amp; guides</small></button>
-          <button class="mitem" data-a="profile"><span class="mi">${ICON.user}</span><b>Profile</b><small>Name, avatar, class</small></button>
           <button class="mitem" data-a="bag"><span class="mi">${BAG_ICON}</span><b>Saddle Bag</b><small>Your specials</small></button>
           <button class="mitem" data-a="settings"><span class="mi">${ICON.gear}</span><b>Settings</b><small>Sound, graphics, language</small></button>
-          <button class="mitem" data-a="perk" data-v="share"><span class="mi">${ICON.share}</span><b>Share &amp; Win</b><small>Coins every day</small></button>
           <button class="mitem" data-a="events"><span class="mi">${ICON.gift}</span><b>Gold Rush</b><small>3-minute bonus run</small></button>
         </div>
       </div>
@@ -1660,16 +1658,22 @@ export class UI {
       ? `<div class="bhead"><b>Ready to claim</b>${pend.length > 1 ? `<button class="btn sm gold" data-a="claimm" data-i="-1">${ICON.gift} Claim all</button>` : ''}</div>` +
         pend.map((m, i) => `<div class="mrow pend"><i class="ok">${ICON.check}</i><span>${esc(m.text)}</span><button class="btn sm green" data-a="claimm" data-i="${i}">${ICON.coin}+${fmt(m.reward)}</button></div>`).join('')
       : '';
-    const ic: Record<string, string> = { rank: ICON.podium, flag: ICON.flag, globe: ICON.target, gate: ICON.shield, gift: ICON.gift, rocket: ICON.rocket, coin: ICON.coin, car: ICON.car, trophy: ICON.trophy, play: ICON.play };
+    const ic: Record<string, string> = { rank: ICON.podium, flag: ICON.flag, globe: ICON.target, gate: ICON.shield, gift: ICON.gift, rocket: ICON.rocket, coin: ICON.coin, car: ICON.car, trophy: ICON.trophy, play: ICON.play,
+      target: ICON.target, shoe: ICON.magnet, heart: ICON.heart, flame: ICON.dash, bolt: ICON.bolt, shield: ICON.shield };
     $(this.root, '[data-k="mlist"]').innerHTML = activeChains(s)
       .map((v) => {
         const k = Math.min(1, v.value / v.target);
         const dots = Array.from({ length: v.tiers }, (_, i) => `<i class="${i < v.tier ? 'on' : i === v.tier ? 'cur' : ''}"></i>`).join('');
-        return `<div class="mcard panel"><div class="t"><span class="mi">${ic[v.icon] ?? ICON.target}</span><span class="mt">${esc(v.text)}</span><span class="price">${ICON.coin}${fmt(v.reward)}</span></div>
+        return `<div class="mcard panel"><div class="t"><span class="mi">${ic[v.icon] ?? ICON.target}</span><span class="mt">${v.title ? `<em class="mtt">${esc(v.title)}</em>` : ''}${esc(v.text)}</span><span class="price">${ICON.coin}${fmt(v.reward)}</span></div>
           <div class="track"><i style="width:${(k * 100).toFixed(0)}%"></i></div>
           <div class="meta"><span class="tiers">${dots}</span><span>${fmt(v.value)} / ${fmt(v.target)}</span></div></div>`;
       })
-      .join('');
+      .join('') +
+      // v1.0.8: the next ~20 missions, locked and dimmed — what is waiting further down the trail
+      `<div class="bhead mup-h"><b>Coming up</b><small>${ICON.lock} unlock by finishing the missions above</small></div>` +
+      upcomingMissions(s, 20)
+        .map((m) => `<div class="mcard panel mlock"><div class="t"><span class="mi">${ic[m.icon] ?? ICON.target}</span><span class="mt">${m.title ? `<em class="mtt">${esc(m.title)}</em>` : ''}${esc(m.text)}</span><span class="price">${ICON.coin}${fmt(m.reward)}</span><i class="mlk">${ICON.lock}</i></div></div>`)
+        .join('');
     this.setAll('wallet', fmt(s.wallet));
   }
 
@@ -1877,6 +1881,7 @@ export class UI {
     $(this.root, '[data-k="pline"]').innerHTML = `${classBadge(this.myClass)}<span class="pbolt">${fmt(o.bolts)}${BOLT}</span>`;
     // all-time position on the avatar (tap → profile)
     $(this.root, '[data-k="ava"]').insertAdjacentHTML('beforeend', `<em class="avrank">${o.allRank ? `#${o.allRank >= 10000 ? `${Math.round(o.allRank / 1000)}K` : fmt(o.allRank)}` : '#—'}</em>`);
+    $(this.root, '[data-k="hdailydot"]').hidden = o.dailyBadge <= 0;
     for (const k of ['dailybadge', 'dailybadge2']) {
       const b = $(this.root, `[data-k="${k}"]`);
       b.hidden = o.dailyBadge <= 0;
@@ -2007,8 +2012,12 @@ export class UI {
 
   /** v2: before a race — ONE big button shows the special you carry (tap → Magic Bag to change), then GO */
   specialPick(s: SaveData, track: string) {
-    const k = s.special && s.items[s.special] > 0 ? s.special : null;
-    const big = k
+    const x = arsenalById(s.specialX);
+    const xn = x ? s.arsenalItems?.[x.id] ?? 0 : 0;
+    const k = x && xn > 0 ? x.base : s.special && s.items[s.special] > 0 ? s.special : null;
+    const big = x && xn > 0
+      ? `<span class="spi" style="--xt:${x.tint}">${ITEM_ICON[x.base]}</span><span class="spt"><b>${esc(x.name)}</b><small>×${xn} · ${perkLine(x.perks)}</small></span>`
+      : k
       ? `<span class="spi">${ITEM_ICON[k]}</span><span class="spt"><b>${SPECIAL_SHORT[k]}</b><small>×${s.items[k]} in bag · tap to change</small></span>`
       : `<span class="spi none">${BAG_ICON}</span><span class="spt"><b>No special</b><small>Tap to pick one</small></span>`;
     $(this.root, '[data-k="spbody"]').innerHTML = `
@@ -2115,11 +2124,28 @@ export class UI {
       <div class="bggrid">${SPECIALS.map(tile).join('')}</div>
       ${none}
       <button class="btn gold bgbuybtn" data-a="bagbuy">${ICON.coin} Buy items</button>
-      <div class="bglocked">${LOCKED_SPECIALS.map((x) => `<button class="bgl" data-a="slocked" title="${esc(x.name)}"><span>${LOCKED_ICON[x.id]}</span><small>${x.short}</small></button>`).join('')}<span class="bglk">${ICON.lock}${classBadge('AAA')}</span></div>`;
+      ${this.arsenalGrid(s, pick)}`;
     this.setAll('bagbadge', String(SPECIALS.reduce((a, k) => a + s.items[k], 0)));
     if (this.screens.bagbuy?.classList.contains('show')) this.buySync(s);
   }
   private bagPick = false;
+
+  /**
+   * v1.0.8 Outlaw Arsenal in the bag: 20 upgraded specials. Unlocked ones show their charges (tap = pick before a
+   * race, or buy more); locked ones are dimmed with a lock and their unlock price (tap = the buy list).
+   */
+  private arsenalGrid(s: SaveData, pick: boolean) {
+    const own = new Set(s.arsenal ?? []);
+    const tiles = ARSENAL.map((x) => {
+      const n = s.arsenalItems?.[x.id] ?? 0;
+      const un = own.has(x.id);
+      const on = pick && s.specialX === x.id && n > 0;
+      const act = un && n > 0 ? (pick ? 'spick' : 'bagbuy') : 'bagbuy';
+      return `<button class="axt ${un ? '' : 'lock'} ${on ? 'on' : ''}" style="--xt:${x.tint}" data-a="${act}" data-v="${x.id}" title="${esc(x.name)} · ${esc(perkLine(x.perks))}">
+        <span class="axi">${ITEM_ICON[x.base]}</span><b>${esc(x.name)}</b>${un ? `<em class="cnt">×${n}</em>` : `<small class="axp">${ICON.lock}${fmtK(x.unlock)}</small>`}${on ? `<i class="tick">${ICON.check}</i>` : ''}</button>`;
+    }).join('');
+    return `<div class="bhead out axh"><b>Outlaw Arsenal</b><small>${own.size} / ${ARSENAL.length} unlocked</small></div><div class="axgrid">${tiles}</div>`;
+  }
 
   /** separate Buy popup: the 3 specials with coin prices */
   buySync(s: SaveData) {
@@ -2127,6 +2153,12 @@ export class UI {
     $(this.root, '[data-k="buybody"]').innerHTML = `
       <div class="spwallet">${ICON.coin}<b>${fmt(s.wallet)}</b><span class="bgrule">Buy any amount · keep them in the bag</span></div>
       <div class="bgbuys">${SPECIALS.map(row).join('')}</div>
+      <div class="bhead out axh"><b>Outlaw Arsenal</b><small>Unlock once · then buy charges</small></div>
+      <div class="bgbuys axbuys">${ARSENAL.map((x) => {
+        const un = (s.arsenal ?? []).includes(x.id);
+        const price = un ? x.price : x.unlock;
+        return `<div class="bgbuy ax ${un ? '' : 'lock'}" style="--xt:${x.tint}"><span class="spi">${ITEM_ICON[x.base]}</span><span class="bn"><b>${esc(x.name)} ${un ? `<em>×${s.arsenalItems?.[x.id] ?? 0}</em>` : ''}</b><small>${esc(perkLine(x.perks))} · fires as ${SPECIAL_SHORT[x.base]}</small></span><button class="btn sm ${s.wallet >= price ? 'gold' : 'pink'}" data-a="sbuy" data-v="${x.id}">${un ? '' : ICON.lock}${ICON.coin}${fmt(price)}</button></div>`;
+      }).join('')}</div>
       <button class="btn ghost" data-a="closeov" data-v="bagbuy">${ICON.chevL} Back</button>`;
   }
 
@@ -2282,7 +2314,14 @@ export class UI {
         <div class="qt"><b>${q.text}</b><span class="qr"><span class="rchip">${ICON.coin}${q.coins}</span></span></div>
         <div class="qb"><div class="track"><i style="width:${Math.min(100, (q.progress / q.target) * 100)}%"></i></div><span>${fmt(q.progress)}/${fmt(q.target)}</span>
         ${q.claimed ? `<i class="ok">${ICON.check}</i>` : q.done ? `<button class="btn sm green" data-a="claimq" data-id="${q.id}">Claim</button>` : ''}</div></div>`)
-      .join('');
+      .join('') +
+      // v1.0.8: tomorrow's challenges, locked and dimmed — a reason to come back
+      (() => {
+        const t = new Date();
+        t.setDate(t.getDate() + 1);
+        return `<div class="bhead qup-h"><b>Tomorrow</b><small>${ICON.lock} opens at midnight</small></div>` +
+          questsFor(dayKey(t)).map((q) => `<div class="quest qlock"><div class="qt"><b>${q.text}</b><span class="qr"><span class="rchip">${ICON.coin}${q.coins}</span><i class="qlk">${ICON.lock}</i></span></div></div>`).join('');
+      })();
   }
 
   eventsSync(o: {
@@ -2343,7 +2382,8 @@ export class UI {
     const xchg = SPECIALS.map((k) => `<button class="xbtn ${k} ${s.wallet >= ITEM_PRICE[k] ? '' : 'short'}" data-a="sbuy" data-v="${k}"><span class="spi">${ITEM_ICON[k]}</span><b>${SPECIAL_SHORT[k]}</b><em>${ICON.coin}${fmt(ITEM_PRICE[k])}</em></button>`).join('');
     $(this.root, '[data-k="shoplist"]').innerHTML = `
       <div class="inv panel"><span class="label">Your items</span>${inv}</div>
-      <div class="xchg panel"><div class="xh"><b>Exchange coins → specials</b><span>${ICON.coin}${fmt(s.wallet)}</span></div><div class="xrow">${xchg}</div></div>
+      <div class="xchg panel"><div class="xh"><b>Exchange coins → specials</b><span>${ICON.coin}${fmt(s.wallet)}</span></div><div class="xrow">${xchg}</div>
+        <button class="axshop" data-a="bagbuy"><span class="axstrip">${ARSENAL.slice(0, 6).map((x) => `<i class="${(s.arsenal ?? []).includes(x.id) ? '' : 'lock'}" style="--xt:${x.tint}">${ITEM_ICON[x.base]}</i>`).join('')}</span><b>Outlaw Arsenal</b><small>${(s.arsenal ?? []).length} / ${ARSENAL.length} · from ${ICON.coin}${fmtK(ARSENAL[0].unlock)}</small><i class="chev">${ICON.chevR}</i></button></div>
       ${specials.map(card).join('')}
       <div class="bhead out"><b>Coins</b></div>
       <div class="coingrid">${coins.map(card).join('')}</div>
@@ -2553,16 +2593,24 @@ export class UI {
   }
 
   perkBadges(o: Record<'entry' | 'launch' | 'share', 'todo' | 'ready' | 'done'>) {
-    // v1.0.2 Home (key art): ONE signpost on the right — Entry until it is claimed, then Launch, then
-    // Share (claimable again every day). Exhausted Entry / Launch never come back. A red dot = reward ready.
-    const show = o.entry !== 'done' ? 'entry' : o.launch !== 'done' ? 'launch' : 'share';
+    // v1.0.8 (owner): Entry / Launch / Share are small buttons under the menu; Entry and Launch leave once done,
+    // Share stays (a reward every day). A red dot = reward ready.
     for (const [k, st] of Object.entries(o)) {
       const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
       if (!b) continue;
-      b.hidden = k !== show;
+      b.hidden = k !== 'share' && st === 'done';
       b.classList.toggle('done', st === 'done');
       const e = b.querySelector<HTMLElement>('.badge');
       if (e) e.hidden = st !== 'ready';
+    }
+    // keep the column tight: the visible ones take the top slots
+    const slots = ['pkEntry', 'pkLaunch', 'pkShare'] as const;
+    let i = 0;
+    for (const k of ['entry', 'launch', 'share']) {
+      const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
+      if (!b || b.hidden) continue;
+      const [, y] = HOME_LAYOUT[slots[i++]];
+      b.style.setProperty('--y', String(y));
     }
   }
 

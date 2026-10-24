@@ -4,6 +4,20 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.8: Outlaw Arsenal, more missions / dailies, Home perk buttons
+
+- Owner asks (late session, many small messages): 20 more specials unlocked by high coin prices, shown dimmed; ~20
+  locked missions ahead + more dailies; Entry / Launch / Share as small Home buttons, the sign = Daily; More even;
+  HIGH graphics default; no XWAVE on the car; training only for the basic specials.
+- Design choice (owner picked "1 kết hợp 2"): arsenal specials REUSE the three basic flights (no new physics →
+  Fairness untouched) and add perks via existing run fields (magnetT, shield, coins, invulnT). No doubleT / turbo perks
+  (server EXP verification). Save: `arsenal`, `arsenalItems`, `specialX`. Logic checked in the browser (unlock,
+  buy, pick, 2-use special spends one charge).
+- New career counters live in `save.career` (optional fields, old saves start at 0).
+- Next: owner feedback on arsenal prices / perks; maybe a dedicated Arsenal screen with bigger cards.
+
+---
+
 ## 2026-10-24 — v1.0.7: Home = key art with its painted car
 
 - Owner: "Bỏ lớp mờ, lỗi bao quanh xe ở màn home". The removed-car area of home-bg.webp was a blurred dust fill; texture

@@ -84,14 +84,37 @@ const POOL: Quest[] = [
   { id: 'dist12k', text: 'Drive 12 km in total', stat: 'distance', target: 12000, mode: 'sum', pts: 0, coins: 200 },
   { id: 'exp3000', text: 'Earn 3,000 EXP in one race', stat: 'exp', target: 3000, mode: 'max', pts: 0, coins: 250 },
   { id: 'power5', text: 'Grab 5 road power-ups', stat: 'powerups', target: 5, mode: 'sum', pts: 0, coins: 100 },
+  // v1.0.8 (owner: "Daily … nhiều nhiều chút"): more challenges, 6 a day
+  { id: 'runs6', text: 'Play 6 races', stat: 'runs', target: 6, mode: 'sum', pts: 0, coins: 220 },
+  { id: 'coins300', text: 'Collect 300 coins', stat: 'coins', target: 300, mode: 'sum', pts: 0, coins: 220 },
+  { id: 'coins80r', text: 'Collect 80 coins in one race', stat: 'coins', target: 80, mode: 'max', pts: 0, coins: 180 },
+  { id: 'near10', text: 'Pull off 10 near misses', stat: 'near', target: 10, mode: 'sum', pts: 0, coins: 150 },
+  { id: 'near25', text: '25 near misses today', stat: 'near', target: 25, mode: 'sum', pts: 0, coins: 260 },
+  { id: 'rings5', text: 'Drive through 5 golden horseshoes', stat: 'rings', target: 5, mode: 'sum', pts: 0, coins: 90 },
+  { id: 'rings20', text: 'Drive through 20 golden horseshoes', stat: 'rings', target: 20, mode: 'sum', pts: 0, coins: 240 },
+  { id: 'far4k', text: 'Drive 4 km in one race', stat: 'far', target: 4000, mode: 'max', pts: 0, coins: 150 },
+  { id: 'far12k', text: 'Drive 12 km in one race', stat: 'far', target: 12000, mode: 'max', pts: 0, coins: 400 },
+  { id: 'dist25k', text: 'Drive 25 km in total', stat: 'distance', target: 25000, mode: 'sum', pts: 0, coins: 350 },
+  { id: 'exp1500', text: 'Earn 1,500 EXP in one race', stat: 'exp', target: 1500, mode: 'max', pts: 0, coins: 160 },
+  { id: 'exp6000', text: 'Earn 6,000 EXP in one race', stat: 'exp', target: 6000, mode: 'max', pts: 0, coins: 450 },
+  { id: 'power12', text: 'Grab 12 road power-ups', stat: 'powerups', target: 12, mode: 'sum', pts: 0, coins: 220 },
+  { id: 'block3', text: 'Clear 3 car blocks with specials', stat: 'jumps', target: 3, mode: 'sum', pts: 0, coins: 300 },
+  { id: 'hearts1', text: 'Pick up a heart', stat: 'hearts', target: 1, mode: 'max', pts: 0, coins: 90 },
+  { id: 'hard1', text: 'Play a race on Hard', stat: 'hard', target: 1, mode: 'sum', pts: 0, coins: 120 },
+  { id: 'clean3k', text: '3,000 EXP without losing a heart', stat: 'clean', target: 3000, mode: 'max', pts: 0, coins: 380 },
+  { id: 'gate2', text: 'Break through 2 rank gates in one race', stat: 'gates', target: 2, mode: 'max', pts: 0, coins: 350 },
+  { id: 'world4', text: 'Reach the 4th world in one race', stat: 'worlds', target: 4, mode: 'max', pts: 0, coins: 450 },
+  { id: 'score50k', text: 'Score 50,000 points in one race', stat: 'score', target: 50000, mode: 'max', pts: 0, coins: 260 },
+  { id: 'bonus2', text: 'Finish 2 Gold Rushes', stat: 'finish', target: 2, mode: 'sum', pts: 0, coins: 500 },
 ];
 
-/** Same 4 quests for everyone on a given day. */
+/** Same 6 quests for everyone on a given day (v1.0.8: was 4). */
+export const DAILY_COUNT = 6;
 export function questsFor(day: string): Quest[] {
   const r = rng(hashStr(`daily-${day}`));
   const pool = [...POOL];
   const out: Quest[] = [pool.splice(0, 1)[0]]; // "Play 3 runs" is always there
-  while (out.length < 4) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  while (out.length < DAILY_COUNT) out.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
   return out;
 }
 

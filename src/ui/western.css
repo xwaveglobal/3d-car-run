@@ -660,3 +660,86 @@ html, body { background: var(--bg); }
 #hud .grcount { top: calc(var(--safe-t) + 186px) !important; font-size: 54px !important; -webkit-text-stroke: 2px #3a1a06 !important;
   text-shadow: 0 3px 0 #3a1a06, 0 4px 10px rgba(0, 0, 0, .45) !important; opacity: .95; }
 @keyframes grCount { 0% { transform: scale(1.35); opacity: 0; } 20% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: scale(.9); opacity: 0; } }
+
+/* v1.0.8: LO / MED / HI with room between the three buttons */
+#ui .seg { gap: 4px !important; padding: 3px !important; }
+#ui .stile .seg button { padding: 5px 9px !important; font-size: 11.5px !important; letter-spacing: .3px; border-radius: 8px !important; min-width: 34px; }
+
+/* v1.0.8 Missions: Western titles, the list scrolls (active three + ~20 locked ones coming up) */
+#ui #missions .mlist { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; padding-bottom: 6px;
+  -webkit-mask-image: linear-gradient(180deg, #000 92%, transparent); mask-image: linear-gradient(180deg, #000 92%, transparent); }
+#ui #missions .mcard { flex: none; }
+#ui #missions .mcard .mt { display: flex; flex-direction: column; gap: 2px; font: 600 13.5px/1.25 var(--font-body) !important; color: #fff1d0; }
+#ui #missions .mcard .mtt { font: 400 12px/1.1 var(--font) !important; font-style: normal !important; letter-spacing: .4px; color: #ffd27a; text-transform: uppercase; }
+#ui #missions .mcard .mi { background: rgba(0, 0, 0, .3) !important; border: 1px solid rgba(190, 150, 100, .45); color: #ffd27a; }
+#ui #missions .mcard .track i { background: linear-gradient(90deg, #e08a1a, #ffd060) !important; }
+#ui #missions .mup-h { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 6px 2px 0; flex: none; }
+#ui #missions .mup-h b { font: 400 15px var(--font); color: #fff1d0; }
+#ui #missions .mup-h small { display: inline-flex; align-items: center; gap: 4px; font: 600 11px var(--font-body); color: var(--muted); }
+#ui #missions .mup-h small svg { width: 12px; height: 12px; }
+#ui #missions .mcard.mlock { padding: 9px 12px !important; opacity: .55; filter: saturate(.55); position: relative; }
+#ui #missions .mcard.mlock .t { gap: 8px; }
+#ui #missions .mcard.mlock .mlk { display: grid; place-items: center; width: 22px; height: 22px; flex: none; color: #e8c890; }
+#ui #missions .mcard.mlock .mlk svg { width: 15px; height: 15px; }
+#ui #missions .mfoot { flex: none; }
+#ui #daily .qup-h { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 10px; }
+#ui #daily .qup-h b { font: 400 15px var(--font); color: #fff1d0; }
+#ui #daily .qup-h small { display: inline-flex; align-items: center; gap: 4px; font: 600 11px var(--font-body); color: var(--muted); }
+#ui #daily .qup-h small svg, #ui #daily .qlk svg { width: 13px; height: 13px; }
+#ui #daily .quest.qlock { opacity: .5; filter: saturate(.5); padding-top: 8px !important; padding-bottom: 8px !important; }
+#ui #daily .quest.qlock .qr { display: inline-flex; align-items: center; gap: 6px; }
+#ui #daily .qlk { display: grid; place-items: center; color: #e8c890; }
+
+/* v1.0.8 Outlaw Arsenal: 20 upgraded specials — unlocked tiles in colour, locked ones dimmed / soft-blurred with a lock */
+#ui .axh { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 8px; }
+#ui .axh b { font: 400 14px var(--font); color: #fff1d0; }
+#ui .axh small { font: 600 11px var(--font-body); color: var(--muted); }
+#ui .axgrid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; max-height: 236px; overflow-y: auto; padding: 2px; }
+#ui .axt { position: relative; appearance: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; min-width: 0;
+  border-radius: 10px; color: #fff1d0; background: linear-gradient(180deg, color-mix(in srgb, var(--xt) 30%, #3a2210), rgba(30, 18, 8, .9)); border: 1.5px solid color-mix(in srgb, var(--xt) 70%, #2a1406); }
+#ui .axt .axi svg { width: 22px; height: 22px; color: var(--xt); }
+#ui .axt b { font: 400 8.5px/1.1 var(--font); text-align: center; max-width: 100%; height: 19px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+#ui .axt .cnt { font: 800 10px var(--font-body); font-style: normal; color: #ffd27a; }
+#ui .axt .axp { display: inline-flex; align-items: center; gap: 2px; font: 800 9.5px var(--font-body); color: #ffd27a; }
+#ui .axt .axp svg { width: 9px; height: 9px; }
+#ui .axt.lock { filter: saturate(.35) brightness(.75); }
+#ui .axt.lock .axi, #ui .axt.lock b { filter: blur(.6px); opacity: .75; }
+#ui .axt.on { border-color: #ffd060; box-shadow: 0 0 0 1.5px #ffd060; }
+#ui .axt .tick { position: absolute; top: 2px; right: 3px; width: 13px; height: 13px; color: #8ee06a; }
+#ui .axbuys { max-height: 300px; overflow-y: auto; }
+#ui .bgbuy.ax .spi svg { color: var(--xt); }
+#ui .bgbuy.ax.lock { opacity: .72; }
+#ui .bgbuy.ax.lock .spi, #ui .bgbuy.ax.lock .bn b { filter: blur(.5px) saturate(.4); }
+#ui .bgbuy.ax .btn svg { width: 12px; height: 12px; }
+#ui .axshop { appearance: none; cursor: pointer; width: 100%; margin-top: 10px; display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; align-items: center; column-gap: 10px;
+  padding: 8px 10px; border-radius: 12px; text-align: left; color: #fff1d0; background: rgba(0, 0, 0, .28); border: 1.5px dashed rgba(240, 192, 80, .6); }
+#ui .axshop .axstrip { grid-row: span 2; display: flex; }
+#ui .axshop .axstrip i { width: 22px; height: 22px; margin-left: -6px; border-radius: 50%; display: grid; place-items: center; background: #2a1406; border: 1.5px solid var(--xt); }
+#ui .axshop .axstrip i:first-child { margin-left: 0; }
+#ui .axshop .axstrip i.lock { filter: blur(.5px) saturate(.3) brightness(.7); }
+#ui .axshop .axstrip svg { width: 14px; height: 14px; color: var(--xt); }
+#ui .axshop b { font: 400 14px var(--font); }
+#ui .axshop small { display: inline-flex; align-items: center; gap: 3px; font: 600 11px var(--font-body); color: var(--muted); }
+#ui .axshop small svg { width: 11px; height: 11px; }
+#ui .axshop .chev { grid-row: 1 / span 2; grid-column: 3; width: 18px; height: 18px; color: #ffd27a; }
+#ui .sp-big .spi[style*="--xt"] svg { color: var(--xt); }
+
+/* v1.0.8 Home: Entry / Launch / Share as small round wood buttons under the menu button */
+#start.home2 .hmini { height: calc(var(--w) * var(--s) * 1px); border-radius: 50%; display: grid; place-items: center; padding: 0; overflow: visible;
+  background: radial-gradient(circle at 50% 35%, rgba(255, 220, 160, .16), transparent 60%), var(--wood) center / 120px auto, #4a2c14;
+  border: calc(3 * var(--s) * 1px + 1px) solid #ad8a58; box-shadow: 0 0 0 1.5px #2a1204, 0 calc(4 * var(--s) * 1px) calc(8 * var(--s) * 1px) rgba(30, 10, 0, .5); }
+#start.home2 .hmini .mic { width: 52%; height: 52%; display: grid; place-items: center; color: #f3d79a; filter: drop-shadow(0 1px 0 #2a1204); }
+#start.home2 .hmini .mic svg { width: 100%; height: 100%; }
+#start.home2 .hmini .mic svg * { fill: #f3d79a !important; }
+#start.home2 .hmini .mlb { position: absolute; left: 50%; bottom: calc(-17 * var(--s) * 1px - 6px); transform: translateX(-50%); white-space: nowrap;
+  padding: 1px 6px 2px; border-radius: 6px; font: 400 9px/1.2 var(--font); letter-spacing: .3px; color: #fff1d0;
+  background: var(--wood-dark) center / 100px auto, #2a1406; border: 1px solid #ad8a58; text-shadow: 0 1px 0 #1a0a02; }
+#start.home2 .hmini .hdot { top: -10%; right: -10%; }
+#start.home2 .hmini[hidden] { display: none; }
+#start.home2 .hdaily .sic svg { fill: #f3d79a; }
+/* Daily Reward rows: locked days dimmed by their text only (a filter on the cell drew a lighter box) */
+#ui .ckrow.lock .ckbody { filter: none !important; opacity: .72; }
+#start.home2 .hmini { background: radial-gradient(circle at 50% 38%, #6a4424, #3a2210 70%) !important; min-width: 34px; min-height: 34px; }
+#start.home2 .hmini .mic { width: 56%; height: 56%; }
+#start.home2 .hmini .mic svg * { fill: #ffe3a0 !important; stroke: none !important; }
+#start.home2 .hmini .mlb { font-size: 9.5px; }

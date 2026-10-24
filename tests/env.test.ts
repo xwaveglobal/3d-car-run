@@ -102,16 +102,18 @@ const check = (ok: boolean, msg: string) => {
   check(nextGraphics('low') === 'medium' && nextGraphics('medium') === 'high' && nextGraphics('high') === 'low', 'settings cycle LOW → MEDIUM → HIGH → LOW');
 }
 
-// ---- saves: new players start on MEDIUM; the old default HIGH becomes MEDIUM once, LOW stays LOW
+// ---- saves (v1.0.8, owner): new players start on HIGH; saves on the old MEDIUM default move to HIGH once; LOW stays LOW
 {
   const store: Record<string, string> = {};
   globalThis.localStorage = { getItem: (k: string) => store[k] ?? null, setItem: (k: string, v: string) => (store[k] = v), removeItem: (k: string) => delete store[k] };
   const { loadSave } = await import('../src/core/Save.ts');
-  check(loadSave().settings.quality === 'medium', 'new save: MEDIUM');
+  check(loadSave().settings.quality === 'high', 'new save: HIGH');
   const old = (q: string) => JSON.stringify({ settingsRev: 3, settings: { sound: true, music: true, quality: q, speed: 'normal' } });
   store['xwave-sky-rush-v1'] = old('high');
   const a = loadSave();
-  check(a.settings.quality === 'medium' && a.settings.gfx3 === true, 'old save on HIGH → MEDIUM (once)');
+  check(a.settings.quality === 'high' && a.settings.gfx3 === true && a.gfxHigh === true, 'old save (HIGH → MEDIUM in v4.2) → HIGH again (once)');
+  store['xwave-sky-rush-v1'] = JSON.stringify({ settingsRev: 3, gfxHigh: true, settings: { sound: true, music: true, quality: 'medium', speed: 'normal', gfx3: true } });
+  check(loadSave().settings.quality === 'medium', 'a player who picked MEDIUM after v1.0.8 keeps MEDIUM');
   store['xwave-sky-rush-v1'] = old('low');
   check(loadSave().settings.quality === 'low', 'old save on LOW stays LOW');
   store['xwave-sky-rush-v1'] = JSON.stringify({ settingsRev: 3, settings: { sound: true, music: true, quality: 'high', speed: 'normal', gfx3: true } });

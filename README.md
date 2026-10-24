@@ -189,6 +189,23 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.8 — Outlaw Arsenal, 20 more missions, more dailies, Home perk buttons
+
+- **Outlaw Arsenal** (`src/western/arsenal.ts`): 20 upgraded specials. Each fires like Canyon Launcher, Eagle Jump or
+  Last Stand (same flight, same fairness) and adds perks on use: coin magnet, Sheriff Guard, bonus coins, extra safe
+  seconds, or 2 uses per race. Unlock once with coins (5,000 → 125,000, rising), then buy charges (one charge = one
+  race). Locked ones are shown dimmed with a lock and their price (Saddle Bag, Buy list, Shop link). Training stays on
+  the three basic specials.
+- **Missions:** 10 new career chains with Western titles (Close Shave, Lucky Horseshoe, Doc’s Remedy, Rough Rider,
+  Supply Run, Tumbleweed Dancer, Iron Horse, Mother Lode, Not a Scratch, Sheriff of the Road) on new lifetime
+  counters; the page lists the 3 active ones + the next 20, locked and dimmed.
+- **Daily:** 21 more challenges, 6 a day (was 4), and tomorrow's 6 shown locked.
+- **Home:** Entry / Launch / Share are small round buttons under the menu (Entry and Launch leave once claimed); the
+  signpost on the right is now DAILY (with its red dot). More = 6 items (Top Pilots, Daily Rewards, How to Play,
+  Saddle Bag, Settings, Gold Rush).
+- Graphics: HIGH by default (saves on the old MEDIUM default move up once); LO / MED / HI with room between them.
+- The car's own decals read 3D CAR RUN (the XWAVE mark is gone from the car).
+
 ## v1.0.7 — Home shows the key art's own car (no blurred patch)
 
 - Home: the dust patch painted where the key-art car was removed looked blurred around the 3D car. While the car

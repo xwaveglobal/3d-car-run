@@ -76,21 +76,39 @@ function drawContain(g: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
   g.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
+/** v1.0.8: "3D CAR RUN" wordmark (slab serif, fitted into w × h, centred on cx, cy) */
+function wordmarkReady() {
+  return (document.fonts?.load('100px "Alfa Slab One"') ?? Promise.resolve()).catch(() => undefined);
+}
+function drawWordmark(g: CanvasRenderingContext2D, cx: number, cy: number, w: number, h: number, color: string) {
+  const txt = '3D CAR RUN';
+  let size = h;
+  g.font = `${size}px "Alfa Slab One", "Rockwell", "Arial Black", Georgia, serif`;
+  const tw = g.measureText(txt).width;
+  if (tw > w) size = Math.floor((size * w) / tw);
+  g.font = `${size}px "Alfa Slab One", "Rockwell", "Arial Black", Georgia, serif`;
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillStyle = color;
+  g.fillText(txt, cx, cy);
+}
+
 /**
- * XWAVE wordmark on transparent background.
+ * "3D CAR RUN" wordmark on transparent background (was the XWAVE mark image).
  * `tint` = null keeps the chrome artwork; a colour recolours it (e.g. dark decal on a white car).
  */
 export function logoTexture(tint: string | null = null, glow: string | null = null) {
   return memo(`logo-${tint}-${glow}`, () => {
     const [c, g] = canvas(1024, 210);
     const t = toTex(c);
-    void logoImgs.mark.then((img) => {
+    // v1.0.8 (owner): the car carries the game's name, not the XWAVE mark
+    void wordmarkReady().then(() => {
       g.clearRect(0, 0, c.width, c.height);
       if (glow) {
         g.shadowColor = glow;
         g.shadowBlur = 22;
       }
-      drawContain(g, img, 8, 8, c.width - 16, c.height - 16);
+      drawWordmark(g, 512, 110, 960, 150, '#e8edf2');
       g.shadowBlur = 0;
       if (tint) {
         g.globalCompositeOperation = 'source-atop';
@@ -106,14 +124,14 @@ export function logoTexture(tint: string | null = null, glow: string | null = nu
   });
 }
 
-/** Rear badge like the reference car: silver XWAVE wordmark over "INNOVATE BEYOND LIMITS". */
+/** Rear badge: silver "3D CAR RUN" wordmark over a letter-spaced tagline. */
 export function rearBadgeTexture(tint: string | null = null) {
   return memo(`rear-badge-${tint}`, () => {
     const [c, g] = canvas(1024, 300);
     const t = toTex(c);
-    void logoImgs.mark.then((img) => {
+    void wordmarkReady().then(() => {
       g.clearRect(0, 0, c.width, c.height);
-      drawContain(g, img, 212, 20, 600, 150);
+      drawWordmark(g, 512, 100, 640, 120, '#dfe5ec');
       g.font = '600 46px "Helvetica Neue", Arial, sans-serif';
       g.textAlign = 'center';
       g.textBaseline = 'middle';

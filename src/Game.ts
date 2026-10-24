@@ -60,6 +60,7 @@ import { avatarForName, avatarSvg } from './ui/avatars.ts';
 import { productBySku, DemoStore, type Store } from './meta/Shop.ts';
 import type { ItemKey, QuestStat, Reward } from './meta/Daily.ts';
 import { careerDefaults, settleCareer } from './meta/Career.ts';
+import { arsenalById, isArsenalId, type ArsenalItem } from './western/arsenal.ts';
 import { Cloud } from './net/Cloud.ts';
 import type { SetPiece } from './gameplay/Spawner.ts';
 import { BonusTunnels } from './render/BonusTunnels.ts';
@@ -67,7 +68,7 @@ import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
 
-const VERSION = 'v1.0.7';
+const VERSION = 'v1.0.8';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -1220,6 +1221,18 @@ export class Game {
     cs.gates += sum.gates ?? 0;
     if (!this.debugStart && sum.exp > this.prevExpBest && !this.course) cs.bests++;
     if (this.course?.bonus && finished) cs.bonus++;
+    // v1.0.8 lifetime counters for the new mission chains
+    if (!this.debugStart) {
+      cs.near = (cs.near ?? 0) + run.nearMiss;
+      cs.rings = (cs.rings ?? 0) + run.rings;
+      cs.hearts = (cs.hearts ?? 0) + this.runHearts;
+      cs.powerups = (cs.powerups ?? 0) + run.powerups;
+      cs.dodges = (cs.dodges ?? 0) + run.dodges;
+      if (this.runLevel === 'hard' && !this.course) cs.hard = (cs.hard ?? 0) + 1;
+      if (this.course?.bonus) cs.grCoins = (cs.grCoins ?? 0) + run.coins;
+      else cs.farKm = Math.max(cs.farKm ?? 0, run.distance / 1000);
+      if (!this.course && run.exp >= 500 && this.firstLossExp < 0) cs.clean = (cs.clean ?? 0) + 1;
+    }
     this.settleMissions();
     const newCar = this.syncCarUnlocks();
     if (newCar) window.setTimeout(() => this.ui.toast(`${ICON.car} NEW CAR UNLOCKED · ${newCar}`, '#2fd36b'), 1200);
@@ -1514,8 +1527,19 @@ export class Game {
   /** v2: the special carried in this race (taken from the bag only when used) */
   private carried: SpecialKey | null = null;
   private spendCarried(k: SpecialKey) {
+    if (this.xRun && !this.tutorialMode) this.arsenalPerks(); // every use of an arsenal special
     if (this.tutorialMode || this.carried !== k) return;
     this.carried = null;
+    const x = this.xRun;
+    if (x) {
+      // one charge = one race (a 2-use special spends its charge on the first use)
+      const items = (this.save.arsenalItems ??= {});
+      items[x.id] = Math.max(0, (items[x.id] ?? 0) - 1);
+      if (items[x.id] <= 0 && this.save.specialX === x.id) this.save.specialX = null;
+      this.career().specials++;
+      this.persist();
+      return;
+    }
     this.save.items[k] = Math.max(0, this.save.items[k] - 1);
     if (this.save.items[k] <= 0 && this.save.special === k) this.save.special = null;
     this.career().specials++;
@@ -1560,6 +1584,26 @@ export class Game {
   /** Magic Bag opened from the pre-race button: tapping a special picks it */
   private bagPickMode = false;
   private chooseSpecial(k: string) {
+    // v1.0.8 Outlaw Arsenal: pick an upgraded special (unlocked + at least one charge)
+    if (isArsenalId(k)) {
+      const x = arsenalById(k);
+      if (!x) return;
+      if (!(this.save.arsenal ?? []).includes(x.id) || (this.save.arsenalItems?.[x.id] ?? 0) <= 0) {
+        this.ui.buySync(this.save);
+        return this.ui.showOverlay('bagbuy');
+      }
+      this.save.specialX = x.id;
+      this.persist();
+      this.audio.play('click');
+      if (this.bagPickMode) {
+        this.bagPickMode = false;
+        this.ui.hideOverlay('bag');
+      }
+      if (this.ui.isShown('bag')) this.ui.bagSync(this.save, this.bagPickMode);
+      if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
+      return;
+    }
+    this.save.specialX = null;
     const key = (SPECIALS as readonly string[]).includes(k) ? (k as SpecialKey) : null;
     if (key && this.save.items[key] <= 0) {
       this.ui.buySync(this.save);
@@ -1575,6 +1619,7 @@ export class Game {
     if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
   }
   private buySpecial(k: string) {
+    if (isArsenalId(k)) return this.buyArsenal(k);
     const key = k as SpecialKey;
     const price = ITEM_PRICE[key];
     if (!(SPECIALS as readonly string[]).includes(k) || price === undefined) return;
@@ -1595,6 +1640,57 @@ export class Game {
     if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
     if (this.ui.isShown('shop')) this.ui.shopSync(this.save);
     this.ui.refreshProfile(this.save);
+  }
+  /** v1.0.8 Outlaw Arsenal: first tap unlocks (one-time price), later taps buy charges */
+  private buyArsenal(id: string) {
+    const x = arsenalById(id);
+    if (!x) return;
+    const owned = (this.save.arsenal ??= []).includes(x.id);
+    const price = owned ? x.price : x.unlock;
+    if (this.save.wallet < price) {
+      this.ui.toast(`${ICON.coin} Need ${(price - this.save.wallet).toLocaleString('en-US')} more coins`, '#ffc21a');
+      return;
+    }
+    this.save.wallet -= price;
+    const items = (this.save.arsenalItems ??= {});
+    if (!owned) {
+      this.save.arsenal.push(x.id);
+      items[x.id] = (items[x.id] ?? 0) + 1; // the unlock comes with one charge
+      this.audio.play('fanfare');
+      this.ui.toast(`${ICON.lock} <b>UNLOCKED · ${x.name.toUpperCase()}</b> · 1 charge in your bag`, '#ffc848');
+    } else {
+      items[x.id] = (items[x.id] ?? 0) + 1;
+      this.audio.play('power');
+      this.ui.toast(`${ICON.bag} +1 ${x.name} · in your bag`, '#ffb02e');
+    }
+    if (this.bagPickMode || (!this.save.special && !this.save.specialX)) this.save.specialX = x.id;
+    this.persist();
+    if (this.ui.isShown('bagbuy')) this.ui.buySync(this.save);
+    if (this.ui.isShown('bag')) this.ui.bagSync(this.save, this.bagPickMode);
+    if (this.ui.isShown('specialpick')) this.ui.specialPick(this.save, this.pickLabel());
+    if (this.ui.isShown('shop')) this.ui.shopSync(this.save);
+    this.ui.refreshProfile(this.save);
+  }
+  /** the arsenal special carried in this race (null = a basic one or none) */
+  private xRun: ArsenalItem | null = null;
+  /** perks of an arsenal special, applied each time it fires */
+  private arsenalPerks() {
+    const x = this.xRun;
+    const r = this.run;
+    if (!x || !r || this.tutorialMode) return;
+    const p = x.perks;
+    if (p.magnet) r.magnetT = Math.max(r.magnetT, p.magnet);
+    if (p.shield) {
+      r.shield = true;
+      r.shieldHits = Math.max(r.shieldHits ?? 0, p.shield);
+      r.shieldT = 0;
+    }
+    if (p.coins) {
+      r.coins += p.coins;
+      this.ui.pop(`+${p.coins}`, '#ffd060', x.name.toUpperCase(), -6);
+    }
+    // after the special's own safe time is set (same tap), add the extra seconds on top
+    if (p.safe) queueMicrotask(() => (r.invulnT += p.safe!));
   }
   private goRace() {
     this.ui.hideOverlay('specialpick');
@@ -1896,7 +1992,18 @@ export class Game {
     // fresh race: redraw the HUD at once (never a frame of the previous race's numbers)
     this.ui.updateHud(this.run, this.world.speed, SPEED.max * SPEED.turboMul * LEVELS[level].speed, null);
     this.obstacleViews.setWorld(this.world.world);
-    if (!this.tutorialMode && !this.course?.bonus) {
+    this.xRun = null;
+    const xr = !this.tutorialMode && !this.course?.bonus ? arsenalById(this.save.specialX) : null;
+    if (xr && (this.save.arsenalItems?.[xr.id] ?? 0) > 0) {
+      // v1.0.8 Outlaw Arsenal: fires as its basic special, with its perks (and maybe 2 uses)
+      this.xRun = xr;
+      this.carried = xr.base;
+      const n = xr.perks.charges ?? 1;
+      if (xr.base === 'super') this.run.superJumps = n;
+      if (xr.base === 'hyper') this.run.hyperJumps = n;
+      if (xr.base === 'escape') this.run.escapes = n;
+      window.setTimeout(() => this.ui.toast(`${ICON.check} SPECIAL READY · ${xr.name}`, xr.tint), 3300);
+    } else if (!this.tutorialMode && !this.course?.bonus) {
       const k = this.save.special ?? null;
       if (k && this.save.items[k] > 0) {
         this.carried = k;
