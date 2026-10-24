@@ -189,6 +189,20 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.1 — first test release on `main`
+
+The v1.0.0 transformation plus everything fixed while verifying it:
+
+- Gold Rush: Restart from the pause menu mid-run now banks the coins collected; the completion reward is paid
+  the moment time is up (a refresh during the TIME'S UP banner no longer loses it).
+- Rock Tunnel: taller mine (HYPER / SKY ESCAPE flights and the camera fit under the frames), the ceiling is
+  never seen from above, the right wall and ceiling scroll with the road.
+- Stagecoach / hay-wagon wheels face sideways (inside the hitbox); far props no longer pop in.
+- Last blue UI bits are wood (Garage Select, Settings and Profile buttons).
+- Canyon Launcher guide pictures re-captured on the desert road.
+- Measured: 85–109 draw calls per frame (MEDIUM) vs 128–277 in Sky Roadster v4.6.1.
+- Versioning: `main` = 3D Car Run 1.0.x; the Sky Roadster code stays on `archive/sky-roadster-v4.6.1`.
+
 ## v1.0.0 — 3D Car Run: the Western transformation (from Sky Roadster v4.6.1)
 
 Full report, mapping tables and screenshots: `docs/carrun-v1/README.md`.

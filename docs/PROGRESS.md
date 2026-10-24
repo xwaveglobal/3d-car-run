@@ -4,6 +4,14 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.1: first test release (owner: "Main sẽ là 1.0.1")
+
+- `VERSION` / package.json → 1.0.1; README changelog; the v1.0.0 review fixes are part of 1.0.1.
+- Test build: `builds/3d-car-run-v1.0.1.html` (single file) + a zip of the multi-file build sent to the owner; also published as a private artifact for a quick look.
+- Next: owner plays it on a phone (FPS, audio by ear), feedback → 1.0.2.
+
+---
+
 ## 2026-10-24 — v1.0.0: 3D CAR RUN (new repo xwaveglobal/3d-car-run, from Sky Roadster v4.6.1)
 
 **Owner request**: new repo from the 4.6.1 branch; apply the FINAL MASTER PROMPT V2 (Western desert

@@ -331,3 +331,10 @@ html, body { background: var(--bg); }
   --c1: #6a4020; --c2: #3a2210; --edge: #160a03;
   background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important;
   color: #fff1d0 !important; border: 2px solid #c8924a !important; }
+
+/* v1.0.1: Home signposts — the long label fits ("GOLD RUSH"), three posts fit above PLAY on 360 × 640 */
+#start .rbtn .rl { font-size: 9.5px !important; letter-spacing: 0 !important; white-space: nowrap !important; }
+#start .rail { gap: 9px !important; }
+#start .rbtn, #start .rbtn[data-a] { height: 46px !important; padding: 3px 2px !important; }
+#start .rbtn .ri svg { width: 20px !important; height: 20px !important; }
+#start .rbtn::after { bottom: -9px; height: 8px; }
