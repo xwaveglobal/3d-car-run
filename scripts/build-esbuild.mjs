@@ -1,14 +1,18 @@
 // Fallback build without Vite (used in CI / sandboxes with esbuild only).
 //   node scripts/build-esbuild.mjs            -> dist-esbuild/index.html (+ JS/CSS files)
 //   node scripts/build-esbuild.mjs --single   -> dist-esbuild/3d-car-run.html (one self-contained file)
+//   node scripts/build-esbuild.mjs --web      -> dist-web/ (v1.0.9: for a web server — images, model and fonts as
+//                                                separate cached files in assets/, small main.js)
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const out = join(root, 'dist-esbuild');
+let out = join(root, 'dist-esbuild');
 const single = process.argv.includes('--single');
+const web = process.argv.includes('--web');
+if (web) out = join(root, 'dist-web');
 rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 
@@ -21,7 +25,10 @@ const res = await build({
   sourcemap: false,
   write: false,
   outdir: out,
-  loader: { '.webp': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.glb': 'dataurl', '.woff': 'dataurl' },
+  loader: web
+    ? { '.webp': 'file', '.png': 'file', '.jpg': 'file', '.glb': 'file', '.woff': 'file', '.woff2': 'file', '.ttf': 'file' }
+    : { '.webp': 'dataurl', '.png': 'dataurl', '.jpg': 'dataurl', '.glb': 'dataurl', '.woff': 'dataurl' },
+  assetNames: 'assets/[name]-[hash]',
   plugins: single
     ? [
         {
@@ -43,6 +50,10 @@ let css = '';
 for (const f of res.outputFiles) {
   if (f.path.endsWith('.js')) js = f.text;
   else if (f.path.endsWith('.css')) css = f.text;
+  else if (web) {
+    mkdirSync(dirname(f.path), { recursive: true });
+    writeFileSync(f.path, f.contents);
+  }
 }
 
 let html = readFileSync(join(root, 'index.html'), 'utf8');

@@ -25,7 +25,7 @@ npm run typecheck
 npm test               # fairness + difficulty + air-lane + EXP calibration + rank-phase + bonus + server-rule tests (Node 22+)
 npm run build          # dist/ (multi-file static build)
 npm run build:single   # dist/index.html, everything inlined (one shareable file)
-node scripts/build-esbuild.mjs [--single]   # fallback build without Vite
+node scripts/build-esbuild.mjs [--single|--web]   # fallback build without Vite (--web = dist-web/, assets as separate files for a web server)
 ```
 
 Before committing a gameplay change: `npm run typecheck && npm test` must pass.

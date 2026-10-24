@@ -6,6 +6,8 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ## 2026-10-24 — v1.0.9: Entry button stays on Home
 
+- Web upload build: `node scripts/build-esbuild.mjs --web` → `dist-web/` (index.html + main.js 1.2 MB + assets/ with
+  images, the car GLB and fonts as separate cached files). Upload the folder's contents to any static host.
 - Owner: "vẫn thiếu 1 nút Entry (để dưới Share)" — the claimed Entry was hidden. All three small buttons always show,
   order Launch · Share · Entry (`perkBadges` in UI.ts). Checks: typecheck, `npm test` 14 / 14.
 

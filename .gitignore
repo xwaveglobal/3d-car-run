@@ -9,3 +9,4 @@ dist-esbuild
 .idea/
 server/data.json
 __pycache__/
+dist-web/
