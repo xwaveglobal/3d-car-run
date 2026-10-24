@@ -36,10 +36,13 @@ tf=cv2.GaussianBlur(tm.astype(np.float32)/255,(0,0),4)[...,None]
 out=out*(1-tf)+coarse*tf
 
 # ---- 2) lower UI + the car → dust: low-frequency colour from a coarse inpaint + high-frequency dust grain
+# v1.0.7: by default the painted car STAYS (the fill left a blurred patch around the 3D car); --no-car removes it
+import sys
+NO_CAR='--no-car' in sys.argv
 m=np.zeros((H,W),np.uint8)
 def rect(a,b,c,d): m[b:d,a:c]=255
 pts=np.array([[190,1000],[215,955],[330,925],[470,895],[560,888],[650,915],[720,972],[755,1050],[762,1150],[738,1240],[640,1250],[560,1205],[420,1185],[300,1152],[200,1112],[184,1050]],np.int32)
-cv2.fillPoly(m,[pts],255)
+if NO_CAR: cv2.fillPoly(m,[pts],255)
 m=cv2.dilate(m,np.ones((31,31),np.uint8))
 m=cv2.dilate(m,np.ones((11,11),np.uint8))
 # never paint dust over the painted signs, their posts, PLAY or the bottom buttons (they are the buttons)
@@ -86,4 +89,4 @@ full=np.concatenate([ext,clean],0)
 Image.fromarray(full.clip(0,255).astype(np.uint8)).save(f'{OUT}/home-bg.png')
 print('ext',full.shape)
 
-Image.fromarray(full.clip(0,255).astype(np.uint8)).save(os.path.join(ROOT,'src','assets','images','home','home-bg.webp'),quality=80,method=6)
+Image.fromarray(full.clip(0,255).astype(np.uint8)).save(os.path.join(ROOT,'src','assets','images','home','home-bg.webp'),quality=72,method=6,sharp_yuv=True)

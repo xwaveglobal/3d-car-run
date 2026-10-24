@@ -4,6 +4,15 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.7: Home = key art with its painted car
+
+- Owner: "Bỏ lớp mờ, lỗi bao quanh xe ở màn home". The removed-car area of home-bg.webp was a blurred dust fill; texture
+  synthesis (patch quilting) was tried and looked worse. Now Home keeps the painted car and hides the 3D car
+  (`HOME_SHOW.car3d`). To bring a 3D car back on Home (car picker), the owner needs a key art painted without a car.
+- Daily Reward popup rows restyled (were navy). Checks: typecheck, `npm test` 14 / 14, real-build regression, Home at 390×844 / 360×640, race car visible after Home.
+
+---
+
 ## 2026-10-24 — v1.0.6: header coin bar no longer stretched
 
 - Owner: "Ô dấu sao ở top của các bảng đều bị méo". Cause: `.wallet` padding in % of the header width made the box 195 px

@@ -630,3 +630,33 @@ html, body { background: var(--bg); }
 #ui #sharepv .td-row { gap: 10px !important; }
 #ui #sharepv .td-row .btn { font-size: 13.5px !important; padding: 0 10px !important; gap: 6px !important; white-space: nowrap; min-width: 0; }
 #ui #sharepv .td-row .btn svg { width: 16px; height: 16px; flex: none; }
+
+/* v1.0.7: Daily Reward popup rows in wood / leather (they were still navy) */
+#ui .ckrow { background: linear-gradient(180deg, rgba(110, 72, 40, .55), rgba(36, 22, 10, .82)) !important; border: 1.5px solid rgba(190, 150, 100, .5) !important; }
+#ui .ckday { background: rgba(0, 0, 0, .28) !important; font: 400 13px var(--font) !important; border-right: 1px solid rgba(190, 150, 100, .35); }
+#ui .ckcoin { font: 400 15px var(--font) !important; color: #fff1d0 !important; }
+#ui .ckart { background: linear-gradient(90deg, rgba(200, 130, 50, .45), rgba(110, 60, 24, .35)) !important; border: 1px solid rgba(240, 192, 80, .55) !important; gap: 10px !important; }
+#ui .ckit .ckn, #ui .ckc b { font: 400 12px var(--font) !important; color: #fff1d0 !important; }
+#ui .ckst { color: rgba(240, 220, 180, .55) !important; }
+#ui .ckrow.got .ckst { color: #8ee06a !important; }
+#ui .ckrow.today { border: 2px solid #ffc848 !important; background: linear-gradient(90deg, rgba(255, 200, 80, .32), rgba(120, 70, 30, .5)) !important; box-shadow: 0 0 12px rgba(255, 200, 90, .3) !important; }
+
+/* v1.0.7 (owner): the difficulty picker is centred on the Race Start screen */
+#tracks .speedsel { align-self: center !important; margin: 10px auto 0 !important; width: min(100% - 28px, 320px) !important; }
+#tracks .speedcap { align-self: center; max-width: 320px; }
+
+/* v1.0.7 training hub: the three basic specials fill the row (centred), Western tints, gold "Practice" */
+#ui .th-items { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; justify-content: center; }
+#ui .th-sec { background: rgba(0, 0, 0, .22) !important; border: 1px solid rgba(190, 150, 100, .4) !important; }
+#ui .th-h i { background: linear-gradient(180deg, #ffd77a, #c06818) !important; color: #2a1204 !important; }
+#ui .th-h b { font: 400 13px var(--font) !important; color: #fff1d0; }
+#ui .th-it { background: linear-gradient(180deg, rgba(110, 72, 40, .6), rgba(36, 22, 10, .85)) !important; border: 1.5px solid rgba(190, 150, 100, .55) !important; padding: 10px 4px 9px !important; }
+#ui .th-it.hyper { border-color: rgba(240, 192, 80, .7) !important; }
+#ui .th-it.escape { border-color: rgba(220, 110, 80, .7) !important; }
+#ui .th-it b { font: 400 11.5px/1.15 var(--font) !important; font-style: normal !important; color: #fff1d0; }
+#ui .th-it small { font: 400 10.5px var(--font) !important; color: #ffd27a !important; }
+
+/* v1.0.7 (owner): Gold Rush last-10-seconds digits sit right under the timer at the top, small — never over the road */
+#hud .grcount { top: calc(var(--safe-t) + 186px) !important; font-size: 54px !important; -webkit-text-stroke: 2px #3a1a06 !important;
+  text-shadow: 0 3px 0 #3a1a06, 0 4px 10px rgba(0, 0, 0, .45) !important; opacity: .95; }
+@keyframes grCount { 0% { transform: scale(1.35); opacity: 0; } 20% { transform: scale(1); opacity: 1; } 80% { opacity: 1; } 100% { transform: scale(.9); opacity: 0; } }

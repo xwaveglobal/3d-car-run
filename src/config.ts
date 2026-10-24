@@ -489,6 +489,13 @@ export const HOME_SHOW = {
   puffAlpha: 0.4,
   /** swipe on Home to browse the cars — off for now (owner, v1.0.4: "tạm thời bỏ chức năng chọn xe ngoài home") */
   carPicker: false,
+  /**
+   * v1.0.7 (owner: "bỏ lớp mờ, lỗi bao quanh xe ở màn home"): while the picker is off, Home shows the key art's own
+   * painted car (home-bg.webp keeps it) and the 3D car is not drawn — no blurred patch where the car was removed.
+   * To bring the 3D car back, rebuild home-bg without the car (scripts/home/make-home-bg-v3.py --no-car) from a
+   * key art painted WITHOUT a car, then set true.
+   */
+  car3d: false,
   /** swipe: how far the car slides out (m) */
   slide: 7,
 };

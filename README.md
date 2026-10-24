@@ -189,6 +189,20 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.7 — Home shows the key art's own car (no blurred patch)
+
+- Home: the dust patch painted where the key-art car was removed looked blurred around the 3D car. While the car
+  picker is off (`HOME_SHOW.carPicker`), Home now shows the key art exactly as painted, car included, and the 3D car,
+  its shadow and dust puffs are not drawn (`HOME_SHOW.car3d = false`). `scripts/home/make-home-bg-v3.py` keeps the car
+  by default (`--no-car` = the old fill). The race car is unchanged.
+- Daily Reward popup: wood / leather rows (were navy), the Day 7 special reads "Launcher" in full.
+- Sheriff Guard pickup: a silver star with turquoise tips / glow (was gold, looked like a coin).
+- Class celebration after a race: only the highest class reached (and only if it is the class now held); the classes
+  passed on the way are marked seen and their C / B / A rewards are paid with it. In the race: a "CLASS X REACHED" banner.
+- Race Start: the difficulty picker is centred. Training: the three basic specials fill their row (centred).
+- UI wood textures tile without a seam (`scripts/ui/seamless-wood.py`, originals in `assets-src/ui-wood/`).
+- Gold Rush: the last-10-seconds digits sit small under the timer at the top (not over the road).
+
 ## v1.0.6 — round coin on every screen header
 
 - The coin bar on the page headers (Daily, Shop, Top Pilots, Missions…) was stretched to ~5:1 (its % padding grew the box),

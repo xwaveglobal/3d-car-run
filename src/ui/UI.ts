@@ -287,7 +287,7 @@ function checkinList(slot: number, claimedToday: boolean) {
     const items = Object.entries(r.items ?? {}).filter(([, n]) => n) as [ItemKey, number][];
     // item days get a wide art strip (like the car tiles in the mock-up); coin days an icon + amount
     const body = items.length
-      ? `<span class="ckart ${items[0][0]}">${items.map(([k, n]) => `<span class="ckit">${ITEM_ICON[k]}<span class="ckn">${ITEM_NAME[k]}${n > 1 ? ` ×${n}` : ''}</span></span>`).join('')}${r.coins ? `<span class="ckc">${coinFace(18)}<b>x${fmt(r.coins)}</b></span>` : ''}</span>`
+      ? `<span class="ckart ${items[0][0]}">${items.map(([k, n]) => `<span class="ckit">${ITEM_ICON[k]}<span class="ckn">${(SPECIAL_SHORT as Record<string, string>)[k] ?? ITEM_NAME[k]}${n > 1 ? ` ×${n}` : ''}</span></span>`).join('')}${r.coins ? `<span class="ckc">${coinFace(18)}<b>x${fmt(r.coins)}</b></span>` : ''}</span>`
       : `<span class="ckcoin">${coinFace(26)}<b>x${fmt(r.coins ?? 0)}</b></span>`;
     return `<div class="ckrow ${got ? 'got' : ''} ${today ? 'today' : ''} ${!got && !today ? 'lock' : ''}"><span class="ckday">Day ${i + 1}</span><span class="ckbody">${body}</span><i class="ckst">${got ? ICON.check : today ? '' : ICON.lock}</i></div>`;
   }).join('');
@@ -1309,7 +1309,7 @@ export class UI {
     const sos = $(this.root, '[data-k="sosbtn"]');
     if (sos.hidden !== run.escapes <= 0) sos.hidden = run.escapes <= 0;
     this.hset('soscnt', String(run.escapes));
-    const colors: Record<string, string> = { coin2: '#ffd24a', shield: '#ffcf4a', magnet: '#e0402a', turbo: '#ff8a1a', double: '#e8c890', super: '#ffb02e', hyper: '#ffd84a', dash: '#ff6a3a' };
+    const colors: Record<string, string> = { coin2: '#ffd24a', shield: '#48c8d0', magnet: '#e0402a', turbo: '#ff8a1a', double: '#e8c890', super: '#ffb02e', hyper: '#ffd84a', dash: '#ff6a3a' };
     const icons: Record<string, string> = { coin2: ICON.coin, shield: ICON.shield, magnet: ICON.magnet, turbo: BOLT, double: ICON.x2, super: ICON.rocket, hyper: ICON.hyper, dash: ICON.dash };
     const html = chips
       .map((c) => {

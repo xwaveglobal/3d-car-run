@@ -173,7 +173,8 @@ export class HomeView {
   }
 
   attach(car: THREE.Object3D) {
-    this.scene.add(car);
+    if (HOME_SHOW.car3d) this.scene.add(car);
+    this.shadow.visible = HOME_SHOW.car3d;
     this.active = true;
   }
 
@@ -188,6 +189,10 @@ export class HomeView {
   }
 
   update(dt: number, car: THREE.Object3D, baseX = 0) {
+    if (!HOME_SHOW.car3d) {
+      for (const p of this.puffs) p.s.visible = false;
+      return;
+    }
     // ---- swipe animation (out 0.16 s → swap → in 0.3 s)
     const OUT = 0.16;
     const IN = 0.3;

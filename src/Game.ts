@@ -50,7 +50,7 @@ import { RANK_ORDER, rankDist, expRate, VARIANTS, type Variant } from './gamepla
 import type { Box, PickupKind, RowSpec } from './gameplay/types.ts';
 import { Meta, type EventResult, type RunSummary } from './meta/Meta.ts';
 import { schedule, fmtLeft, localTime, prizesFor, cupFor } from './meta/Events.ts';
-import { classFor, classProgress, CLASSES, BASE_CLASSES, CLASS_COLOR, CLASS_MIN, XPT as XPT_ICON, playerRank, rankAtLeast, rankIdx, toBase, type RankClass } from './meta/Rank.ts';
+import { classBadge, classFor, classProgress, CLASSES, BASE_CLASSES, CLASS_COLOR, CLASS_MIN, XPT as XPT_ICON, playerRank, rankAtLeast, rankIdx, toBase, type RankClass } from './meta/Rank.ts';
 import type { RunRewards } from './ui/UI.ts';
 import { crashTip, type CrashTip } from './gameplay/CrashTip.ts';
 import { createStore, weekBoard, type PlayerStore } from './net/PlayerStore.ts';
@@ -67,7 +67,7 @@ import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
 
-const VERSION = 'v1.0.6';
+const VERSION = 'v1.0.7';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -1163,7 +1163,8 @@ export class Game {
     if (rc !== this.runRank) {
       this.runRank = rc;
       const first = CLASSES.indexOf(rc) > CLASSES.indexOf(this.rank);
-      this.ui.toastNow(`${XPT_ICON} RANK ${rc}${first ? ' · NEW!' : ''}`, '#ffc21a');
+      // v1.0.7 (owner): during the race, say clearly which class was reached (a banner, the race keeps going)
+      this.ui.bigPickup(`CLASS ${rc} REACHED`, CLASS_COLOR[rc], classBadge(rc, 'lg'), first ? 'New class!' : `${run.exp.toLocaleString('en-US')} EXP`);
       this.audio.play('mission');
       this.vibrate([20, 40, 30]);
     }
@@ -2901,7 +2902,7 @@ export class Game {
           this.vehicle.shieldHit();
           this.vibrate([30, 40, 30]);
           this.rig.shake(0.35);
-          this.particles.burst(this.vehicle.root.position.x, this.vehicle.root.position.y, 0, 18, 0xffcf4a, 8, 0.2, 0.45); // the Sheriff Guard flashes too
+          this.particles.burst(this.vehicle.root.position.x, this.vehicle.root.position.y, 0, 18, 0x48c8d0, 8, 0.2, 0.45); // the Sheriff Guard flashes too
           const left = this.run.shield ? this.run.shieldHits : 0;
           this.ui.pop(left > 0 ? `GUARD ×${left}` : 'GUARD BROKEN', left > 0 ? '#6fc8ff' : '#9fb3dd', '', -8);
           break;
@@ -2987,14 +2988,35 @@ export class Game {
 
   // ---- first-time class promotion celebration (C, B, A since v4.6.1 with a reward; AA … SSS)
   private classQueue: RankClass[] = [];
-  /** after the run is over and saved: queue every class ≥ C reached for the first time */
+  /**
+   * after the run is over and saved. v1.0.7 (owner): congratulate ONLY the highest class reached, and only when it is
+   * at least the class the player now holds — the classes passed on the way are marked as seen and their rewards
+   * are paid together with this one celebration (no chain of popups for C → B → A).
+   */
+  private classSkipped: RankClass[] = [];
   private queueClassCelebration() {
     const seen = new Set(this.save.classCelebrated ?? []);
-    for (let i = rankIdx('C'); i <= rankIdx(this.rank); i++) {
+    const top = this.rank;
+    if (rankIdx(top) < rankIdx('C') || seen.has(top) || this.classQueue.includes(top)) return;
+    for (let i = rankIdx('C'); i < rankIdx(top); i++) {
       const c = CLASSES[i];
-      if (!seen.has(c) && !this.classQueue.includes(c)) this.classQueue.push(c);
+      if (!seen.has(c) && !this.classSkipped.includes(c)) this.classSkipped.push(c);
     }
-    if (this.classQueue.length && !this.ui.isShown('classup')) window.setTimeout(() => this.showNextClass(), 900);
+    this.classQueue = [top];
+    if (!this.ui.isShown('classup')) window.setTimeout(() => this.showNextClass(), 900);
+  }
+  /** the C / B / A rewards of the shown class + the classes skipped on the way (paid once, with the celebration) */
+  private classRewardOf(c: RankClass) {
+    let coins = 0;
+    const items: ('super' | 'hyper' | 'escape')[] = [];
+    for (const k of [...this.classSkipped, c]) {
+      const rw = CLASS_REWARD[k as 'C' | 'B' | 'A'];
+      if (rw) {
+        coins += rw.coins;
+        items.push(rw.item);
+      }
+    }
+    return { coins, items };
   }
   private showNextClass() {
     const c = this.classQueue[0];
@@ -3005,20 +3027,23 @@ export class Game {
     const sub: Record<string, string> = { C: 'Nice start — the road is opening up!', B: 'Solid driving. Keep climbing!', A: 'Top-class driving. Keep the streak going!', AA: 'Elite driver — a new car is yours.', AAA: 'The highest Endless class. Outlaw Rush is open!', S: 'Outlaw Rush legend.', SS: 'Almost untouchable.', SSS: 'The very top of 3D Car Run.' };
     this.audio.play('fanfare');
     this.vibrate([30, 40, 60]);
-    const rw = CLASS_REWARD[c as 'C' | 'B' | 'A'];
-    this.ui.classUp({ cls: c, color: CLASS_COLOR[c], sub: sub[c] ?? '', car: carId ? { id: carId, name: SKINS.find((k) => k.id === carId)!.name } : null, reward: rw ?? null });
+    const all = this.classRewardOf(c);
+    const top = CLASS_REWARD[c as 'C' | 'B' | 'A'];
+    const rw = all.coins > 0 ? { coins: all.coins, item: top?.item ?? all.items[all.items.length - 1] } : null;
+    this.ui.classUp({ cls: c, color: CLASS_COLOR[c], sub: sub[c] ?? '', car: carId ? { id: carId, name: SKINS.find((k) => k.id === carId)!.name } : null, reward: rw });
   }
   private classOk() {
     const c = this.classQueue.shift();
     if (c) {
       const list = (this.save.classCelebrated ??= []);
       if (!list.includes(c)) {
-        list.push(c);
-        // v4.6.1: C / B / A reward, paid once together with the first celebration
-        const rw = CLASS_REWARD[c as 'C' | 'B' | 'A'];
-        if (rw) {
-          this.save.wallet += rw.coins;
-          this.save.items[rw.item] = (this.save.items[rw.item] ?? 0) + 1;
+        // v4.6.1 C / B / A rewards — v1.0.7: this class + the ones skipped on the way, paid once
+        const all = this.classRewardOf(c);
+        for (const k of [...this.classSkipped, c]) if (!list.includes(k)) list.push(k);
+        this.classSkipped = [];
+        if (all.coins > 0 || all.items.length) {
+          this.save.wallet += all.coins;
+          for (const it of all.items) this.save.items[it] = (this.save.items[it] ?? 0) + 1;
           this.ui.refreshProfile(this.save);
           this.audio.play('coin');
         }

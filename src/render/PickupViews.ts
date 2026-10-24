@@ -63,7 +63,7 @@ function heartShape() {
 
 /** v1.0.0 (3D Car Run): Western item colours (pickup bubble, HUD chip, burst, car light sweep) */
 export const POWER_COLORS: Record<Exclude<PickupKind, 'coin'>, number> = {
-  shield: 0xffcf4a, // Sheriff Guard — tin star
+  shield: 0x48c8d0, // Sheriff Guard — silver star, turquoise glow (v1.0.7: not gold, so it never reads as a coin)
   magnet: 0xe0402a, // Gold Magnet
   turbo: 0xff8a1a, // Dust Storm Nitro
   double: 0xe8c890, // Double Bounty (EXP ×2)
@@ -107,15 +107,16 @@ function buildPower(kind: Exclude<PickupKind, 'coin'>): PowerView {
     case 'shield': {
       // Sheriff Guard: a tin star badge with ball tips and a ring
       const g = new THREE.Group();
-      const gold = std(0xffcf4a, 0.45, 0.85);
-      g.add(new THREE.Mesh(extrude(starShape(0.52, 0.48), 0.12), gold));
+      const silver = std(0xdfe7ef, 0.3, 0.9);
+      const teal = std(0x48c8d0, 0.35, 0.6);
+      g.add(new THREE.Mesh(extrude(starShape(0.52, 0.48), 0.12), silver));
       for (let i = 0; i < 5; i++) {
         const a = Math.PI / 2 + (i * Math.PI * 2) / 5;
-        const b = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), gold);
+        const b = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), teal);
         b.position.set(Math.cos(a) * 0.56, Math.sin(a) * 0.56, 0);
         g.add(b);
       }
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 24), std(0xfff0b0, 0.6, 0.9));
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 8, 24), teal);
       ring.position.z = 0.1;
       g.add(ring);
       icon = g;
