@@ -5,6 +5,7 @@
  *   canvas → the canvas UI drawn on top (Renderer.uiPass) → tt touch routed to UI or steering.
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { bootMark } from '../core/bootMark.ts';
 import './log.ts'; // first: catches everything logged while the game starts
 import { LOG, logErrors } from './log.ts';
 import { DPR, NATIVE, emitWindow, makeImage, safeArea, screenCanvas, sizeScreen, viewH, viewW } from './adapter.ts';
@@ -124,8 +125,17 @@ const container: any = {
 
 let game: Game | null = null;
 let ui: UI | null = null;
+// colour calibration (see color.ts) — before any 3D material is compiled. v4.0.1: run it as soon as the
+// renderer exists, while the GPU queue is empty (later its 4×4 read-back waited for all the boot uploads)
+platform.onRenderer = (r) => {
+  measure(r as THREE.WebGLRenderer, () => (G.document?.createElement ? G.document.createElement('canvas') : T.createCanvas()));
+  applyColor(r as THREE.WebGLRenderer, 'auto'); // compensates only what this phone needs
+  bootMark('colour probe');
+};
+bootMark('native main');
 try {
   game = new Game(container);
+  bootMark('game constructed');
   ui = (game as any).ui as UI;
 } catch (e) {
   console.error('[sky-roadster] could not start the 3D view', e);
@@ -207,10 +217,7 @@ if (ui && game) {
   uiScene.add(quad);
   const renderer = (game as any).renderer;
   const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
-  // colour calibration (see color.ts) — before any 3D material is compiled
-  const r0: THREE.WebGLRenderer = renderer.renderer;
-  measure(r0, () => (G.document?.createElement ? G.document.createElement('canvas') : T.createCanvas()));
-  applyColor(r0, 'auto'); // measured at start: compensates only what this phone needs
+  const r0: THREE.WebGLRenderer = renderer.renderer; // colour probe already ran (platform.onRenderer)
   ui.colorCtl = {
     mode: () => color.mode,
     line: () => `${colorLine()} · audio ${(game as any)?.audio?.ctx ? (game as any).audio.ctx.state ?? 'on' : 'off'}`,

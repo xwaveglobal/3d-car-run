@@ -7,7 +7,8 @@ import { propMaterial } from './western/atlas.ts';
 import { billboard as billboardGeo, route66 as route66Geo } from './western/props.ts';
 import { fadeMaterial } from './western/PropField.ts';
 import { GRAPHICS, ROAD, type GraphicsPreset } from '../config.ts';
-import { roadPixels, type RoadPixels } from './roadSurface.ts';
+import { emptyRoadPixels, roadPixels, roadRows, type RoadPixels } from './roadSurface.ts';
+import { platform } from '../platform.ts';
 import { addFarFade, wrapZ } from './envFx.ts';
 
 const ROAD_LEN = 300;
@@ -25,6 +26,36 @@ function roadData(w = 512) {
   let px = roadPx.get(w);
   if (!px) roadPx.set(w, (px = roadPixels(w, w * 2)));
   return px;
+}
+/**
+ * v4.0.1 (owner: the first load on iPhone stalls): the mini-game runtime on iOS runs JavaScript without a
+ * JIT, where the 512 × 1024 road tile took seconds. The native build starts on the 256 tile and draws the
+ * full one in small slices between frames, then swaps it in (same look a few seconds later).
+ */
+const ROAD_START_W = 256;
+const pendingRoad = new Map<number, ((px: RoadPixels) => void)[]>();
+function roadDataLater(w: number, done: (px: RoadPixels) => void) {
+  const have = roadPx.get(w);
+  if (have) return done(have);
+  const waiting = pendingRoad.get(w);
+  if (waiting) return void waiting.push(done);
+  pendingRoad.set(w, [done]);
+  const px = emptyRoadPixels(w, w * 2);
+  let row = 0;
+  const slice = () => {
+    const t0 = performance.now();
+    // one row at a time (512 samples, a few ms even without a JIT), ~4 ms of work then a frame's rest
+    while (row < px.h && performance.now() - t0 < 4) {
+      roadRows(px, row, row + 1);
+      row++;
+    }
+    if (row < px.h) return void setTimeout(slice, 30);
+    roadPx.set(w, px);
+    const cbs = pendingRoad.get(w) ?? [];
+    pendingRoad.delete(w);
+    for (const cb of cbs) cb(px);
+  };
+  setTimeout(slice, 4000); // after the first Home frames and the first tap's audio setup
 }
 function dataTex(data: Uint8Array, w: number, h: number, srgb: boolean) {
   const t = new THREE.DataTexture(data as Uint8Array<ArrayBuffer>, w, h, THREE.RGBAFormat);
@@ -94,7 +125,7 @@ export class Track {
     // shoulders), dashed dividers + solid edge lines + reflective studs placed from LANES, and a
     // roughness map so the surface catches the light unevenly. One plane, scrolled textures: no
     // segments, no seams, no popping.
-    const px = roadData();
+    const px = roadData(platform.native ? ROAD_START_W : 512);
     this.roadTex = dataTex(px.color, px.w, px.h, true);
     this.roughTex = dataTex(px.rough, px.w, px.h, false);
     this.emisTex = dataTex(px.emissive, px.w, px.h, true);
@@ -399,9 +430,18 @@ export class Track {
 
   /** graphics preset: road shader detail, roadside signs, texture size / sharpness (no recompile) */
   setQuality(p: GraphicsPreset) {
-    if (p.roadTex !== this.roadTex.image.width) {
+    this.preset = p;
+    let want = p.roadTex;
+    if (platform.native && want > ROAD_START_W && !roadPx.has(want)) {
+      // native: keep the small tile now, swap in the full one when its background slices are done
+      roadDataLater(want, () => {
+        if (this.preset === p) this.setQuality(p);
+      });
+      want = this.roadTex.image.width;
+    }
+    if (want !== this.roadTex.image.width) {
       // LOW: a 256 × 512 tile (¼ of the GPU memory); the old textures are disposed
-      const px = roadData(p.roadTex);
+      const px = roadData(want);
       const old = this.roadTexs;
       this.roadTex = dataTex(px.color, px.w, px.h, true);
       this.roughTex = dataTex(px.rough, px.w, px.h, false);
@@ -425,6 +465,7 @@ export class Track {
       }
   }
   private signsOn = true;
+  private preset: GraphicsPreset | null = null;
   private openAir = true;
   private sideGlowMat: THREE.MeshBasicMaterial;
 

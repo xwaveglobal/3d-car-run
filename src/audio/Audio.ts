@@ -204,24 +204,31 @@ export class Audio {
     this.musicBus.connect(this.master);
     // canyon reverb on the music (generated impulse: 1.8 s of decaying, darkening noise)
     this.reverb = c.createConvolver();
-    const ir = c.createBuffer(2, Math.round(c.sampleRate * 1.8), c.sampleRate);
-    for (let ch = 0; ch < 2; ch++) {
-      const d = ir.getChannelData(ch);
-      let lp = 0;
-      for (let i = 0; i < d.length; i++) {
-        const k = i / d.length;
-        lp += (Math.random() * 2 - 1 - lp) * (0.5 - k * 0.42);
-        d[i] = lp * Math.pow(1 - k, 2.6) * (i < c.sampleRate * 0.012 ? 0 : 1);
+    const makeIr = () => {
+      const ir = c.createBuffer(2, Math.round(c.sampleRate * 1.8), c.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch);
+        let lp = 0;
+        for (let i = 0; i < d.length; i++) {
+          const k = i / d.length;
+          lp += (Math.random() * 2 - 1 - lp) * (0.5 - k * 0.42);
+          d[i] = lp * Math.pow(1 - k, 2.6) * (i < c.sampleRate * 0.012 ? 0 : 1);
+        }
       }
-    }
-    this.reverb.buffer = ir;
+      if (this.reverb) this.reverb.buffer = ir;
+    };
+    // v4.0.1 native (iPhone runs JS without a JIT): the reverb tail and the sound bank are built a little
+    // later, one piece per timer tick, never inside the first tap
+    if (this.baked) setTimeout(makeIr, 2500);
+    else makeIr();
     const wet = c.createGain();
     wet.gain.value = 0.22;
     this.reverb.connect(wet).connect(this.musicBus);
     this.noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    this.buildSfx();
+    if (this.baked) setTimeout(() => this.buildSfx(true), 900);
+    else this.buildSfx();
     this.prebake();
     for (const [n, u] of this.pendingOverrides) void this.loadOverride(n, u);
     this.pendingOverrides.length = 0;
@@ -418,9 +425,9 @@ export class Audio {
       } catch (e) {
         console.warn('[audio] bake', e);
       }
-      setTimeout(next, 45);
+      setTimeout(next, 120); // v4.0.1: a wider gap (no-JIT phones)
     };
-    setTimeout(next, 1200); // after the first frames of Home
+    setTimeout(next, 1800); // after the first frames of Home
   }
 
   /** the SFX recipes (live Web Audio nodes on the web, written into a buffer while baking) */
@@ -551,18 +558,30 @@ export class Audio {
     b.getChannelData(0).set(x);
     return b;
   }
-  private buildSfx() {
-    this.sfxBufs = {
-      bell: this.buf(renderBell(this.sr, 1318, 0.9)),
-      bellLow: this.buf(renderBell(this.sr, 784, 1.2)),
-      strumG: this.buf(renderStrum(this.sr, [43, 50, 55, 59, 62, 67], 0.22, 0.018)),
-      strumD: this.buf(renderStrum(this.sr, [50, 57, 62, 66, 69], 0.22, 0.012)),
-      twang: this.buf(renderPluck(this.sr, 40, 0.5, 1.2)),
-      b1: this.buf(renderPluck(this.sr, 67, 0.9, 0.5)),
-      b2: this.buf(renderPluck(this.sr, 71, 0.9, 0.5)),
-      b3: this.buf(renderPluck(this.sr, 74, 0.9, 0.5)),
-      b4: this.buf(renderPluck(this.sr, 79, 0.9, 0.7)),
+  private buildSfx(spread = false) {
+    const make: [string, () => Float32Array][] = [
+      ['bell', () => renderBell(this.sr, 1318, 0.9)],
+      ['bellLow', () => renderBell(this.sr, 784, 1.2)],
+      ['strumG', () => renderStrum(this.sr, [43, 50, 55, 59, 62, 67], 0.22, 0.018)],
+      ['strumD', () => renderStrum(this.sr, [50, 57, 62, 66, 69], 0.22, 0.012)],
+      ['twang', () => renderPluck(this.sr, 40, 0.5, 1.2)],
+      ['b1', () => renderPluck(this.sr, 67, 0.9, 0.5)],
+      ['b2', () => renderPluck(this.sr, 71, 0.9, 0.5)],
+      ['b3', () => renderPluck(this.sr, 74, 0.9, 0.5)],
+      ['b4', () => renderPluck(this.sr, 79, 0.9, 0.7)],
+    ];
+    if (!spread) {
+      for (const [k, f] of make) this.sfxBufs[k] = this.buf(f());
+      return;
+    }
+    // native: one buffer per tick (a missing one just stays silent until it is ready)
+    const next = () => {
+      const j = make.shift();
+      if (!j) return;
+      if (!this.sfxBufs[j[0]]) this.sfxBufs[j[0]] = this.buf(j[1]());
+      setTimeout(next, 60);
     };
+    next();
   }
   private playBuf(k: string, t: number, vol: number, pan = 0, rate = 1) {
     const c = this.ctx!;
@@ -609,7 +628,13 @@ export class Audio {
       const budget = this.baked ? 3 : 6;
       const rest = this.baked ? 20 : 0;
       for (const j of p.jobs) {
-        j();
+        // v4.0.1: long notes are resumable (false = more to do): yield inside them too, never a long frame
+        while (j() === false) {
+          if (performance.now() - t0 > budget) {
+            await new Promise((r) => setTimeout(r, rest));
+            t0 = performance.now();
+          }
+        }
         if (performance.now() - t0 > budget) {
           await new Promise((r) => setTimeout(r, rest));
           t0 = performance.now();

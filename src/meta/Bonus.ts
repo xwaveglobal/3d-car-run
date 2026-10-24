@@ -43,15 +43,19 @@ export interface BonusSlot {
   key: string;
 }
 
-/** the slot that contains `now` (open for its first BONUS.openMinutes) */
+/**
+ * the slot that contains `now` (open for its first BONUS.openMinutes).
+ * v4.0.1: plain arithmetic on the local clock (no multi-argument Date constructor — mini-game runtimes
+ * do not all agree on it). A player who comes in at 1:15 plays the 1:00 event until 1:30.
+ */
 function slotAt(now: number): BonusSlot {
-  const d = new Date(now);
-  const h = d.getHours();
-  const startH = h - (h % BONUS.everyHours);
-  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startH, 0, 0, 0).getTime();
+  const off = new Date(now).getTimezoneOffset() * 60000;
+  const period = BONUS.everyHours * 3600000;
+  const local = now - off;
+  const startLocal = local - (((local % period) + period) % period);
+  const start = startLocal + off;
   // rotate the theme across days too (the same hour shows a different place tomorrow)
-  const dayIdx = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000);
-  const idx = dayIdx * (24 / BONUS.everyHours) + startH / BONUS.everyHours;
+  const idx = Math.floor(startLocal / period);
   const theme = BONUS.themes[((idx % BONUS.themes.length) + BONUS.themes.length) % BONUS.themes.length];
   return { theme, start, end: start + BONUS.openMinutes * 60000, key: `${start}` };
 }
@@ -60,7 +64,7 @@ function slotAt(now: number): BonusSlot {
 export function bonusState(now = Date.now()) {
   const cur = slotAt(now);
   const live = now < cur.end ? cur : null;
-  const next = live ? slotAt(cur.start + BONUS.everyHours * 3600000) : slotAt(cur.start + BONUS.everyHours * 3600000);
+  const next = slotAt(cur.start + BONUS.everyHours * 3600000);
   return { live, next };
 }
 

@@ -3,7 +3,7 @@ declare const process: { exit(code: number): never };
 import { BONUS_SET, LEVELS, type SpeedLevel } from '../src/config.ts';
 import { Spawner } from '../src/gameplay/Spawner.ts';
 import { Rng } from '../src/core/Rng.ts';
-import { BONUS, BONUS_NAME } from '../src/meta/Bonus.ts';
+import { BONUS, BONUS_NAME, bonusState } from '../src/meta/Bonus.ts';
 import { goldRushRoadLength } from '../src/meta/GoldRush.ts';
 import { START_STATE, step } from '../src/gameplay/Fairness.ts';
 import { FAIRNESS } from '../src/config.ts';
@@ -55,6 +55,17 @@ for (const theme of Object.keys(BONUS_NAME) as (keyof typeof BONUS_NAME)[])
     check(gapsEmpty, `${theme} ${lv}: set-piece stretches stay empty until the pickup is collected`);
     check(unreachable === 0, `${theme} ${lv}: every row passable`);
   }
+// v4.0.1: the hourly window — arriving at hh:15 still plays this hour's event until hh:30
+{
+  const hour = new Date(2026, 9, 25, 1, 0, 0, 0).getTime();
+  const at = (m: number) => bonusState(hour + m * 60000);
+  check(!!at(0).live && at(0).live!.start === hour, '01:00 → event open');
+  check(!!at(15).live && at(15).live!.start === hour && at(15).live!.end === hour + 30 * 60000, '01:15 → still open until 01:30 (not 02:00)');
+  check(!!at(29.9).live, '01:29 → still open');
+  check(!at(30).live && at(30).next.start === hour + 3600000, '01:30 → closed, next 02:00');
+  check(at(15).next.start === hour + 3600000, 'next event at 02:00');
+  check(at(15).live!.key === at(5).live!.key, 'same event key across the window (plays counted per event)');
+}
 check(BONUS.raceMinutes === 3, 'Gold Rush run lasts 3 minutes');
 check(BONUS_SET.tunnels.length >= 2, 'Bonus roads have tunnel sections');
 console.log(fails ? `${fails} FAILED` : 'ALL PASSED');

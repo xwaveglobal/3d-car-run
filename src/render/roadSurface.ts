@@ -183,11 +183,22 @@ export interface RoadPixels {
  * Every pixel is sampled at its centre, so row h−1 continues into row 0 (seamless scroll).
  */
 export function roadPixels(w: number, h: number): RoadPixels {
-  const color = new Uint8Array(w * h * 4);
-  const rough = new Uint8Array(w * h * 4);
-  const emissive = new Uint8Array(w * h * 4);
-  const s: RoadSample = { r: 0, g: 0, b: 0, rough: 0, er: 0, eg: 0, eb: 0 };
-  for (let j = 0; j < h; j++) {
+  const px = emptyRoadPixels(w, h);
+  roadRows(px, 0, h);
+  return px;
+}
+
+/** v4.0.1: an empty tile, filled row by row with roadRows (the native build fills it in background slices) */
+export function emptyRoadPixels(w: number, h: number): RoadPixels {
+  return { w, h, color: new Uint8Array(w * h * 4), rough: new Uint8Array(w * h * 4), emissive: new Uint8Array(w * h * 4) };
+}
+
+const rowSample: RoadSample = { r: 0, g: 0, b: 0, rough: 0, er: 0, eg: 0, eb: 0 };
+/** rasterise rows [j0, j1) of a tile */
+export function roadRows(px: RoadPixels, j0: number, j1: number) {
+  const { w, h, color, rough, emissive } = px;
+  const s = rowSample;
+  for (let j = j0; j < j1; j++) {
     const z = ((j + 0.5) / h) * ROAD.tile;
     for (let i = 0; i < w; i++) {
       const x = ((i + 0.5) / w) * 2 * ROAD.half - ROAD.half;
@@ -206,7 +217,6 @@ export function roadPixels(w: number, h: number): RoadPixels {
       emissive[k + 3] = 255;
     }
   }
-  return { w, h, color, rough, emissive };
 }
 
 /** road-local x (metres) of texture column i */

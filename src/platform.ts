@@ -13,6 +13,8 @@ export interface Platform {
   share?: (text: string) => Promise<boolean>;
   /** platform store — the items are delivered by the platform itself (never granted by the game) */
   buy?: (sku: string) => Promise<{ ok: boolean; delivered?: boolean; error?: string }>;
+  /** v4.0.1: called by the Game right after its WebGL renderer exists (native: colour probe on an empty GPU queue) */
+  onRenderer?: (renderer: unknown) => void;
 }
 
 export const platform: Platform = { native: false };

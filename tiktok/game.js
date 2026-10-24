@@ -4,6 +4,10 @@
     var __require = (x => typeof require != "undefined" ? require : typeof Proxy != "undefined" ? new Proxy(x, { get: (a, b) => (typeof require != "undefined" ? require : a)[b] }) : x)(function (x) { if (typeof require != "undefined")
         return require.apply(this, arguments); throw Error('Dynamic require of "' + x + '" is not supported'); });
     var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key != "symbol" ? key + "" : key, value);
+    var last = 0;
+    function bootMark(name) { let now2 = performance.now(); console.log(`[boot] ${name} @${Math.round(now2)}ms (+${Math.round(now2 - last)})`), last = now2; }
+    var frames = 0, t0 = 0;
+    function bootFrame(ms, state) { let now2 = performance.now(); t0 || (t0 = now2), frames++, !(now2 - t0 > 2e4) && (frames <= 3 || ms > 90) && console.log(`[boot] frame #${frames} ${Math.round(ms)}ms (${state}) @${Math.round(now2)}ms`); }
     var LOG = [], errors = 0, logErrors = () => errors;
     function text(a) {
         if (a instanceof Error)
@@ -74,7 +78,7 @@ ${String(a.stack).split(`
             if (p && typeof p.now == "function" && typeof p.now() == "number")
                 return p;
         }
-        catch (e) { } let t0 = Date.now(); return { now: () => Date.now() - t0 }; })(), navigator2 = { userAgent: `TikTokMiniGame ${info.platform || ""}`, language: info.language || "en", languages: [info.language || "en"], platform: info.platform || "", onLine: !0, vibrate: ms => { var _a13, _b3; try {
+        catch (e) { } let t02 = Date.now(); return { now: () => Date.now() - t02 }; })(), navigator2 = { userAgent: `TikTokMiniGame ${info.platform || ""}`, language: info.language || "en", languages: [info.language || "en"], platform: info.platform || "", onLine: !0, vibrate: ms => { var _a13, _b3; try {
                 let n2 = Array.isArray(ms) ? ms.reduce((a, b) => a + b, 0) : ms;
                 n2 >= 300 ? (_a13 = T.vibrateLong) == null || _a13.call(T, {}) : (_b3 = T.vibrateShort) == null || _b3.call(T, { type: n2 > 30 ? "heavy" : "light" });
             }
@@ -864,7 +868,7 @@ ${String(a.stack).split(`
         else
             s1 = a01 > 0 ? -segExtent : segExtent, s0 = Math.max(0, -(a01 * s1 + b0)), sqrDist = -s0 * s0 + s1 * (s1 + 2 * b1) + c2; return optionalPointOnRay && optionalPointOnRay.copy(this.origin).addScaledVector(this.direction, s0), optionalPointOnSegment && optionalPointOnSegment.copy(_segCenter).addScaledVector(_segDir, s1), sqrDist; }
         intersectSphere(sphere, target) { _vector$a.subVectors(sphere.center, this.origin); let tca = _vector$a.dot(this.direction), d2 = _vector$a.dot(_vector$a) - tca * tca, radius2 = sphere.radius * sphere.radius; if (d2 > radius2)
-            return null; let thc = Math.sqrt(radius2 - d2), t0 = tca - thc, t1 = tca + thc; return t1 < 0 ? null : t0 < 0 ? this.at(t1, target) : this.at(t0, target); }
+            return null; let thc = Math.sqrt(radius2 - d2), t02 = tca - thc, t1 = tca + thc; return t1 < 0 ? null : t02 < 0 ? this.at(t1, target) : this.at(t02, target); }
         intersectsSphere(sphere) { return this.distanceSqToPoint(sphere.center) <= sphere.radius * sphere.radius; }
         distanceToPlane(plane) { let denominator = plane.normal.dot(this.direction); if (denominator === 0)
             return plane.distanceToPoint(this.origin) === 0 ? 0 : null; let t = -(this.origin.dot(plane.normal) + plane.constant) / denominator; return t >= 0 ? t : null; }
@@ -7869,8 +7873,8 @@ void main() {
             points.push(this.getPointAt(d / divisions)); return points; }
         getLength() { let lengths = this.getLengths(); return lengths[lengths.length - 1]; }
         getLengths(divisions = this.arcLengthDivisions) { if (this.cacheArcLengths && this.cacheArcLengths.length === divisions + 1 && !this.needsUpdate)
-            return this.cacheArcLengths; this.needsUpdate = !1; let cache5 = [], current2, last = this.getPoint(0), sum = 0; cache5.push(0); for (let p = 1; p <= divisions; p++)
-            current2 = this.getPoint(p / divisions), sum += current2.distanceTo(last), cache5.push(sum), last = current2; return this.cacheArcLengths = cache5, cache5; }
+            return this.cacheArcLengths; this.needsUpdate = !1; let cache5 = [], current2, last2 = this.getPoint(0), sum = 0; cache5.push(0); for (let p = 1; p <= divisions; p++)
+            current2 = this.getPoint(p / divisions), sum += current2.distanceTo(last2), cache5.push(sum), last2 = current2; return this.cacheArcLengths = cache5, cache5; }
         updateArcLengths() { this.needsUpdate = !0, this.getLengths(); }
         getUtoTmapping(u, distance) { let arcLengths = this.getLengths(), i = 0, il = arcLengths.length, targetArcLength; distance ? targetArcLength = distance : targetArcLength = u * arcLengths[il - 1]; let low = 0, high = il - 1, comparison; for (; low <= high;)
             if (i = Math.floor(low + (high - low) / 2), comparison = arcLengths[i] - targetArcLength, comparison < 0)
@@ -7918,7 +7922,7 @@ void main() {
     }, ArcCurve = class extends EllipseCurve {
         constructor(aX, aY, aRadius, aStartAngle, aEndAngle, aClockwise) { super(aX, aY, aRadius, aRadius, aStartAngle, aEndAngle, aClockwise), this.isArcCurve = !0, this.type = "ArcCurve"; }
     };
-    function CubicPoly() { let c0 = 0, c1 = 0, c2 = 0, c3 = 0; function init(x0, x1, t0, t1) { c0 = x0, c1 = t0, c2 = -3 * x0 + 3 * x1 - 2 * t0 - t1, c3 = 2 * x0 - 2 * x1 + t0 + t1; } return { initCatmullRom: function (x0, x1, x2, x3, tension) { init(x1, x2, tension * (x2 - x0), tension * (x3 - x1)); }, initNonuniformCatmullRom: function (x0, x1, x2, x3, dt0, dt1, dt2) { let t1 = (x1 - x0) / dt0 - (x2 - x0) / (dt0 + dt1) + (x2 - x1) / dt1, t2 = (x2 - x1) / dt1 - (x3 - x1) / (dt1 + dt2) + (x3 - x2) / dt2; t1 *= dt1, t2 *= dt1, init(x1, x2, t1, t2); }, calc: function (t) { let t2 = t * t, t3 = t2 * t; return c0 + c1 * t + c2 * t2 + c3 * t3; } }; }
+    function CubicPoly() { let c0 = 0, c1 = 0, c2 = 0, c3 = 0; function init(x0, x1, t02, t1) { c0 = x0, c1 = t02, c2 = -3 * x0 + 3 * x1 - 2 * t02 - t1, c3 = 2 * x0 - 2 * x1 + t02 + t1; } return { initCatmullRom: function (x0, x1, x2, x3, tension) { init(x1, x2, tension * (x2 - x0), tension * (x3 - x1)); }, initNonuniformCatmullRom: function (x0, x1, x2, x3, dt0, dt1, dt2) { let t1 = (x1 - x0) / dt0 - (x2 - x0) / (dt0 + dt1) + (x2 - x1) / dt1, t2 = (x2 - x1) / dt1 - (x3 - x1) / (dt1 + dt2) + (x3 - x2) / dt2; t1 *= dt1, t2 *= dt1, init(x1, x2, t1, t2); }, calc: function (t) { let t2 = t * t, t3 = t2 * t; return c0 + c1 * t + c2 * t2 + c3 * t3; } }; }
     var tmp = new Vector3, px = new CubicPoly, py = new CubicPoly, pz = new CubicPoly, CatmullRomCurve3 = class extends Curve {
         constructor(points = [], closed = !1, curveType = "centripetal", tension = .5) { super(), this.isCatmullRomCurve3 = !0, this.type = "CatmullRomCurve3", this.points = points, this.closed = closed, this.curveType = curveType, this.tension = tension; }
         getPoint(t, optionalTarget = new Vector3) { let point = optionalTarget, points = this.points, l = points.length, p = (l - (this.closed ? 0 : 1)) * t, intPoint = Math.floor(p), weight = p - intPoint; this.closed ? intPoint += intPoint > 0 ? 0 : (Math.floor(Math.abs(intPoint) / l) + 1) * l : weight === 0 && intPoint === l - 1 && (intPoint = l - 2, weight = 1); let p0, p3; this.closed || intPoint > 0 ? p0 = points[(intPoint - 1) % l] : (tmp.subVectors(points[0], points[1]).add(points[0]), p0 = tmp); let p1 = points[intPoint % l], p2 = points[(intPoint + 1) % l]; if (this.closed || intPoint + 2 < l ? p3 = points[(intPoint + 2) % l] : (tmp.subVectors(points[l - 1], points[l - 2]).add(points[l - 1]), p3 = tmp), this.curveType === "centripetal" || this.curveType === "chordal") {
@@ -8028,11 +8032,11 @@ void main() {
             sums += this.curves[i].getLength(), lengths.push(sums); return this.cacheLengths = lengths, lengths; }
         getSpacedPoints(divisions = 40) { let points = []; for (let i = 0; i <= divisions; i++)
             points.push(this.getPoint(i / divisions)); return this.autoClose && points.push(points[0]), points; }
-        getPoints(divisions = 12) { let points = [], last; for (let i = 0, curves = this.curves; i < curves.length; i++) {
+        getPoints(divisions = 12) { let points = [], last2; for (let i = 0, curves = this.curves; i < curves.length; i++) {
             let curve = curves[i], resolution = curve.isEllipseCurve ? divisions * 2 : curve.isLineCurve || curve.isLineCurve3 ? 1 : curve.isSplineCurve ? divisions * curve.points.length : divisions, pts = curve.getPoints(resolution);
             for (let j = 0; j < pts.length; j++) {
                 let point = pts[j];
-                last && last.equals(point) || (points.push(point), last = point);
+                last2 && last2.equals(point) || (points.push(point), last2 = point);
             }
         } return this.autoClose && points.length > 1 && !points[points.length - 1].equals(points[0]) && points.push(points[0]), points; }
         copy(source) { super.copy(source), this.curves = []; for (let i = 0, l = source.curves.length; i < l; i++) {
@@ -8171,12 +8175,12 @@ void main() {
                 x = data[i], y = data[i + 1], x < minX && (minX = x), y < minY && (minY = y), x > maxX && (maxX = x), y > maxY && (maxY = y);
             invSize = Math.max(maxX - minX, maxY - minY), invSize = invSize !== 0 ? 32767 / invSize : 0;
         } return earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0), triangles; } };
-    function linkedList(data, start2, end, dim, clockwise) { let i, last; if (clockwise === signedArea(data, start2, end, dim) > 0)
+    function linkedList(data, start2, end, dim, clockwise) { let i, last2; if (clockwise === signedArea(data, start2, end, dim) > 0)
         for (i = start2; i < end; i += dim)
-            last = insertNode(i, data[i], data[i + 1], last);
+            last2 = insertNode(i, data[i], data[i + 1], last2);
     else
         for (i = end - dim; i >= start2; i -= dim)
-            last = insertNode(i, data[i], data[i + 1], last); return last && equals(last, last.next) && (removeNode(last), last = last.next), last; }
+            last2 = insertNode(i, data[i], data[i + 1], last2); return last2 && equals(last2, last2.next) && (removeNode(last2), last2 = last2.next), last2; }
     function filterPoints(start2, end) { if (!start2)
         return start2; end || (end = start2); let p = start2, again; do
         if (again = !1, !p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
@@ -8286,7 +8290,7 @@ void main() {
         p.y > py2 != p.next.y > py2 && p.next.y !== p.y && px2 < (p.next.x - p.x) * (py2 - p.y) / (p.next.y - p.y) + p.x && (inside = !inside), p = p.next;
     while (p !== a); return inside; }
     function splitPolygon(a, b) { let a2 = new Node(a.i, a.x, a.y), b2 = new Node(b.i, b.x, b.y), an = a.next, bp = b.prev; return a.next = b, b.prev = a, a2.next = an, an.prev = a2, b2.next = a2, a2.prev = b2, bp.next = b2, b2.prev = bp, b2; }
-    function insertNode(i, x, y, last) { let p = new Node(i, x, y); return last ? (p.next = last.next, p.prev = last, last.next.prev = p, last.next = p) : (p.prev = p, p.next = p), p; }
+    function insertNode(i, x, y, last2) { let p = new Node(i, x, y); return last2 ? (p.next = last2.next, p.prev = last2, last2.next.prev = p, last2.next = p) : (p.prev = p, p.next = p), p; }
     function removeNode(p) { p.next.prev = p.prev, p.prev.next = p.next, p.prevZ && (p.prevZ.nextZ = p.nextZ), p.nextZ && (p.nextZ.prevZ = p.prevZ); }
     function Node(i, x, y) { this.i = i, this.x = x, this.y = y, this.prev = null, this.next = null, this.z = 0, this.prevZ = null, this.nextZ = null, this.steiner = !1; }
     function signedArea(data, start2, end, dim) { let sum = 0; for (let i = start2, j = end - dim; i < end; i += dim)
@@ -8473,34 +8477,34 @@ void main() {
     function isTypedArray(object) { return ArrayBuffer.isView(object) && !(object instanceof DataView); }
     var Interpolant = class {
         constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) { this.parameterPositions = parameterPositions, this._cachedIndex = 0, this.resultBuffer = resultBuffer !== void 0 ? resultBuffer : new sampleValues.constructor(sampleSize), this.sampleValues = sampleValues, this.valueSize = sampleSize, this.settings = null, this.DefaultSettings_ = {}; }
-        evaluate(t) { let pp = this.parameterPositions, i1 = this._cachedIndex, t1 = pp[i1], t0 = pp[i1 - 1]; validate_interval: {
+        evaluate(t) { let pp = this.parameterPositions, i1 = this._cachedIndex, t1 = pp[i1], t02 = pp[i1 - 1]; validate_interval: {
             seek: {
                 let right;
                 linear_scan: {
                     forward_scan: if (!(t < t1)) {
                         for (let giveUpAt = i1 + 2;;) {
                             if (t1 === void 0) {
-                                if (t < t0)
+                                if (t < t02)
                                     break forward_scan;
                                 return i1 = pp.length, this._cachedIndex = i1, this.copySampleValue_(i1 - 1);
                             }
                             if (i1 === giveUpAt)
                                 break;
-                            if (t0 = t1, t1 = pp[++i1], t < t1)
+                            if (t02 = t1, t1 = pp[++i1], t < t1)
                                 break seek;
                         }
                         right = pp.length;
                         break linear_scan;
                     }
-                    if (!(t >= t0)) {
+                    if (!(t >= t02)) {
                         let t1global = pp[1];
-                        t < t1global && (i1 = 2, t0 = t1global);
+                        t < t1global && (i1 = 2, t02 = t1global);
                         for (let giveUpAt = i1 - 2;;) {
-                            if (t0 === void 0)
+                            if (t02 === void 0)
                                 return this._cachedIndex = 0, this.copySampleValue_(0);
                             if (i1 === giveUpAt)
                                 break;
-                            if (t1 = t0, t0 = pp[--i1 - 1], t >= t0)
+                            if (t1 = t02, t02 = pp[--i1 - 1], t >= t02)
                                 break seek;
                         }
                         right = i1, i1 = 0;
@@ -8512,13 +8516,13 @@ void main() {
                     let mid = i1 + right >>> 1;
                     t < pp[mid] ? right = mid : i1 = mid + 1;
                 }
-                if (t1 = pp[i1], t0 = pp[i1 - 1], t0 === void 0)
+                if (t1 = pp[i1], t02 = pp[i1 - 1], t02 === void 0)
                     return this._cachedIndex = 0, this.copySampleValue_(0);
                 if (t1 === void 0)
                     return i1 = pp.length, this._cachedIndex = i1, this.copySampleValue_(i1 - 1);
             }
-            this._cachedIndex = i1, this.intervalChanged_(i1, t0, t1);
-        } return this.interpolate_(i1, t0, t, t1); }
+            this._cachedIndex = i1, this.intervalChanged_(i1, t02, t1);
+        } return this.interpolate_(i1, t02, t, t1); }
         getSettings_() { return this.settings || this.DefaultSettings_; }
         copySampleValue_(index) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, offset = index * stride; for (let i = 0; i !== stride; ++i)
             result[i] = values[offset + i]; return result; }
@@ -8526,30 +8530,30 @@ void main() {
         intervalChanged_() { }
     }, CubicInterpolant = class extends Interpolant {
         constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) { super(parameterPositions, sampleValues, sampleSize, resultBuffer), this._weightPrev = -0, this._offsetPrev = -0, this._weightNext = -0, this._offsetNext = -0, this.DefaultSettings_ = { endingStart: ZeroCurvatureEnding, endingEnd: ZeroCurvatureEnding }; }
-        intervalChanged_(i1, t0, t1) { let pp = this.parameterPositions, iPrev = i1 - 2, iNext = i1 + 1, tPrev = pp[iPrev], tNext = pp[iNext]; if (tPrev === void 0)
+        intervalChanged_(i1, t02, t1) { let pp = this.parameterPositions, iPrev = i1 - 2, iNext = i1 + 1, tPrev = pp[iPrev], tNext = pp[iNext]; if (tPrev === void 0)
             switch (this.getSettings_().endingStart) {
                 case ZeroSlopeEnding:
-                    iPrev = i1, tPrev = 2 * t0 - t1;
+                    iPrev = i1, tPrev = 2 * t02 - t1;
                     break;
                 case WrapAroundEnding:
-                    iPrev = pp.length - 2, tPrev = t0 + pp[iPrev] - pp[iPrev + 1];
+                    iPrev = pp.length - 2, tPrev = t02 + pp[iPrev] - pp[iPrev + 1];
                     break;
                 default: iPrev = i1, tPrev = t1;
             } if (tNext === void 0)
             switch (this.getSettings_().endingEnd) {
                 case ZeroSlopeEnding:
-                    iNext = i1, tNext = 2 * t1 - t0;
+                    iNext = i1, tNext = 2 * t1 - t02;
                     break;
                 case WrapAroundEnding:
                     iNext = 1, tNext = t1 + pp[1] - pp[0];
                     break;
-                default: iNext = i1 - 1, tNext = t0;
-            } let halfDt = (t1 - t0) * .5, stride = this.valueSize; this._weightPrev = halfDt / (t0 - tPrev), this._weightNext = halfDt / (tNext - t1), this._offsetPrev = iPrev * stride, this._offsetNext = iNext * stride; }
-        interpolate_(i1, t0, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, o1 = i1 * stride, o0 = o1 - stride, oP = this._offsetPrev, oN = this._offsetNext, wP = this._weightPrev, wN = this._weightNext, p = (t - t0) / (t1 - t0), pp = p * p, ppp = pp * p, sP = -wP * ppp + 2 * wP * pp - wP * p, s0 = (1 + wP) * ppp + (-1.5 - 2 * wP) * pp + (-.5 + wP) * p + 1, s1 = (-1 - wN) * ppp + (1.5 + wN) * pp + .5 * p, sN = wN * ppp - wN * pp; for (let i = 0; i !== stride; ++i)
+                default: iNext = i1 - 1, tNext = t02;
+            } let halfDt = (t1 - t02) * .5, stride = this.valueSize; this._weightPrev = halfDt / (t02 - tPrev), this._weightNext = halfDt / (tNext - t1), this._offsetPrev = iPrev * stride, this._offsetNext = iNext * stride; }
+        interpolate_(i1, t02, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, o1 = i1 * stride, o0 = o1 - stride, oP = this._offsetPrev, oN = this._offsetNext, wP = this._weightPrev, wN = this._weightNext, p = (t - t02) / (t1 - t02), pp = p * p, ppp = pp * p, sP = -wP * ppp + 2 * wP * pp - wP * p, s0 = (1 + wP) * ppp + (-1.5 - 2 * wP) * pp + (-.5 + wP) * p + 1, s1 = (-1 - wN) * ppp + (1.5 + wN) * pp + .5 * p, sN = wN * ppp - wN * pp; for (let i = 0; i !== stride; ++i)
             result[i] = sP * values[oP + i] + s0 * values[o0 + i] + s1 * values[o1 + i] + sN * values[oN + i]; return result; }
     }, LinearInterpolant = class extends Interpolant {
         constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) { super(parameterPositions, sampleValues, sampleSize, resultBuffer); }
-        interpolate_(i1, t0, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, offset1 = i1 * stride, offset0 = offset1 - stride, weight1 = (t - t0) / (t1 - t0), weight0 = 1 - weight1; for (let i = 0; i !== stride; ++i)
+        interpolate_(i1, t02, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, offset1 = i1 * stride, offset0 = offset1 - stride, weight1 = (t - t02) / (t1 - t02), weight0 = 1 - weight1; for (let i = 0; i !== stride; ++i)
             result[i] = values[offset0 + i] * weight0 + values[offset1 + i] * weight1; return result; }
     }, DiscreteInterpolant = class extends Interpolant {
         constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) { super(parameterPositions, sampleValues, sampleSize, resultBuffer); }
@@ -8680,7 +8684,7 @@ void main() {
     NumberKeyframeTrack.prototype.ValueTypeName = "number";
     var QuaternionLinearInterpolant = class extends Interpolant {
         constructor(parameterPositions, sampleValues, sampleSize, resultBuffer) { super(parameterPositions, sampleValues, sampleSize, resultBuffer); }
-        interpolate_(i1, t0, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, alpha = (t - t0) / (t1 - t0), offset = i1 * stride; for (let end = offset + stride; offset !== end; offset += 4)
+        interpolate_(i1, t02, t, t1) { let result = this.resultBuffer, values = this.sampleValues, stride = this.valueSize, alpha = (t - t02) / (t1 - t02), offset = i1 * stride; for (let end = offset + stride; offset !== end; offset += 4)
             Quaternion.slerpFlat(result, 0, values, offset - stride, values, offset, alpha); return result; }
     }, QuaternionKeyframeTrack = class extends KeyframeTrack {
         InterpolantFactoryMethodLinear(result) { return new QuaternionLinearInterpolant(this.times, this.values, this.getValueSize(), result); }
@@ -8984,7 +8988,7 @@ void main() {
         </div>`, this.parent.appendChild(el);
                 let bar2 = el.querySelector(".admock-bar i"), count = el.querySelector(".admock-count"), done = el.querySelector('[data-x="done"]'), skip = el.querySelector('[data-x="skip"]');
                 kind === "interstitial" && (skip.hidden = !0);
-                let t0 = performance.now(), timer = window.setInterval(() => { let k2 = Math.min(1, (performance.now() - t0) / (seconds * 1e3)); bar2.style.width = `${k2 * 100}%`, count.textContent = String(Math.ceil(seconds * (1 - k2))), k2 >= 1 && (window.clearInterval(timer), count.textContent = "\u2713", done.hidden = !1, skip.hidden = !0); }, 100), finish = ok => { window.clearInterval(timer), el.remove(), resolve(ok); };
+                let t02 = performance.now(), timer = window.setInterval(() => { let k2 = Math.min(1, (performance.now() - t02) / (seconds * 1e3)); bar2.style.width = `${k2 * 100}%`, count.textContent = String(Math.ceil(seconds * (1 - k2))), k2 >= 1 && (window.clearInterval(timer), count.textContent = "\u2713", done.hidden = !1, skip.hidden = !0); }, 100), finish = ok => { window.clearInterval(timer), el.remove(), resolve(ok); };
                 done.addEventListener("click", () => finish(!0)), skip.addEventListener("click", () => finish(!1)), el.addEventListener("touchstart", e => e.stopPropagation(), { passive: !0 });
             });
         }
@@ -9305,7 +9309,7 @@ void main() {
         get heightState() { return this.y > (HEIGHT.NORMAL + HEIGHT.HIGH) / 2 ? "HIGH" : this.y < (HEIGHT.NORMAL + HEIGHT.LOW) / 2 + .05 ? "LOW" : "NORMAL"; }
     };
     var airDashFlightTime = () => AIR_DASH.exec + AIR_DASH.hold + AIR_DASH.recover, airDashDest = lane => lane === 0 ? 2 : lane === 2 ? 0 : null;
-    function landingClear(obstacles, lane, tl, speed) { let v = Math.max(1, speed), x0 = LANES[lane] - CAR_HALF.x, x1 = LANES[lane] + CAR_HALF.x, y0 = HEIGHT.NORMAL - CAR_HALF.y, y1 = HEIGHT.NORMAL + CAR_HALF.y, t0 = tl - AIR_DASH.clearBehind / v, t1 = tl + AIR_DASH.clearAhead; for (let o of obstacles) {
+    function landingClear(obstacles, lane, tl, speed) { let v = Math.max(1, speed), x0 = LANES[lane] - CAR_HALF.x, x1 = LANES[lane] + CAR_HALF.x, y0 = HEIGHT.NORMAL - CAR_HALF.y, y1 = HEIGHT.NORMAL + CAR_HALF.y, t02 = tl - AIR_DASH.clearBehind / v, t1 = tl + AIR_DASH.clearAhead; for (let o of obstacles) {
         if (o.smashed)
             continue;
         let moving = o.spec.lane2 !== void 0, lanes = moving ? [o.spec.lane, o.spec.lane2] : null;
@@ -9313,7 +9317,7 @@ void main() {
             if (!(moving ? lanes.includes(lane) : b.maxX > x0 && b.minX < x1) || !(b.maxY > y0 && b.minY < y1))
                 continue;
             let za = b.minZ, zb = b.maxZ, ta = (-CAR_HALF.z - zb) / v;
-            if ((CAR_HALF.z - za) / v >= t0 && ta <= t1)
+            if ((CAR_HALF.z - za) / v >= t02 && ta <= t1)
                 return !1;
         }
     } return !0; }
@@ -9871,7 +9875,7 @@ void main() {
                 d = Math.max(d, (b.maxZ - b.minZ) / 2); return d; }
     };
     var BONUS = { everyHours: 1, openMinutes: 30, maxPlays: 3, raceMinutes: 3, finishCoins: 300, themes: ["desert", "forest", "country", "sea"] }, BONUS_NAME = { desert: "Gold Canyon", forest: "Pine Ridge", country: "Prairie Ranch", sea: "Sunset Coast" }, BONUS_SECTIONS = { desert: ["Prospector Gate", "Cactus Flats", "Red Mesas", "Mirage Mile", "Nugget Run", "Sunset Straight"], forest: ["Timber Gate", "Fern Valley", "Old Bridge", "Misty Hills", "Ranger Pass", "Lakeside"], country: ["Ranch Gate", "Wheat Fields", "Windmill Row", "Hay Bales", "Barn Bend", "Cattle Lane"], sea: ["Cove Gate", "Palm Bluffs", "Smuggler Bay", "Lighthouse Point", "Sea Arches", "Sunset Pier"] };
-    function slotAt(now2) { let d = new Date(now2), h = d.getHours(), startH = h - h % BONUS.everyHours, start2 = new Date(d.getFullYear(), d.getMonth(), d.getDate(), startH, 0, 0, 0).getTime(), idx = Math.floor(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 864e5) * (24 / BONUS.everyHours) + startH / BONUS.everyHours; return { theme: BONUS.themes[(idx % BONUS.themes.length + BONUS.themes.length) % BONUS.themes.length], start: start2, end: start2 + BONUS.openMinutes * 6e4, key: `${start2}` }; }
+    function slotAt(now2) { let off2 = new Date(now2).getTimezoneOffset() * 6e4, period = BONUS.everyHours * 36e5, local = now2 - off2, startLocal = local - (local % period + period) % period, start2 = startLocal + off2, idx = Math.floor(startLocal / period); return { theme: BONUS.themes[(idx % BONUS.themes.length + BONUS.themes.length) % BONUS.themes.length], start: start2, end: start2 + BONUS.openMinutes * 6e4, key: `${start2}` }; }
     function bonusState(now2 = Date.now()) { let cur = slotAt(now2), live = now2 < cur.end ? cur : null, next = slotAt(cur.start + BONUS.everyHours * 36e5); return { live, next }; }
     var bonusPlaysUsed = (rec, key) => rec && rec.key === key ? rec.n : 0;
     var RoomEnvironment = class extends Scene {
@@ -11800,7 +11804,10 @@ gl_FragColor.rgb *= 1.0 - smoothstep(uFarFrom, uFarTo, -vFarZ);` : `#include <fo
             near(x, ex - Math.sign(ex) * (R3.edgeW / 2 + .1), R3.stud / 2) && (l = .6, tr3 = 1.1, tg = .8, tb = .3, rough = .2, er = 1, eg = .6, eb = .12);
     } return out.r = clamp012(l * tr3), out.g = clamp012(l * tg), out.b = clamp012(l * tb), out.rough = clamp012(rough), out.er = er, out.eg = eg, out.eb = eb, out; }
     var clamp012 = v => v < 0 ? 0 : v > 1 ? 1 : v;
-    function roadPixels(w, h) { let color2 = new Uint8Array(w * h * 4), rough = new Uint8Array(w * h * 4), emissive = new Uint8Array(w * h * 4), s = { r: 0, g: 0, b: 0, rough: 0, er: 0, eg: 0, eb: 0 }; for (let j = 0; j < h; j++) {
+    function roadPixels(w, h) { let px2 = emptyRoadPixels(w, h); return roadRows(px2, 0, h), px2; }
+    function emptyRoadPixels(w, h) { return { w, h, color: new Uint8Array(w * h * 4), rough: new Uint8Array(w * h * 4), emissive: new Uint8Array(w * h * 4) }; }
+    var rowSample = { r: 0, g: 0, b: 0, rough: 0, er: 0, eg: 0, eb: 0 };
+    function roadRows(px2, j0, j1) { let { w, h, color: color2, rough, emissive } = px2, s = rowSample; for (let j = j0; j < j1; j++) {
         let z = (j + .5) / h * ROAD.tile;
         for (let i = 0; i < w; i++) {
             let x = (i + .5) / w * 2 * ROAD.half - ROAD.half;
@@ -11810,9 +11817,16 @@ gl_FragColor.rgb *= 1.0 - smoothstep(uFarFrom, uFarTo, -vFarZ);` : `#include <fo
             let rr = Math.round(s.rough * 255);
             rough[k2] = rough[k2 + 1] = rough[k2 + 2] = rr, rough[k2 + 3] = 255, emissive[k2] = Math.round(s.er * 255), emissive[k2 + 1] = Math.round(s.eg * 255), emissive[k2 + 2] = Math.round(s.eb * 255), emissive[k2 + 3] = 255;
         }
-    } return { w, h, color: color2, rough, emissive }; }
+    } }
     var ROAD_LEN = 300, ROAD_NEAR = 30, TILE = ROAD.tile, LAMP_HEAD_X = 4, SIGN_EVERY = 150, SIGN_X = 5.7, roadPx = new Map;
     function roadData(w = 512) { let px2 = roadPx.get(w); return px2 || roadPx.set(w, px2 = roadPixels(w, w * 2)), px2; }
+    var ROAD_START_W = 256, pendingRoad = new Map;
+    function roadDataLater(w, done) { let have = roadPx.get(w); if (have)
+        return done(have); let waiting = pendingRoad.get(w); if (waiting)
+        return void waiting.push(done); pendingRoad.set(w, [done]); let px2 = emptyRoadPixels(w, w * 2), row2 = 0, slice = () => { var _a13; let t02 = performance.now(); for (; row2 < px2.h && performance.now() - t02 < 4;)
+        roadRows(px2, row2, row2 + 1), row2++; if (row2 < px2.h)
+        return void setTimeout(slice, 30); roadPx.set(w, px2); let cbs = (_a13 = pendingRoad.get(w)) != null ? _a13 : []; pendingRoad.delete(w); for (let cb of cbs)
+        cb(px2); }; setTimeout(slice, 4e3); }
     function dataTex(data, w, h, srgb) { let t = new DataTexture(data, w, h, RGBAFormat); return t.colorSpace = srgb ? SRGBColorSpace : NoColorSpace, t.wrapS = ClampToEdgeWrapping, t.wrapT = RepeatWrapping, t.magFilter = LinearFilter, t.minFilter = LinearMipmapLinearFilter, t.generateMipmaps = !0, t.anisotropy = 4, t.needsUpdate = !0, t; }
     var WALL_RIB = 4, WALL_H = .62, tmpWhite = new Color(16777215), Track = class {
         constructor() {
@@ -11851,12 +11865,13 @@ gl_FragColor.rgb *= 1.0 - smoothstep(uFarFrom, uFarTo, -vFarZ);` : `#include <fo
             __publicField(this, "tone", new Color(16777215));
             __publicField(this, "toneK", 1);
             __publicField(this, "signsOn", !0);
+            __publicField(this, "preset", null);
             __publicField(this, "openAir", !0);
             __publicField(this, "sideGlowMat");
             __publicField(this, "stretch", new Matrix4);
             __publicField(this, "toHead", new Matrix4().makeTranslation(-.75, 3.5, 0));
             __publicField(this, "fromHead", new Matrix4().makeTranslation(.75, -3.5, 0));
-            let px2 = roadData();
+            let px2 = roadData(platform.native ? ROAD_START_W : 512);
             this.roadTex = dataTex(px2.color, px2.w, px2.h, !0), this.roughTex = dataTex(px2.rough, px2.w, px2.h, !1), this.emisTex = dataTex(px2.emissive, px2.w, px2.h, !0);
             for (let t of this.roadTexs)
                 t.repeat.set(1, ROAD_LEN / TILE);
@@ -11992,8 +12007,8 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             for (let c2 of sg.g.children)
                 c2.visible = !!st && c2.name === st.signs;
         } }
-        setQuality(p) { if (p.roadTex !== this.roadTex.image.width) {
-            let px2 = roadData(p.roadTex), old = this.roadTexs;
+        setQuality(p) { this.preset = p; let want = p.roadTex; if (platform.native && want > ROAD_START_W && !roadPx.has(want) && (roadDataLater(want, () => { this.preset === p && this.setQuality(p); }), want = this.roadTex.image.width), want !== this.roadTex.image.width) {
+            let px2 = roadData(want), old = this.roadTexs;
             this.roadTex = dataTex(px2.color, px2.w, px2.h, !0), this.roughTex = dataTex(px2.rough, px2.w, px2.h, !1), this.emisTex = dataTex(px2.emissive, px2.w, px2.h, !0);
             for (let t of this.roadTexs)
                 t.repeat.set(1, ROAD_LEN / TILE), t.offset.y = old[0].offset.y;
@@ -12330,7 +12345,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             for (let k2 of Object.keys(sets[i]))
                 sets[i][k2].visible = k2 === md;
         } }, update() { } }; }
-    function stockade(set) { let group = new Group, logC = set === "ruins" ? 13676682 : 8015920, walls = [], lintels = [], frames = [], doors = []; for (let i = 0; i < 3; i++) {
+    function stockade(set) { let group = new Group, logC = set === "ruins" ? 13676682 : 8015920, walls = [], lintels = [], frames2 = [], doors = []; for (let i = 0; i < 3; i++) {
         let x = LANES[i], w = new Model;
         for (let k2 = 0; k2 < 6; k2++)
             w.cyl(.22, .22, 6.4, logC + (k2 % 2 ? 525828 : 0), -1.08 + k2 * .43, 3.2, 0, 7), w.cone(.22, .6, logC, -1.08 + k2 * .43, 6.7, 0, 7);
@@ -12349,7 +12364,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             f.position.set(fx, fy, 0), fr.add(f);
         }
         let arrow = new Mesh(new ConeGeometry(.42, .66, 3), GREEN2);
-        arrow.rotation.z = Math.PI, arrow.position.set(0, 3.2 - .3, .5), fr.add(arrow), fr.position.x = x, group.add(fr), frames.push(fr);
+        arrow.rotation.z = Math.PI, arrow.position.set(0, 3.2 - .3, .5), fr.add(arrow), fr.position.x = x, group.add(fr), frames2.push(fr);
         let dm = new Model;
         dm.box(1.15, 1.2, .08, 11565642, .58, 1.2, 0, 0, { atlas: "planks", map: "all" });
         let geoDoor = dm.bake(), dl = new Group;
@@ -12362,7 +12377,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         towers.box(1.9, 1.1, 1.9, 8015920, 4.9 * s, 8.4, 0, 0, { atlas: "planks", map: "side" }), towers.cone(1.5, 1, 4860950, 4.9 * s, 9.5, 0, 4);
     } return group.add(mesh(towers)), { group, setup(o) { for (let i = 0; i < 3; i++) {
             let isDoor = i === o.spec.door;
-            walls[i].visible = !isDoor, lintels[i].visible = isDoor, frames[i].visible = isDoor, doors[i].l.visible = doors[i].r.visible = isDoor;
+            walls[i].visible = !isDoor, lintels[i].visible = isDoor, frames2[i].visible = isDoor, doors[i].l.visible = doors[i].r.visible = isDoor;
         } }, update(o) { var _a13; let d = (_a13 = o.spec.door) != null ? _a13 : 1, open = Math.min(1, Math.max(0, (-o.z - 45) / -40 + 1)); doors[d].l.rotation.y = -open * 1.45, doors[d].r.rotation.y = open * 1.45; } }; }
     function tumbleweed2() { let group = new Group, m = new Model; for (let i = 0; i < 4; i++)
         m.add(new TorusGeometry(.75, .06, 4, 12), 11045466, 0, 0, 0, i * .8, i * .6, 0); let tw = mesh(m); return tw.position.y = 1.2, group.add(tw), { group, setup() { }, update(_o2, _t, dt) { tw.rotation.x += dt * 3; } }; }
@@ -12636,7 +12651,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         x.font = `${sz -= 4}px "Rye", Georgia, serif`; x.lineWidth = 8, x.strokeStyle = "#2a1206", x.strokeText(label, 512, 106), x.fillStyle = "#fff1d0", x.fillText(label, 512, 106), tex3.needsUpdate = !0; }; draw3("THE WEST"); let sign2 = new Mesh(new PlaneGeometry(11, 1.72), new MeshBasicMaterial({ map: tex3, toneMapped: !1 })); sign2.position.set(0, 7.3, .12), g.add(sign2); let board = new Mesh(new BoxGeometry(11.3, 2, .2), wood); board.position.set(0, 7.3, 0), g.add(board); let lampMat = new MeshBasicMaterial({ color: 16762976, toneMapped: !1 }); for (let x2 of [-4.5, -1.5, 1.5, 4.5]) {
         let lamp = new Mesh(new BoxGeometry(.32, .4, .32), lampMat);
         lamp.position.set(x2, 8, .5), g.add(lamp);
-    } g.visible = !1; let last = ""; return { group: g, setColor(col2) { lampMat.color.copy(col2).lerp(new Color(16762976), .6); }, setLabel(label) { label !== last && draw3(last = label); }, update(_dt) { } }; }
+    } g.visible = !1; let last2 = ""; return { group: g, setColor(col2) { lampMat.color.copy(col2).lerp(new Color(16762976), .6); }, setLabel(label) { label !== last2 && draw3(last2 = label); }, update(_dt) { } }; }
     var COLLISION_DEBUG = (() => { try {
         return new URLSearchParams(location.search).get("debug") === "collision";
     }
@@ -12676,23 +12691,26 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         constructor(capacity = 3600) { __publicField(this, "capacity", capacity); __publicField(this, "frame"); __publicField(this, "js"); __publicField(this, "render"); __publicField(this, "n", 0); __publicField(this, "head", 0); this.frame = new Float32Array(capacity), this.js = new Float32Array(capacity), this.render = new Float32Array(capacity); }
         add(s) { this.frame[this.head] = s.frame, this.js[this.head] = s.js, this.render[this.head] = s.render, this.head = (this.head + 1) % this.capacity, this.n = Math.min(this.capacity, this.n + 1); }
         reset() { this.n = 0, this.head = 0; }
-        report(last = this.n) { var _a13; let k2 = Math.min(last, this.n), f = [], j = [], r = []; for (let i = 0; i < k2; i++) {
+        report(last2 = this.n) { var _a13; let k2 = Math.min(last2, this.n), f = [], j = [], r = []; for (let i = 0; i < k2; i++) {
             let idx = (this.head - 1 - i + this.capacity * 2) % this.capacity;
             f.push(this.frame[idx]), j.push(this.js[idx]), r.push(this.render[idx]);
         } let sum = f.reduce((a, b) => a + b, 0), avg = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0; return f.sort((a, b) => a - b), j.sort((a, b) => a - b), r.sort((a, b) => a - b), { frames: k2, seconds: r1(sum / 1e3), fps: r1(k2 && sum ? 1e3 * k2 / sum : 0), frame: { p50: r1(pct(f, .5)), p95: r1(pct(f, .95)), p99: r1(pct(f, .99)), max: r1((_a13 = f[f.length - 1]) != null ? _a13 : 0) }, js: { avg: r1(avg(j)), p95: r1(pct(j, .95)) }, render: { avg: r1(avg(r)), p95: r1(pct(r, .95)) }, slow: f.filter(x => x > 33.4).length }; }
     };
     var mtof = m => 440 * Math.pow(2, (m - 69) / 12);
     function rng3(seed = 1) { let s = seed >>> 0 || 1; return () => (s ^= s << 13, s ^= s >>> 17, s ^= s << 5, (s >>> 0) / 4294967296 * 2 - 1); }
-    function pluck(out, sr, at, hz, vol, dur, bright = .5, decay = 1.6, seed = 7) { let damp3 = .5 - bright * .12, D2 = Math.max(2, sr / hz - damp3), M = Math.ceil(D2) + 2, buf = new Float32Array(M), r = rng3(seed + Math.round(hz * 13)), prev = 0, sm = .15 + (1 - bright) * .75; for (let i = 0; i < M; i++)
-        prev = prev * sm + r() * (1 - sm), buf[i] = prev; let pk = 0; for (let v of buf)
-        pk = Math.max(pk, Math.abs(v)); for (let i = 0; i < M; i++)
-        buf[i] /= pk || 1; let loss = Math.pow(.001, 1 / (decay * hz)), n2 = Math.min(out.length - at, Math.floor(dur * sr)), last = 0, w = 0; for (let i = 0; i < n2; i++) {
+    function pluck(out, sr, at, hz, vol, dur, bright = .5, decay = 1.6, seed = 7) { let step2 = pluckSteps(out, sr, at, hz, vol, dur, bright, decay, seed); for (; !step2();)
+        ; }
+    var STEP_SAMPLES = 4096;
+    function pluckSteps(out, sr, at, hz, vol, dur, bright = .5, decay = 1.6, seed = 7) { let damp3 = .5 - bright * .12, D2 = Math.max(2, sr / hz - damp3), M = Math.ceil(D2) + 2, buf = new Float32Array(M), r = rng3(seed + Math.round(hz * 13)), prev = 0, sm = .15 + (1 - bright) * .75; for (let i2 = 0; i2 < M; i2++)
+        prev = prev * sm + r() * (1 - sm), buf[i2] = prev; let pk = 0; for (let v of buf)
+        pk = Math.max(pk, Math.abs(v)); for (let i2 = 0; i2 < M; i2++)
+        buf[i2] /= pk || 1; let loss = Math.pow(.001, 1 / (decay * hz)), n2 = Math.min(out.length - at, Math.floor(dur * sr)), last2 = 0, w = 0, i = 0; return () => { let end = Math.min(n2, i + STEP_SAMPLES); for (; i < end; i++) {
         let pos = w - D2, i0 = Math.floor(pos), f = pos - i0, a = buf[(i0 % M + M) % M], b = buf[((i0 + 1) % M + M) % M], y = a + (b - a) * f;
-        buf[w] = (y * (1 - damp3) + last * damp3) * loss, last = y, w = (w + 1) % M;
+        buf[w] = (y * (1 - damp3) + last2 * damp3) * loss, last2 = y, w = (w + 1) % M;
         let env2 = Math.min(1, i / (sr * .002)) * (i > n2 - sr * .02 ? (n2 - i) / (sr * .02) : 1);
         out[at + i] += y * vol * env2;
-    } }
-    function harmonica(out, sr, at, hz, vol, dur, seed = 3) { let r = rng3(seed), n2 = Math.min(out.length - at, Math.floor(dur * sr)), parts = [1, .55, .42, .22, .16, .08], ph = 0, breath = 0; for (let i = 0; i < n2; i++) {
+    } return i >= n2; }; }
+    function harmonicaSteps(out, sr, at, hz, vol, dur, seed = 3) { let r = rng3(seed), n2 = Math.min(out.length - at, Math.floor(dur * sr)), parts = [1, .55, .42, .22, .16, .08], ph = 0, breath = 0, i = 0; return () => { let end = Math.min(n2, i + STEP_SAMPLES); for (; i < end; i++) {
         let t = i / sr, vib = 1 + .006 * Math.sin(2 * Math.PI * 5.2 * t) * Math.min(1, t / .25);
         ph += 2 * Math.PI * hz * vib / sr;
         let s = 0;
@@ -12701,13 +12719,13 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         breath = breath * .9 + r() * .1;
         let att = Math.min(1, t / .06), rel = i > n2 - sr * .08 ? (n2 - i) / (sr * .08) : 1, k2 = at + i;
         k2 >= 0 && (out[k2] += (s * .42 + breath * .35) * vol * att * rel);
-    } }
-    function whistle(out, sr, at, hz, vol, dur) { let n2 = Math.min(out.length - at, Math.floor(dur * sr)), ph = 0; for (let i = 0; i < n2; i++) {
+    } return i >= n2; }; }
+    function whistleSteps(out, sr, at, hz, vol, dur) { let n2 = Math.min(out.length - at, Math.floor(dur * sr)), ph = 0, i = 0; return () => { let end = Math.min(n2, i + STEP_SAMPLES); for (; i < end; i++) {
         let t = i / sr, vib = 1 + .012 * Math.sin(2 * Math.PI * 5.6 * t) * Math.min(1, t / (dur * .6));
         ph += 2 * Math.PI * hz * vib / sr;
         let s = Math.sin(ph) + .08 * Math.sin(ph * 2), att = Math.min(1, t / .05), rel = i > n2 - sr * .1 ? (n2 - i) / (sr * .1) : 1, k2 = at + i;
         k2 >= 0 && (out[k2] += s * vol * att * rel);
-    } }
+    } return i >= n2; }; }
     function kick(out, sr, at, vol) { let n2 = Math.min(out.length - at, Math.floor(.3 * sr)), ph = 0; for (let i = 0; i < n2; i++) {
         let t = i / sr, f = 48 + 90 * Math.exp(-t * 28);
         ph += 2 * Math.PI * f / sr, out[at + i] += Math.sin(ph) * vol * Math.exp(-t * 11);
@@ -12737,24 +12755,32 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
     function master(x, peak = .8) { let pk = 0; for (let i = 0; i < x.length; i++)
         x[i] = Math.tanh(x[i] * 1.1), pk = Math.max(pk, Math.abs(x[i])); let k2 = pk > 0 ? peak / pk : 1; for (let i = 0; i < x.length; i++)
         x[i] *= k2; return x; }
+    function masterSteps(get, peak, done) { let x = null, i = 0, pk = 0, phase = 0, k2 = 1, N = STEP_SAMPLES * 4; return () => { if (x != null || (x = get()), phase === 0) {
+        let end2 = Math.min(x.length, i + N);
+        for (; i < end2; i++)
+            x[i] = Math.tanh(x[i] * 1.1), pk = Math.max(pk, Math.abs(x[i]));
+        return i < x.length || (k2 = pk > 0 ? peak / pk : 1, phase = 1, i = 0), !1;
+    } let end = Math.min(x.length, i + N); for (; i < end; i++)
+        x[i] *= k2; return i < x.length ? !1 : (done(x), !0); }; }
     var SONGS = { camp: { bpm: 84, bars: 8 }, ride: { bpm: 132, bars: 8 } }, beatLen = (s, sr) => 60 / s.bpm * sr, loopLength = (s, sr) => Math.round(beatLen(s, sr) * 4 * s.bars);
+    var lazy = make => { let step2 = null; return () => (step2 != null ? step2 : step2 = make())(); };
     function campPlan(sr) { let jobs = [], S = SONGS.camp, bl = beatLen(S, sr), L = loopLength(S, sr), out = new Float32Array(L + sr * 3); [[43, [55, 59, 62, 67]], [48, [55, 60, 64, 67]], [43, [55, 59, 62, 67]], [50, [54, 57, 62, 66]], [43, [55, 59, 62, 67]], [48, [55, 60, 64, 67]], [50, [54, 57, 62, 66]], [43, [55, 59, 62, 67]]].forEach(([root, tones], bar2) => { let b0 = bar2 * 4 * bl; for (let beat = 0; beat < 4; beat++) {
         let m = beat % 2 === 0 ? root : root + 7;
-        jobs.push(() => pluck(out, sr, Math.round(b0 + beat * bl), mtof(m), .32, 1.6, .25, 2.2, bar2 * 4 + beat));
-    } [3, 2, 1, 2, 3, 1, 2, 0].forEach((ti, k2) => { let at = Math.round(b0 + (k2 * .5 + .5) * bl); k2 % 2 === 0 ? jobs.push(() => pluck(out, sr, at, mtof(tones[ti]), .16, 1.4, .55, 1.8, bar2 * 31 + k2)) : jobs.push(() => pluck(out, sr, at, mtof(tones[ti]), .12, 1.2, .5, 1.5, bar2 * 17 + k2)); }); }); let mel = [[0, 71, 2], [2, 74, 2], [4, 76, 3], [7, 74, 1], [8, 71, 3], [11, 69, 1], [12, 66, 3], [15, 69, 1], [16, 71, 2], [18, 74, 2], [20, 76, 2], [22, 79, 2], [24, 78, 2], [26, 74, 2], [28, 71, 4]]; for (let [b, m, len2] of mel)
-        jobs.push(() => harmonica(out, sr, Math.round(b * bl), mtof(m), .07, len2 * bl / sr * .95, b + 1)); let res = new Float32Array(0); return jobs.push(() => res = master(foldTail(out, L), .7)), { jobs, done: () => res }; }
+        jobs.push(lazy(() => pluckSteps(out, sr, Math.round(b0 + beat * bl), mtof(m), .32, 1.6, .25, 2.2, bar2 * 4 + beat)));
+    } [3, 2, 1, 2, 3, 1, 2, 0].forEach((ti, k2) => { let at = Math.round(b0 + (k2 * .5 + .5) * bl); k2 % 2 === 0 ? jobs.push(lazy(() => pluckSteps(out, sr, at, mtof(tones[ti]), .16, 1.4, .55, 1.8, bar2 * 31 + k2))) : jobs.push(lazy(() => pluckSteps(out, sr, at, mtof(tones[ti]), .12, 1.2, .5, 1.5, bar2 * 17 + k2))); }); }); let mel = [[0, 71, 2], [2, 74, 2], [4, 76, 3], [7, 74, 1], [8, 71, 3], [11, 69, 1], [12, 66, 3], [15, 69, 1], [16, 71, 2], [18, 74, 2], [20, 76, 2], [22, 79, 2], [24, 78, 2], [26, 74, 2], [28, 71, 4]]; for (let [b, m, len2] of mel)
+        jobs.push(lazy(() => harmonicaSteps(out, sr, Math.round(b * bl), mtof(m), .07, len2 * bl / sr * .95, b + 1))); let res = new Float32Array(0); return jobs.push(masterSteps(() => foldTail(out, L), .7, x => res = x)), { jobs, done: () => res }; }
     function ridePlan(sr) { let jobs = [], S = SONGS.ride, bl = beatLen(S, sr), L = loopLength(S, sr), base = new Float32Array(L + sr * 3), drums = new Float32Array(L + sr * 2), nitro = new Float32Array(L + sr * 2); [[45, [57, 60, 64, 69]], [45, [57, 60, 64, 69]], [43, [55, 59, 62, 67]], [43, [55, 59, 62, 67]], [41, [53, 57, 60, 65]], [41, [53, 57, 60, 65]], [40, [52, 56, 59, 64]], [40, [52, 56, 59, 64]]].forEach(([root, tones], bar2) => { let b0 = bar2 * 4 * bl; for (let beat = 0; beat < 4; beat++) {
         let at = Math.round(b0 + beat * bl);
-        beat % 2 === 0 ? jobs.push(() => pluck(base, sr, at, mtof(beat === 0 ? root : root + 7), .42, .9, .2, 1.1, bar2 * 8 + beat)) : tones.forEach((m, i) => jobs.push(() => pluck(base, sr, at + Math.round(i * sr * .011), mtof(m), .1, .5, .6, .55, bar2 * 40 + beat * 5 + i))), beat % 2 === 0 && jobs.push(() => kick(drums, sr, at, .55));
+        beat % 2 === 0 ? jobs.push(lazy(() => pluckSteps(base, sr, at, mtof(beat === 0 ? root : root + 7), .42, .9, .2, 1.1, bar2 * 8 + beat))) : tones.forEach((m, i) => jobs.push(lazy(() => pluckSteps(base, sr, at + Math.round(i * sr * .011), mtof(m), .1, .5, .6, .55, bar2 * 40 + beat * 5 + i)))), beat % 2 === 0 && jobs.push(() => kick(drums, sr, at, .55));
         for (let s = 0; s < 4; s++)
             brush(drums, sr, Math.round(at + s * bl / 4), s === 2 ? .16 : .07, .07);
         jobs.push(() => clop(drums, sr, at, 820, .12)), jobs.push(() => clop(drums, sr, Math.round(at + bl * .5), 640, .09)), jobs.push(() => clop(drums, sr, Math.round(at + bl * .75), 700, .09));
         for (let s = 0; s < 4; s++) {
             let m = tones[(beat * 4 + s) % tones.length] + 12;
-            jobs.push(() => pluck(nitro, sr, Math.round(at + s * bl / 4), mtof(m), .09, .35, .95, .35, bar2 * 64 + beat * 4 + s)), s % 2 === 1 && jobs.push(() => shaker(nitro, sr, Math.round(at + s * bl / 4), .12, bar2 * 9 + s));
+            jobs.push(lazy(() => pluckSteps(nitro, sr, Math.round(at + s * bl / 4), mtof(m), .09, .35, .95, .35, bar2 * 64 + beat * 4 + s))), s % 2 === 1 && jobs.push(() => shaker(nitro, sr, Math.round(at + s * bl / 4), .12, bar2 * 9 + s));
         }
     } }); let mel = [[0, 76, 1.5], [1.5, 81, .5], [2, 79, 1], [3, 76, 1], [4, 74, 1], [5, 76, 3], [8, 74, 1.5], [9.5, 79, .5], [10, 77, 1], [11, 74, 1], [12, 71, 1], [13, 74, 3], [16, 72, 1.5], [17.5, 77, .5], [18, 76, 1], [19, 72, 1], [20, 69, 1], [21, 72, 3], [24, 71, 1], [25, 68, 1], [26, 71, 1], [27, 74, 1], [28, 76, 4]]; for (let [b, m, len2] of mel)
-        jobs.push(() => whistle(base, sr, Math.round(b * bl), mtof(m), .085, len2 * bl / sr * .92)); let res = { base: new Float32Array(0), drums: new Float32Array(0), nitro: new Float32Array(0) }; return jobs.push(() => res.base = master(foldTail(base, L), .62)), jobs.push(() => res.drums = master(foldTail(drums, L), .5)), jobs.push(() => res.nitro = master(foldTail(nitro, L), .4)), { jobs, done: () => res }; }
+        jobs.push(lazy(() => whistleSteps(base, sr, Math.round(b * bl), mtof(m), .085, len2 * bl / sr * .92))); let res = { base: new Float32Array(0), drums: new Float32Array(0), nitro: new Float32Array(0) }; return jobs.push(masterSteps(() => foldTail(base, L), .62, x => res.base = x)), jobs.push(masterSteps(() => foldTail(drums, L), .5, x => res.drums = x)), jobs.push(masterSteps(() => foldTail(nitro, L), .4, x => res.nitro = x)), { jobs, done: () => res }; }
     function renderStrum(sr, tones, vol = .25, gap = .016) { let out = new Float32Array(Math.round(sr * 1.4)); return tones.forEach((m, i) => pluck(out, sr, Math.round(i * gap * sr), mtof(m), vol, 1.3, .6, 1.2, i + 3)), master(out, .85); }
     function renderBell(sr, hz, dur = 1.2) { let out = new Float32Array(Math.round(sr * dur)); return bell(out, sr, 0, hz, .5, dur), master(out, .8); }
     function renderPluck(sr, midi, bright = .7, dur = .9) { let out = new Float32Array(Math.round(sr * dur)); return pluck(out, sr, 0, mtof(midi), .5, dur, bright, dur * .9, midi), master(out, .8); }
@@ -12799,14 +12825,14 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         }
         catch (e) {
             console.warn("[audio] compat", e);
-        } (_a13 = c2.addEventListener) == null || _a13.call(c2, "statechange", () => { var _a14; c2.state === "running" && ((_a14 = this.onRunning) == null || _a14.call(this)); }), c2.state !== "running" && c2.resume().catch(() => { }), this.baked && (this.sr = Math.min(48e3, Math.max(22050, Math.round(c2.sampleRate || 44100)))), this.master = c2.createGain(), this.master.gain.value = this.baked ? NATIVE_MASTER : .8; let comp = c2.createDynamicsCompressor(); comp.threshold.value = -14, comp.ratio.value = 4, this.master.connect(comp).connect(c2.destination), this.sfxBus = c2.createGain(), this.sfxBus.gain.value = this.sfxOn ? .9 : 0, this.sfxBus.connect(this.master), this.musicBus = c2.createGain(), this.musicBus.gain.value = this.musicOn ? .42 : 0, this.musicBus.connect(this.master), this.reverb = c2.createConvolver(); let ir = c2.createBuffer(2, Math.round(c2.sampleRate * 1.8), c2.sampleRate); for (let ch = 0; ch < 2; ch++) {
+        } (_a13 = c2.addEventListener) == null || _a13.call(c2, "statechange", () => { var _a14; c2.state === "running" && ((_a14 = this.onRunning) == null || _a14.call(this)); }), c2.state !== "running" && c2.resume().catch(() => { }), this.baked && (this.sr = Math.min(48e3, Math.max(22050, Math.round(c2.sampleRate || 44100)))), this.master = c2.createGain(), this.master.gain.value = this.baked ? NATIVE_MASTER : .8; let comp = c2.createDynamicsCompressor(); comp.threshold.value = -14, comp.ratio.value = 4, this.master.connect(comp).connect(c2.destination), this.sfxBus = c2.createGain(), this.sfxBus.gain.value = this.sfxOn ? .9 : 0, this.sfxBus.connect(this.master), this.musicBus = c2.createGain(), this.musicBus.gain.value = this.musicOn ? .42 : 0, this.musicBus.connect(this.master), this.reverb = c2.createConvolver(); let makeIr = () => { let ir = c2.createBuffer(2, Math.round(c2.sampleRate * 1.8), c2.sampleRate); for (let ch = 0; ch < 2; ch++) {
             let d2 = ir.getChannelData(ch), lp = 0;
             for (let i = 0; i < d2.length; i++) {
                 let k2 = i / d2.length;
                 lp += (Math.random() * 2 - 1 - lp) * (.5 - k2 * .42), d2[i] = lp * Math.pow(1 - k2, 2.6) * (i < c2.sampleRate * .012 ? 0 : 1);
             }
-        } this.reverb.buffer = ir; let wet = c2.createGain(); wet.gain.value = .22, this.reverb.connect(wet).connect(this.musicBus), this.noiseBuf = c2.createBuffer(1, c2.sampleRate, c2.sampleRate); let d = this.noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++)
-            d[i] = Math.random() * 2 - 1; this.buildSfx(), this.prebake(); for (let [n2, u] of this.pendingOverrides)
+        } this.reverb && (this.reverb.buffer = ir); }; this.baked ? setTimeout(makeIr, 2500) : makeIr(); let wet = c2.createGain(); wet.gain.value = .22, this.reverb.connect(wet).connect(this.musicBus), this.noiseBuf = c2.createBuffer(1, c2.sampleRate, c2.sampleRate); let d = this.noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++)
+            d[i] = Math.random() * 2 - 1; this.baked ? setTimeout(() => this.buildSfx(!0), 900) : this.buildSfx(), this.prebake(); for (let [n2, u] of this.pendingOverrides)
             this.loadOverride(n2, u); this.pendingOverrides.length = 0, this.prime(), c2.state === "running" && Promise.resolve().then(() => { var _a14; return (_a14 = this.onRunning) == null ? void 0 : _a14.call(this); }); }
         prime() { let c2 = this.ctx; if (!c2)
             return; let b = c2.createBuffer(1, 1, 22050), s = c2.createBufferSource(); s.buffer = b, s.connect(c2.destination), s.start(0); }
@@ -12825,16 +12851,16 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         setSfx(on2) { this.sfxOn = on2, this.ctx && (this.sfxBus.gain.value = on2 ? .9 : 0); }
         duck(on2) { this.ctx && (this.master.gain.value = on2 ? 0 : this.baked ? NATIVE_MASTER : .8); }
         setMusic(on2) { this.musicOn = on2, this.ctx && (this.musicBus.gain.value = on2 ? .42 : 0); }
-        osc(type, f0, f1, t0, dur, vol, bus, pan = 0) { if (this.rt)
-            return bakeOsc(this.rt, this.sr, type, f0, f1, t0, dur, vol); let c2 = this.ctx, o = c2.createOscillator(), g = c2.createGain(); o.type = type, o.frequency.setValueAtTime(f0, t0), f1 !== f0 && o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t0 + dur), g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .008), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur); let out = g; if (pan && c2.createStereoPanner) {
+        osc(type, f0, f1, t02, dur, vol, bus, pan = 0) { if (this.rt)
+            return bakeOsc(this.rt, this.sr, type, f0, f1, t02, dur, vol); let c2 = this.ctx, o = c2.createOscillator(), g = c2.createGain(); o.type = type, o.frequency.setValueAtTime(f0, t02), f1 !== f0 && o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t02 + dur), g.gain.setValueAtTime(1e-4, t02), g.gain.exponentialRampToValueAtTime(vol, t02 + .008), g.gain.exponentialRampToValueAtTime(1e-4, t02 + dur); let out = g; if (pan && c2.createStereoPanner) {
             let p = c2.createStereoPanner();
             p.pan.value = pan, g.connect(p), out = p;
-        } o.connect(g), out.connect(bus != null ? bus : this.sfxBus), o.start(t0), o.stop(t0 + dur + .02); }
-        noise(t0, dur, vol, f0, f1, q = 1, type = "bandpass", bus, pan = 0) { if (this.rt)
-            return bakeNoise(this.rt, this.sr, t0, dur, vol, f0, f1, q, type); let c2 = this.ctx, s = c2.createBufferSource(); s.buffer = this.noiseBuf; let f = c2.createBiquadFilter(); f.type = type, f.Q.value = q, f.frequency.setValueAtTime(f0, t0), f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t0 + dur); let g = c2.createGain(); g.gain.setValueAtTime(1e-4, t0), g.gain.exponentialRampToValueAtTime(vol, t0 + .01), g.gain.exponentialRampToValueAtTime(1e-4, t0 + dur), s.connect(f).connect(g); let out = g; if (pan && c2.createStereoPanner) {
+        } o.connect(g), out.connect(bus != null ? bus : this.sfxBus), o.start(t02), o.stop(t02 + dur + .02); }
+        noise(t02, dur, vol, f0, f1, q = 1, type = "bandpass", bus, pan = 0) { if (this.rt)
+            return bakeNoise(this.rt, this.sr, t02, dur, vol, f0, f1, q, type); let c2 = this.ctx, s = c2.createBufferSource(); s.buffer = this.noiseBuf; let f = c2.createBiquadFilter(); f.type = type, f.Q.value = q, f.frequency.setValueAtTime(f0, t02), f.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t02 + dur); let g = c2.createGain(); g.gain.setValueAtTime(1e-4, t02), g.gain.exponentialRampToValueAtTime(vol, t02 + .01), g.gain.exponentialRampToValueAtTime(1e-4, t02 + dur), s.connect(f).connect(g); let out = g; if (pan && c2.createStereoPanner) {
             let p = c2.createStereoPanner();
             p.pan.value = pan, g.connect(p), out = p;
-        } out.connect(bus != null ? bus : this.sfxBus), s.start(t0, Math.random() * .5), s.stop(t0 + dur + .02); }
+        } out.connect(bus != null ? bus : this.sfxBus), s.start(t02, Math.random() * .5), s.stop(t02 + dur + .02); }
         play(name, opt = {}) { var _a13, _b3; if (this.lastPlayed[name] = performance.now(), !this.ctx || !this.sfxOn)
             return; let c2 = this.ctx, t = c2.currentTime + ((_a13 = opt.delay) != null ? _a13 : 0), ov = this.overrides.get(name); if (ov) {
             let s = c2.createBufferSource();
@@ -12871,8 +12897,8 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             catch (e) {
                 console.warn("[audio] bake", e);
             }
-            setTimeout(next, 45);
-        } }; setTimeout(next, 1200); }
+            setTimeout(next, 120);
+        } }; setTimeout(next, 1800); }
         recipe(name, t, pan, step2) { switch (name) {
             case "coin": {
                 let base = 1568 * Math.pow(2, step2 / 24);
@@ -12947,7 +12973,11 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
                 break;
         } }
         buf(x) { let b = this.ctx.createBuffer(1, x.length, this.sr); return b.getChannelData(0).set(x), b; }
-        buildSfx() { this.sfxBufs = { bell: this.buf(renderBell(this.sr, 1318, .9)), bellLow: this.buf(renderBell(this.sr, 784, 1.2)), strumG: this.buf(renderStrum(this.sr, [43, 50, 55, 59, 62, 67], .22, .018)), strumD: this.buf(renderStrum(this.sr, [50, 57, 62, 66, 69], .22, .012)), twang: this.buf(renderPluck(this.sr, 40, .5, 1.2)), b1: this.buf(renderPluck(this.sr, 67, .9, .5)), b2: this.buf(renderPluck(this.sr, 71, .9, .5)), b3: this.buf(renderPluck(this.sr, 74, .9, .5)), b4: this.buf(renderPluck(this.sr, 79, .9, .7)) }; }
+        buildSfx(spread = !1) { let make = [["bell", () => renderBell(this.sr, 1318, .9)], ["bellLow", () => renderBell(this.sr, 784, 1.2)], ["strumG", () => renderStrum(this.sr, [43, 50, 55, 59, 62, 67], .22, .018)], ["strumD", () => renderStrum(this.sr, [50, 57, 62, 66, 69], .22, .012)], ["twang", () => renderPluck(this.sr, 40, .5, 1.2)], ["b1", () => renderPluck(this.sr, 67, .9, .5)], ["b2", () => renderPluck(this.sr, 71, .9, .5)], ["b3", () => renderPluck(this.sr, 74, .9, .5)], ["b4", () => renderPluck(this.sr, 79, .9, .7)]]; if (!spread) {
+            for (let [k2, f] of make)
+                this.sfxBufs[k2] = this.buf(f());
+            return;
+        } let next = () => { let j = make.shift(); j && (this.sfxBufs[j[0]] || (this.sfxBufs[j[0]] = this.buf(j[1]())), setTimeout(next, 60)); }; next(); }
         playBuf(k2, t, vol, pan = 0, rate = 1) { let c2 = this.ctx, b = this.sfxBufs[k2]; if (!b)
             return; if (this.rt)
             return bakeMix(this.rt, this.sr, b.getChannelData(0), b.sampleRate, t, vol, rate); let s = c2.createBufferSource(); s.buffer = b, s.playbackRate.value = rate; let g = c2.createGain(); g.gain.value = vol, s.connect(g); let out = g; if (pan && c2.createStereoPanner) {
@@ -12958,8 +12988,11 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         stopMusic() { this.playing = !1; for (let k2 of Object.keys(this.layers))
             this.stopLayer(k2); }
         async renderSongs() { if (this.rendering || this.songs.camp)
-            return; this.rendering = !0; let run = async (p) => { let t0 = performance.now(), budget = this.baked ? 3 : 6, rest = this.baked ? 20 : 0; for (let j of p.jobs)
-            j(), performance.now() - t0 > budget && (await new Promise(r => setTimeout(r, rest)), t0 = performance.now()); return p.done(); }; try {
+            return; this.rendering = !0; let run = async (p) => { let t02 = performance.now(), budget = this.baked ? 3 : 6, rest = this.baked ? 20 : 0; for (let j of p.jobs) {
+            for (; j() === !1;)
+                performance.now() - t02 > budget && (await new Promise(r => setTimeout(r, rest)), t02 = performance.now());
+            performance.now() - t02 > budget && (await new Promise(r => setTimeout(r, rest)), t02 = performance.now());
+        } return p.done(); }; try {
             this.songs.camp = this.buf(await run(campPlan(this.sr))), this.applyIntensity(-1);
             let ride = await run(ridePlan(this.sr));
             this.songs.base = this.buf(ride.base), this.songs.drums = this.buf(ride.drums), this.songs.nitro = this.buf(ride.nitro), this.applyIntensity(-1);
@@ -13001,13 +13034,13 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
     };
     __publicField(_Audio, "VOL", { camp: .9, base: .85, drums: .7, nitro: .55 });
     var Audio = _Audio, env = (i, n2, a, vol) => i < a ? 1e-4 * Math.pow(vol / 1e-4, i / a) : vol * Math.pow(1e-4 / vol, (i - a) / Math.max(1, n2 - a));
-    function bakeOsc(out, sr, type, f0, f1, t0, dur, vol) { let s0 = Math.round(t0 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.008 * sr)), fe = Math.max(20, f1), ph = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
+    function bakeOsc(out, sr, type, f0, f1, t02, dur, vol) { let s0 = Math.round(t02 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.008 * sr)), fe = Math.max(20, f1), ph = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
         let f = f0 === f1 ? f0 : f0 * Math.pow(fe / f0, i / n2);
         ph += f / sr, ph -= Math.floor(ph);
         let v;
         type === "sine" ? v = Math.sin(ph * Math.PI * 2) : type === "triangle" ? v = 1 - 4 * Math.abs(ph - .5) : type === "square" ? v = ph < .5 ? .8 : -.8 : v = 2 * ph - 1, s0 + i >= 0 && (out[s0 + i] += v * env(i, n2, a, vol));
     } }
-    function bakeNoise(out, sr, t0, dur, vol, f0, f1, q, type) { let s0 = Math.round(t0 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.01 * sr)), fe = Math.max(30, f1), x1 = 0, x2 = 0, y1 = 0, y2 = 0, b0 = 0, b1 = 0, b2 = 0, a1 = 0, a2 = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
+    function bakeNoise(out, sr, t02, dur, vol, f0, f1, q, type) { let s0 = Math.round(t02 * sr), n2 = Math.round(dur * sr), a = Math.max(1, Math.round(.01 * sr)), fe = Math.max(30, f1), x1 = 0, x2 = 0, y1 = 0, y2 = 0, b0 = 0, b1 = 0, b2 = 0, a1 = 0, a2 = 0; for (let i = 0; i < n2 && s0 + i < out.length; i++) {
         if (i % 32 === 0) {
             let f = Math.min(sr * .45, f0 * Math.pow(fe / f0, i / n2)), w = 2 * Math.PI * f / sr, cs = Math.cos(w), al = Math.sin(w) / (2 * Math.max(1e-4, q)), a0 = 1 + al;
             type === "lowpass" ? (b0 = (1 - cs) / 2 / a0, b1 = (1 - cs) / a0, b2 = b0) : type === "highpass" ? (b0 = (1 + cs) / 2 / a0, b1 = -(1 + cs) / a0, b2 = b0) : (b0 = al / a0, b1 = 0, b2 = -al / a0), a1 = -2 * cs / a0, a2 = (1 - al) / a0;
@@ -13015,7 +13048,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         let x = Math.random() * 2 - 1, y = b0 * x + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
         x2 = x1, x1 = x, y2 = y1, y1 = y, s0 + i >= 0 && (out[s0 + i] += y * env(i, n2, a, vol));
     } }
-    function bakeMix(out, sr, src, srcSr, t0, vol, rate) { let s0 = Math.round(t0 * sr), step2 = rate * srcSr / sr; for (let i = 0, p = 0; p < src.length - 1 && s0 + i < out.length; i++, p += step2) {
+    function bakeMix(out, sr, src, srcSr, t02, vol, rate) { let s0 = Math.round(t02 * sr), step2 = rate * srcSr / sr; for (let i = 0, p = 0; p < src.length - 1 && s0 + i < out.length; i++, p += step2) {
         let k2 = Math.floor(p), fr = p - k2;
         s0 + i >= 0 && (out[s0 + i] += (src[k2] * (1 - fr) + src[k2 + 1] * fr) * vol);
     } }
@@ -13901,7 +13934,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
     } let seen = new Set; return out.filter(s => seen.has(s.index) ? !1 : (seen.add(s.index), !0)).sort((a, b) => a.start - b.start); }
     function cupFor(session, division) { let di = BASE_CLASSES.indexOf(division), t = TRACKS[(session.index + di) % TRACKS.length]; return { cup: { id: `${t.id}-${division}`, name: `${t.name} Cup`, tag: `${t.name} \xB7 ${t.km}`, track: t.id, color: t.color, top: Math.round(DIV_TOP[division] * t.scale), field: DIV_FIELD[division] }, division, index: session.index, key: `s${session.index}-${division}`, start: session.start, end: session.end }; }
     function schedule(now2 = Date.now()) { var _a13; let all = sessionsAround(now2), live = (_a13 = all.find(s => now2 >= s.start && now2 < s.end)) != null ? _a13 : null, next = all.find(s => s.start > now2), past = all.filter(s => s.end <= now2).slice(-4); return { live, next, past, upcoming: all.filter(s => s.start > now2).slice(0, 2) }; }
-    var localTime = ms => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    var localTime = ms => { let d = new Date(ms); return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`; };
     function eventBoard(e, you, now2 = Date.now()) { let f = Math.min(1, Math.max(0, (now2 - e.start) / (e.end - e.start))), g = .3 + .7 * Math.min(1, f * 1.3), curve = { top: e.cup.top * g, k: .38, total: Math.round(e.cup.field * (.25 + .75 * g)) }; return rankBoard(sampleBoard(`xwave-cup-${e.key}`, curve, 100), curve, you); }
     function fmtLeft(ms) { if (ms <= 0)
         return "0m"; let h = Math.floor(ms / HOUR), d = Math.floor(h / 24), m = Math.floor(ms % HOUR / 6e4); return d > 0 ? `${d}d ${h % 24}h` : h > 0 ? `${h}h ${m}m` : `${m}m`; }
@@ -14532,8 +14565,8 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
     async function drawShareCard(d) { var _a13, _b3; let c2 = document.createElement("canvas"); c2.width = W2, c2.height = H; let g = c2.getContext("2d"); if (!g)
         return null; let col2 = CLASS_COLOR[d.rank], bg = g.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, "#2a2a5c"), bg.addColorStop(.35, "#c8643a"), bg.addColorStop(.62, "#f0b060"), bg.addColorStop(.63, "#a8582e"), bg.addColorStop(1, "#3a1a0a"), g.fillStyle = bg, g.fillRect(0, 0, W2, H), g.fillStyle = "#7a3418"; for (let [x, w, h] of [[60, 220, 120], [330, 160, 80], [700, 260, 150], [960, 140, 90]])
         g.beginPath(), g.moveTo(x, H * .63), g.lineTo(x + 24, H * .63 - h), g.lineTo(x + w - 24, H * .63 - h), g.lineTo(x + w, H * .63), g.fill(); g.fillStyle = "#4a3a30", g.beginPath(), g.moveTo(W2 / 2 - 40, H * .63), g.lineTo(W2 / 2 + 40, H * .63), g.lineTo(W2 * .92, H), g.lineTo(W2 * .08, H), g.fill(), g.fillStyle = "#ffd060"; for (let i = 0; i < 6; i++) {
-        let t0 = i / 6, y = H * .63 + H * .37 * t0 * t0;
-        g.fillRect(W2 / 2 - 2 - t0 * 6, y, 4 + t0 * 12, 10 + t0 * 30);
+        let t02 = i / 6, y = H * .63 + H * .37 * t02 * t02;
+        g.fillRect(W2 / 2 - 2 - t02 * 6, y, 4 + t02 * 12, 10 + t02 * 30);
     } g.fillStyle = "rgba(20,8,2,.35)", g.fillRect(0, 0, W2, H); let glow = g.createRadialGradient(W2 / 2, 470, 40, W2 / 2, 470, 620); glow.addColorStop(0, `${col2}66`), glow.addColorStop(1, "transparent"), g.fillStyle = glow, g.fillRect(0, 0, W2, H), g.strokeStyle = "rgba(255,255,255,.06)", g.lineWidth = 3; for (let i = 0; i < 26; i++) {
         let y = 120 + i * 47;
         g.beginPath(), g.moveTo(i * 137 % 300 - 40, y), g.lineTo(i * 137 % 300 + 160 + i % 3 * 90, y), g.stroke();
@@ -14573,7 +14606,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         (/[0-9 _.\-]/.test(ch) || ch.toLowerCase() !== ch.toUpperCase() || cp >= 192 && cp < 592 || cp >= 1424 && cp < 4352 || cp >= 4352 && cp < 4608 || cp >= 12352 && cp < 12543 || cp >= 13312 && cp < 40960 || cp >= 44032 && cp < 55216) && (out += ch);
     } return out.trim().slice(0, 14); }
     var VERSION = "v4.0.0", WELCOME_AFTER_H = 12, WELCOME_GIFT = { coins: 200, shield: 1 }, PERK = { entry: 300, launch: 300, share: 300, invite: 100 }, WORLD_NAMES = Object.fromEntries(Object.entries(WORLD_THEME).map(([k2, v]) => [k2, v.name])), POWER_LABEL = Object.assign({}, ITEM_LABEL), POWER_SUB = Object.assign({}, ITEM_SUB), POWER_ICON = { shield: ICON.shield, magnet: ICON.magnet, turbo: ICON.bolt, double: ICON.x2, life: ICON.heart, super: ICON.rocket, dash: ICON.dash, escape: ICON.sos, hyper: ICON.hyper, ghost: ICON.shield, wall: ICON.dash, rail: ICON.rocket, tunnel: ICON.rocket, mystery: ICON.gift }, Game = class {
-        constructor(container2) { __publicField(this, "state", "loading"); __publicField(this, "save", loadSave()); __publicField(this, "world", new World); __publicField(this, "run"); __publicField(this, "missions"); __publicField(this, "input"); __publicField(this, "audio", new Audio); __publicField(this, "assets", new AssetLoader); __publicField(this, "ui"); __publicField(this, "rig", new CameraRig); __publicField(this, "renderer"); __publicField(this, "vehicle", new Vehicle); __publicField(this, "track", new Track); __publicField(this, "scenery"); __publicField(this, "obstacleViews"); __publicField(this, "pickupViews"); __publicField(this, "particles"); __publicField(this, "smoke"); __publicField(this, "speedLines", new SpeedLines); __publicField(this, "rings", new RingPulses); __publicField(this, "debris", new Debris); __publicField(this, "speedBlurS", 0); __publicField(this, "shatter", new CarShatter); __publicField(this, "debugCol", COLLISION_DEBUG ? new DebugCollision : null); __publicField(this, "debugHit", { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 }); __publicField(this, "portal", makePortal()); __publicField(this, "autopilot", AUTOPILOT ? new Autopilot : null); __publicField(this, "course", null); __publicField(this, "startArch", makeArch("start")); __publicField(this, "finishArch", makeArch("finish")); __publicField(this, "sectionName", ""); __publicField(this, "livesLost", 0); __publicField(this, "finishShown", !1); __publicField(this, "runTime", 0); __publicField(this, "goldRush", null); __publicField(this, "goldRushId", ""); __publicField(this, "frameRaw", 0); __publicField(this, "superRolled", !1); __publicField(this, "superFlight", !1); __publicField(this, "blockade", null); __publicField(this, "nextBlockadeAt", 420); __publicField(this, "blockadeWarned", !1); __publicField(this, "ads"); __publicField(this, "continuesUsed", 0); __publicField(this, "nextBoost", !1); __publicField(this, "lastResult", { coins: 0, reward: 0, doubled: !1 }); __publicField(this, "bonusTunnels", new BonusTunnels); __publicField(this, "tutorialMode", !1); __publicField(this, "lastPractice", null); __publicField(this, "tutStep", 0); __publicField(this, "tutHint", 0); __publicField(this, "tutPrompting", !1); __publicField(this, "tut", basicScript()); __publicField(this, "trainWorld", null); __publicField(this, "dangerHint", null); __publicField(this, "dangerHold", 0); __publicField(this, "timeScale", 1); __publicField(this, "timeScaleTarget", 1); __publicField(this, "slowmoT", 0); __publicField(this, "slowmoDone", !1); __publicField(this, "meta"); __publicField(this, "store"); __publicField(this, "rankTab", "week"); __publicField(this, "cupBoardOpen", !1); __publicField(this, "pendingRes", []); __publicField(this, "returnTo", null); __publicField(this, "holdContinue", !1); __publicField(this, "clock", new Clock); __publicField(this, "time", 0); __publicField(this, "stateT", 0); __publicField(this, "speedScale", 1); __publicField(this, "turboK", 0); __publicField(this, "countdownStep", -1); __publicField(this, "runMissionsDone", []); __publicField(this, "runRank", "D"); __publicField(this, "runBeatBest", !1); __publicField(this, "bestCheer", 0); __publicField(this, "debugStart", !1); __publicField(this, "gateShown", ""); __publicField(this, "menuDist", 0); __publicField(this, "tmpV", new Vector3); __publicField(this, "frameTimes", []); __publicField(this, "qualityChecked", 0); __publicField(this, "fps", 60); __publicField(this, "debugBoxes", null); __publicField(this, "lastHit", "\u2014"); __publicField(this, "tutorialT", 0); __publicField(this, "db", createStore()); __publicField(this, "installPrompt", null); __publicField(this, "cardCache", null); __publicField(this, "prevExpBest", 0); __publicField(this, "carried", null); __publicField(this, "pickTrackId", "endless"); __publicField(this, "bagPickMode", !1); __publicField(this, "xRun", null); __publicField(this, "showcaseK", null); __publicField(this, "showcaseT", 0); __publicField(this, "showcaseDur", 0); __publicField(this, "setPiece", null); __publicField(this, "runWorlds", 1); __publicField(this, "runHearts", 0); __publicField(this, "firstLossExp", -1); __publicField(this, "hudQuest", null); __publicField(this, "variant", "endless"); __publicField(this, "sprayAcc", 0); __publicField(this, "sprayPos", new Vector3); __publicField(this, "diveAcc", 0); __publicField(this, "rocketQueuedT", -1); __publicField(this, "manual", /[?&]manual/.test(location.search)); __publicField(this, "perfRec", new PerfRecorder); __publicField(this, "perfEl", null); __publicField(this, "perfT", 0); __publicField(this, "homeView"); __publicField(this, "homeCar", ""); __publicField(this, "lastTip", null); __publicField(this, "autoRescueUsed", !1); __publicField(this, "lastSpecialSource", null); __publicField(this, "classQueue", []); __publicField(this, "classSkipped", []); __publicField(this, "portalColor", new Color); __publicField(this, "airDashGuard", new AirDashGuard); __publicField(this, "lastCrashEventT", 0); __publicField(this, "pendingRank", null); __publicField(this, "leftover", null); __publicField(this, "grSettled", null); __publicField(this, "cloud", new Cloud); __publicField(this, "pushTimer", 0); __publicField(this, "cloudCode", ""); __publicField(this, "cloudMsg", ""); __publicField(this, "applyingCloud", !1); __publicField(this, "pendingCloud", null); __publicField(this, "runStartT", 0); var _a13; this.renderer = new Renderer(container2, this.save.settings.quality, this.rig.camera, platform.canvas), platform.android && (this.renderer.scaleCap = 1.5, this.renderer.setQuality(this.renderer.quality)), this.vehicle.camera = this.rig.camera, this.vehicle.onModelReady = () => { this.rig.car3d = !this.vehicle.usesSprite, this.vehicle.prewarm(this.renderer.renderer, this.renderer.scene, this.rig.camera); }; let scene = this.renderer.scene; this.homeView = new HomeView(home_home_bg_default, scene.environment), this.homeView.makeEnv(this.renderer.renderer), this.renderer.home = this.homeView, this.renderer.resize(), this.scenery = new Scenery(scene), scene.add(this.scenery.group, this.track.group, this.vehicle.root), this.scenery.setQuality(GRAPHICS[this.renderer.quality]), this.track.setQuality(GRAPHICS[this.renderer.quality]); let worldRoot = new Group; if (scene.add(worldRoot), this.obstacleViews = new ObstacleViews(worldRoot), this.pickupViews = new PickupViews(worldRoot), this.particles = new Particles(this.renderer.pixelRatio), this.smoke = new Particles(this.renderer.pixelRatio, !1), this.particles.density = this.smoke.density = GRAPHICS[this.renderer.quality].particles, this.renderer.scene.add(this.smoke.points), scene.add(this.bonusTunnels.group), scene.add(this.particles.points, this.speedLines.lines, this.rings.group, this.debris.group, this.shatter.group, this.vehicle.crash.group, this.portal.group, this.startArch, this.finishArch), this.world.hooks = { spawnObstacle: o => this.obstacleViews.spawn(o), despawnObstacle: o => this.obstacleViews.despawn(o), spawnPickup: p => this.pickupViews.spawn(p), despawnPickup: p => this.pickupViews.despawn(p) }, this.wirePlayerEvents(), this.meta = new Meta(this.save), this.missions = new MissionTracker(this.save.missions.active, this.save.missions.completed), this.missions.onComplete = m => { this.save.settings.autoClaim !== !1 ? this.save.wallet += m.reward : this.save.pendingMissions.push({ text: m.text, reward: m.reward }), this.save.missions.completed = this.missions.completed, this.runMissionsDone.push({ text: m.text, reward: m.reward }), this.ui.toast(`${ICON.check} MISSION COMPLETE \xB7 ${m.text} <span class="price">${ICON.coin}+${m.reward}</span>`, "var(--green)"), this.audio.play("mission"), this.persist(); }, this.input = new Input(container2), this.input.onAction = a => this.onAction(a), this.input.onSpecial = () => this.activateSpecial("MANUAL", "sos"), this.input.onRocket = () => this.activateSpecial("MANUAL", "rocket"), this.world.player.canAirDash = () => !!this.run && this.run.dashes > 0, this.input.onPause = () => this.state === "run" ? this.pause() : this.state === "paused" ? this.resume() : void 0, this.ui = new UI(container2, { play: () => { this.returnTo = null, this.afterResults(() => this.save.tutorialDone ? this.openTracks() : this.openTutorialIntro()); }, help: () => this.openTutorialIntro(), startTutorial: () => this.startTutorial(), advTrain: w => this.startTutorial(w), skipTutorial: () => { this.save.tutorialDone = !0, this.persist(), this.tutorialMode && (this.ui.tutPrompt(null), this.timeScale = this.timeScaleTarget = 1, this.showHome()), this.ui.hideOverlay("tutintro"), this.openTracks(); }, startTrack: id2 => this.startTrack(id2), pickTrack: id2 => this.openSpecialPick(id2), chooseSpecial: k2 => this.chooseSpecial(k2), buySpecial: k2 => this.buySpecial(k2), goRace: () => this.goRace(), bagPick: () => { this.audio.play("click"), this.bagPickMode = !0, this.ui.bagSync(this.save, !0), this.ui.showOverlay("bag"); }, setSpeed: lv => this.setSpeed(lv), nextTrack: () => this.afterResults(() => this.nextTrack()), garage: () => this.openGarage(), carSwipe: dir => this.carSwipe(dir), missions: () => this.openMissions(), home: () => { let back = this.returnTo; if (this.returnTo = null, this.state === "paused" || this.state === "run" || this.state === "respawn" || this.state === "continue")
+        constructor(container2) { __publicField(this, "state", "loading"); __publicField(this, "save", loadSave()); __publicField(this, "world", new World); __publicField(this, "run"); __publicField(this, "missions"); __publicField(this, "input"); __publicField(this, "audio", new Audio); __publicField(this, "assets", new AssetLoader); __publicField(this, "ui"); __publicField(this, "rig", new CameraRig); __publicField(this, "renderer"); __publicField(this, "vehicle", new Vehicle); __publicField(this, "track", new Track); __publicField(this, "scenery"); __publicField(this, "obstacleViews"); __publicField(this, "pickupViews"); __publicField(this, "particles"); __publicField(this, "smoke"); __publicField(this, "speedLines", new SpeedLines); __publicField(this, "rings", new RingPulses); __publicField(this, "debris", new Debris); __publicField(this, "speedBlurS", 0); __publicField(this, "shatter", new CarShatter); __publicField(this, "debugCol", COLLISION_DEBUG ? new DebugCollision : null); __publicField(this, "debugHit", { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 }); __publicField(this, "portal", makePortal()); __publicField(this, "autopilot", AUTOPILOT ? new Autopilot : null); __publicField(this, "course", null); __publicField(this, "startArch", makeArch("start")); __publicField(this, "finishArch", makeArch("finish")); __publicField(this, "sectionName", ""); __publicField(this, "livesLost", 0); __publicField(this, "finishShown", !1); __publicField(this, "runTime", 0); __publicField(this, "goldRush", null); __publicField(this, "goldRushId", ""); __publicField(this, "frameRaw", 0); __publicField(this, "superRolled", !1); __publicField(this, "superFlight", !1); __publicField(this, "blockade", null); __publicField(this, "nextBlockadeAt", 420); __publicField(this, "blockadeWarned", !1); __publicField(this, "ads"); __publicField(this, "continuesUsed", 0); __publicField(this, "nextBoost", !1); __publicField(this, "lastResult", { coins: 0, reward: 0, doubled: !1 }); __publicField(this, "bonusTunnels", new BonusTunnels); __publicField(this, "tutorialMode", !1); __publicField(this, "lastPractice", null); __publicField(this, "tutStep", 0); __publicField(this, "tutHint", 0); __publicField(this, "tutPrompting", !1); __publicField(this, "tut", basicScript()); __publicField(this, "trainWorld", null); __publicField(this, "dangerHint", null); __publicField(this, "dangerHold", 0); __publicField(this, "timeScale", 1); __publicField(this, "timeScaleTarget", 1); __publicField(this, "slowmoT", 0); __publicField(this, "slowmoDone", !1); __publicField(this, "meta"); __publicField(this, "store"); __publicField(this, "rankTab", "week"); __publicField(this, "cupBoardOpen", !1); __publicField(this, "pendingRes", []); __publicField(this, "returnTo", null); __publicField(this, "holdContinue", !1); __publicField(this, "clock", new Clock); __publicField(this, "time", 0); __publicField(this, "stateT", 0); __publicField(this, "speedScale", 1); __publicField(this, "turboK", 0); __publicField(this, "countdownStep", -1); __publicField(this, "runMissionsDone", []); __publicField(this, "runRank", "D"); __publicField(this, "runBeatBest", !1); __publicField(this, "bestCheer", 0); __publicField(this, "debugStart", !1); __publicField(this, "gateShown", ""); __publicField(this, "menuDist", 0); __publicField(this, "tmpV", new Vector3); __publicField(this, "frameTimes", []); __publicField(this, "qualityChecked", 0); __publicField(this, "fps", 60); __publicField(this, "debugBoxes", null); __publicField(this, "lastHit", "\u2014"); __publicField(this, "tutorialT", 0); __publicField(this, "bonusSyncKey", ""); __publicField(this, "db", createStore()); __publicField(this, "installPrompt", null); __publicField(this, "cardCache", null); __publicField(this, "prevExpBest", 0); __publicField(this, "carried", null); __publicField(this, "pickTrackId", "endless"); __publicField(this, "bagPickMode", !1); __publicField(this, "xRun", null); __publicField(this, "showcaseK", null); __publicField(this, "showcaseT", 0); __publicField(this, "showcaseDur", 0); __publicField(this, "setPiece", null); __publicField(this, "runWorlds", 1); __publicField(this, "runHearts", 0); __publicField(this, "firstLossExp", -1); __publicField(this, "hudQuest", null); __publicField(this, "variant", "endless"); __publicField(this, "sprayAcc", 0); __publicField(this, "sprayPos", new Vector3); __publicField(this, "diveAcc", 0); __publicField(this, "rocketQueuedT", -1); __publicField(this, "manual", /[?&]manual/.test(location.search)); __publicField(this, "perfRec", new PerfRecorder); __publicField(this, "perfEl", null); __publicField(this, "perfT", 0); __publicField(this, "homeView"); __publicField(this, "homeCar", ""); __publicField(this, "lastTip", null); __publicField(this, "autoRescueUsed", !1); __publicField(this, "lastSpecialSource", null); __publicField(this, "classQueue", []); __publicField(this, "classSkipped", []); __publicField(this, "portalColor", new Color); __publicField(this, "airDashGuard", new AirDashGuard); __publicField(this, "lastCrashEventT", 0); __publicField(this, "pendingRank", null); __publicField(this, "leftover", null); __publicField(this, "grSettled", null); __publicField(this, "cloud", new Cloud); __publicField(this, "pushTimer", 0); __publicField(this, "cloudCode", ""); __publicField(this, "cloudMsg", ""); __publicField(this, "applyingCloud", !1); __publicField(this, "pendingCloud", null); __publicField(this, "runStartT", 0); var _a13, _b3, _c3; this.renderer = new Renderer(container2, this.save.settings.quality, this.rig.camera, platform.canvas), (_b3 = (_a13 = platform).onRenderer) == null || _b3.call(_a13, this.renderer.renderer), platform.android && (this.renderer.scaleCap = 1.5, this.renderer.setQuality(this.renderer.quality)), this.vehicle.camera = this.rig.camera, this.vehicle.onModelReady = () => { this.rig.car3d = !this.vehicle.usesSprite, this.vehicle.prewarm(this.renderer.renderer, this.renderer.scene, this.rig.camera); }; let scene = this.renderer.scene; this.homeView = new HomeView(home_home_bg_default, scene.environment), this.homeView.makeEnv(this.renderer.renderer), this.renderer.home = this.homeView, this.renderer.resize(), this.scenery = new Scenery(scene), scene.add(this.scenery.group, this.track.group, this.vehicle.root), this.scenery.setQuality(GRAPHICS[this.renderer.quality]), this.track.setQuality(GRAPHICS[this.renderer.quality]); let worldRoot = new Group; if (scene.add(worldRoot), this.obstacleViews = new ObstacleViews(worldRoot), this.pickupViews = new PickupViews(worldRoot), this.particles = new Particles(this.renderer.pixelRatio), this.smoke = new Particles(this.renderer.pixelRatio, !1), this.particles.density = this.smoke.density = GRAPHICS[this.renderer.quality].particles, this.renderer.scene.add(this.smoke.points), scene.add(this.bonusTunnels.group), scene.add(this.particles.points, this.speedLines.lines, this.rings.group, this.debris.group, this.shatter.group, this.vehicle.crash.group, this.portal.group, this.startArch, this.finishArch), this.world.hooks = { spawnObstacle: o => this.obstacleViews.spawn(o), despawnObstacle: o => this.obstacleViews.despawn(o), spawnPickup: p => this.pickupViews.spawn(p), despawnPickup: p => this.pickupViews.despawn(p) }, this.wirePlayerEvents(), this.meta = new Meta(this.save), this.missions = new MissionTracker(this.save.missions.active, this.save.missions.completed), this.missions.onComplete = m => { this.save.settings.autoClaim !== !1 ? this.save.wallet += m.reward : this.save.pendingMissions.push({ text: m.text, reward: m.reward }), this.save.missions.completed = this.missions.completed, this.runMissionsDone.push({ text: m.text, reward: m.reward }), this.ui.toast(`${ICON.check} MISSION COMPLETE \xB7 ${m.text} <span class="price">${ICON.coin}+${m.reward}</span>`, "var(--green)"), this.audio.play("mission"), this.persist(); }, this.input = new Input(container2), this.input.onAction = a => this.onAction(a), this.input.onSpecial = () => this.activateSpecial("MANUAL", "sos"), this.input.onRocket = () => this.activateSpecial("MANUAL", "rocket"), this.world.player.canAirDash = () => !!this.run && this.run.dashes > 0, this.input.onPause = () => this.state === "run" ? this.pause() : this.state === "paused" ? this.resume() : void 0, this.ui = new UI(container2, { play: () => { this.returnTo = null, this.afterResults(() => this.save.tutorialDone ? this.openTracks() : this.openTutorialIntro()); }, help: () => this.openTutorialIntro(), startTutorial: () => this.startTutorial(), advTrain: w => this.startTutorial(w), skipTutorial: () => { this.save.tutorialDone = !0, this.persist(), this.tutorialMode && (this.ui.tutPrompt(null), this.timeScale = this.timeScaleTarget = 1, this.showHome()), this.ui.hideOverlay("tutintro"), this.openTracks(); }, startTrack: id2 => this.startTrack(id2), pickTrack: id2 => this.openSpecialPick(id2), chooseSpecial: k2 => this.chooseSpecial(k2), buySpecial: k2 => this.buySpecial(k2), goRace: () => this.goRace(), bagPick: () => { this.audio.play("click"), this.bagPickMode = !0, this.ui.bagSync(this.save, !0), this.ui.showOverlay("bag"); }, setSpeed: lv => this.setSpeed(lv), nextTrack: () => this.afterResults(() => this.nextTrack()), garage: () => this.openGarage(), carSwipe: dir => this.carSwipe(dir), missions: () => this.openMissions(), home: () => { let back = this.returnTo; if (this.returnTo = null, this.state === "paused" || this.state === "run" || this.state === "respawn" || this.state === "continue")
                 return this.tutorialMode ? this.goHome() : (this.timeScale = this.timeScaleTarget = 1, this.gameOver()); if (this.state === "countdown")
                 return this.goHome(); if (this.pendingRank && (this.state === "gameover" || this.state === "finish") && !this.ui.isShown("runrank")) {
                 let pr2 = this.pendingRank;
@@ -14594,17 +14627,17 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             for (let c2 of ["C", "B"])
                 rankIdx(this.rank) >= rankIdx(c2) && !this.save.classCelebrated.includes(c2) && this.save.classCelebrated.push(c2);
             this.save.classLowSeen = !0;
-        } this.syncCarUnlocks(), this.applySkin(this.save.vehicle); let resize = () => this.onResize(); window.addEventListener("resize", resize), (_a13 = window.visualViewport) == null || _a13.addEventListener("resize", resize), document.addEventListener("visibilitychange", () => { document.hidden && this.state === "run" && this.pause(), this.audio.setHidden(document.hidden), document.hidden ? this.pushSave() : this.cloud.enabled && this.cloudSync(); }), this.cloud.onSignedIn = () => { this.ui.toast("\u2601\uFE0F Signed in", "#4fc3ff"), this.cloudSync(!0).then(() => this.ui.isShown("account") ? this.accountView() : void 0); }, this.cloud.listen(), this.cloud.enabled && window.setTimeout(() => { this.cloudSync(); }, 1500); let unlock = () => { this.audio.running || this.audio.unlock(); }; for (let ev of ["pointerdown", "pointerup", "touchend", "click", "keydown"])
+        } this.syncCarUnlocks(), this.applySkin(this.save.vehicle); let resize = () => this.onResize(); window.addEventListener("resize", resize), (_c3 = window.visualViewport) == null || _c3.addEventListener("resize", resize), document.addEventListener("visibilitychange", () => { document.hidden && this.state === "run" && this.pause(), this.audio.setHidden(document.hidden), document.hidden ? this.pushSave() : this.cloud.enabled && this.cloudSync(), document.hidden || this.bonusTick(); }), window.setInterval(() => this.bonusTick(), 5e3), this.cloud.onSignedIn = () => { this.ui.toast("\u2601\uFE0F Signed in", "#4fc3ff"), this.cloudSync(!0).then(() => this.ui.isShown("account") ? this.accountView() : void 0); }, this.cloud.listen(), this.cloud.enabled && window.setTimeout(() => { this.cloudSync(); }, 1500); let unlock = () => { this.audio.running || this.audio.unlock(); }; for (let ev of ["pointerdown", "pointerup", "touchend", "click", "keydown"])
             window.addEventListener(ev, unlock, { capture: !0, passive: !0 }); this.audio.onRunning = () => { this.save.settings.music && this.audio.startMusic(); }, DEBUG && this.makeDebugBoxes(), this.onResize(), window.__xwave = this; }
         turboMulNow(run, dt) { let want = run.turboT > 0 ? 1 : 0; return this.turboK += (want - this.turboK) * (1 - Math.exp(-(want ? 9 : 5) * dt)), !want && this.turboK < .01 && (this.turboK = 0), 1 + (SPEED.turboMul - 1) * this.turboK; }
         celebrateBest() { this.ui.banner("NEW BEST!", "YOU BEAT YOURSELF!"), this.audio.play("mission"), this.vibrate([20, 30, 20]); let p = this.vehicle.root.position, colors = [16761370, 8382207, 16732120]; for (let k2 = 0; k2 < 3; k2++)
             window.setTimeout(() => this.particles.burst(p.x + (Math.random() - .5) * 4, p.y + 3, -8, 14, colors[k2], 6, .2, 1.2, { grav: 7, up: 3 }), k2 * 200); }
         initCountry() { this.save.country || (this.save.country = guessCountry(), this.persist()), !(!this.save.countryAuto || this.save.perks.countryDetected) && detectCountry().then(c2 => { this.save.perks.countryDetected = !0, c2 && this.save.countryAuto && (this.save.country = c2), this.persist(); }); }
-        async boot() { var _a13; this.ui.setLoading(.15), this.initCountry(), this.obstacleViews.prewarm(), this.pickupViews.prewarm(), await this.assets.loadAll(this.audio, k2 => this.ui.setLoading(.15 + k2 * .5)); let car = this.assets.model("vehicle.xwave"); car && this.vehicle.useModel(car), this.ui.setLoading(.75), this.world.reset(1234), this.world.player.reset(1), this.scenery.setWorld("city", !0), this.track.setAccent(this.scenery.accent), this.track.setStyle(ROAD_STYLE[this.scenery.world]), this.applyReadability(); {
+        async boot() { var _a13; bootMark("boot start"), this.ui.setLoading(.15), this.initCountry(), this.obstacleViews.prewarm(), this.pickupViews.prewarm(), bootMark("pools"), await this.assets.loadAll(this.audio, k2 => this.ui.setLoading(.15 + k2 * .5)); let car = this.assets.model("vehicle.xwave"); car && this.vehicle.useModel(car), bootMark("assets + car"), this.ui.setLoading(.75), this.world.reset(1234), this.world.player.reset(1), this.scenery.setWorld("city", !0), this.track.setAccent(this.scenery.accent), this.track.setStyle(ROAD_STYLE[this.scenery.world]), this.applyReadability(), bootMark("world"); {
             let hidden = [];
             this.renderer.scene.traverse(o => { o.visible || (hidden.push(o), o.visible = !0); });
             try {
-                this.renderer.renderer.compile(this.renderer.scene, this.rig.camera), this.homeView.active || this.renderer.render();
+                this.renderer.renderer.compile(this.renderer.scene, this.rig.camera), bootMark("compile"), this.homeView.active || this.renderer.render();
             }
             catch (e) {
                 console.warn("[boot] prewarm", e);
@@ -14613,10 +14646,13 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
                 for (let o of hidden)
                     o.visible = !1;
             }
-        } this.ui.setLoading(.92), await new Promise(r => window.setTimeout(r, Math.max(0, 2200 - performance.now()))), this.ui.setLoading(1), await new Promise(r => window.setTimeout(r, 350)), window.addEventListener("beforeinstallprompt", e => { e.preventDefault(), this.installPrompt = e; }), window.addEventListener("offline", () => { this.state === "menu" && this.openPerk("offline"); }), window.addEventListener("online", () => { this.ui.isShown("popup") && this.ui.closePopup(); }), this.ui.applyLang((_a13 = this.save.settings.lang) != null ? _a13 : "en"); let prevSeen = this.save.lastSeen; this.seedDb(), this.goHome(), window.setTimeout(() => this.launchPopups(prevSeen), 700), this.clock.start(), this.renderer.renderer.setAnimationLoop(() => this.frame()); }
+        } bootMark("prewarm frame"), this.ui.setLoading(.92), await new Promise(r => window.setTimeout(r, Math.max(0, 2200 - performance.now()))), this.ui.setLoading(1), await new Promise(r => window.setTimeout(r, 350)), window.addEventListener("beforeinstallprompt", e => { e.preventDefault(), this.installPrompt = e; }), window.addEventListener("offline", () => { this.state === "menu" && this.openPerk("offline"); }), window.addEventListener("online", () => { this.ui.isShown("popup") && this.ui.closePopup(); }), this.ui.applyLang((_a13 = this.save.settings.lang) != null ? _a13 : "en"); let prevSeen = this.save.lastSeen; this.seedDb(), this.goHome(), bootMark("home"), window.setTimeout(() => this.launchPopups(prevSeen), 700), this.clock.start(), this.renderer.renderer.setAnimationLoop(() => this.frame()); }
         setState(s) { s === "menu" && this.state !== "menu" && this.vehicle.resetPose(), this.state = s, this.stateT = 0; }
         goHome() { this.audio.play("click"), this.tutorialMode = !1, this.tutPrompting = !1, this.timeScale = this.timeScaleTarget = 1, this.ui.tutPrompt(null), this.setState("menu"), this.rig.mode = "menu", this.input.enabled = !1, this.clearRunVisuals(), this.world.reset(Math.floor(Math.random() * 1e9)), this.world.player.reset(1), this.applySkin(this.save.vehicle), this.vehicle.visibleBlink = !0, this.scenery.setWorld("city", !0), this.track.setAccent(this.scenery.accent), this.track.setStyle(ROAD_STYLE[this.scenery.world]), this.applyReadability(), this.track.setOpenAir(!0), this.ui.tutorial(!1), this.audio.intensity = 0, this.returnTo = null, this.showHome(), this.pendingRes = []; }
-        showHome() { this.vehicle.resetFx(), this.vehicle.wrecked && this.vehicle.resetPose(), this.ui.tutorial(!1), this.ui.tutPrompt(null), this.ui.gateHud(null), this.tutorialMode = !1, this.state !== "menu" && this.setState("menu"), this.rig.mode = "menu", this.meta.rollover(), this.ui.refreshProfile(this.save), this.ui.freeCoins(this.freeCoinsLeft(), ADS.freeCoinsAmount); let bs = bonusState(); this.ui.myClass = this.meta.cls, this.ui.homeSync({ name: this.meta.name, color: this.meta.color, best: this.save.best, avatar: this.save.avatar, avatarPicked: !!this.save.perks.avatarPicked, bolts: this.save.expBest, weekRank: this.save.expWeek > 0 ? this.meta.weekly().you.rank : null, allRank: this.save.expBest > 0 ? this.meta.allTime().you.rank : null, dailyBadge: this.meta.dailyBadge(), bonus: bs.live ? { live: !0, name: BONUS_NAME[bs.live.theme], theme: bs.live.theme, text: `open \xB7 ${fmtLeft(bs.live.end - Date.now())} left` } : { live: !1, name: BONUS_NAME[bs.next.theme], theme: bs.next.theme, text: `opens ${localTime(bs.next.start)} \xB7 in ${fmtLeft(bs.next.start - Date.now())}` }, sale: !this.save.starterBought, pass: this.meta.passActive }), this.perkBadges(), this.ui.show("start"); }
+        showHome() { this.vehicle.resetFx(), this.vehicle.wrecked && this.vehicle.resetPose(), this.ui.tutorial(!1), this.ui.tutPrompt(null), this.ui.gateHud(null), this.tutorialMode = !1, this.state !== "menu" && this.setState("menu"), this.rig.mode = "menu", this.meta.rollover(), this.ui.refreshProfile(this.save), this.ui.freeCoins(this.freeCoinsLeft(), ADS.freeCoinsAmount), this.syncHomeData(), this.perkBadges(), this.ui.show("start"); }
+        syncHomeData() { let bs = bonusState(); this.ui.myClass = this.meta.cls, this.ui.homeSync({ name: this.meta.name, color: this.meta.color, best: this.save.best, avatar: this.save.avatar, avatarPicked: !!this.save.perks.avatarPicked, bolts: this.save.expBest, weekRank: this.save.expWeek > 0 ? this.meta.weekly().you.rank : null, allRank: this.save.expBest > 0 ? this.meta.allTime().you.rank : null, dailyBadge: this.meta.dailyBadge(), bonus: bs.live ? { live: !0, name: BONUS_NAME[bs.live.theme], theme: bs.live.theme, text: `open \xB7 ${fmtLeft(bs.live.end - Date.now())} left` } : { live: !1, name: BONUS_NAME[bs.next.theme], theme: bs.next.theme, text: `opens ${localTime(bs.next.start)} \xB7 in ${fmtLeft(bs.next.start - Date.now())}` }, sale: !this.save.starterBought, pass: this.meta.passActive }), this.bonusSyncKey = this.bonusKeyNow(); }
+        bonusKeyNow() { let bs = bonusState(); return bs.live ? `L${bs.live.key}:${Math.floor((bs.live.end - Date.now()) / 6e4)}` : `N${bs.next.key}:${Math.floor((bs.next.start - Date.now()) / 6e4)}`; }
+        bonusTick() { this.state === "menu" && this.bonusKeyNow() !== this.bonusSyncKey && (this.syncHomeData(), this.ui.isShown("bonus") && this.openBonus(!0)); }
         openSettings() { var _a13, _b3; this.audio.play("click"), this.ui.settingsSync(this.save, this.meta.name, VERSION); let a = this.cloud.account; this.ui.acctLine(this.cloud.enabled ? this.cloud.signedIn ? (_b3 = (_a13 = a == null ? void 0 : a.email) != null ? _a13 : a == null ? void 0 : a.providers[0]) != null ? _b3 : "Signed in" : "Guest \xB7 sign in" : "This device"), this.ui.show("start", "settings"); }
         openDaily(quiet = !1) { quiet || this.audio.play("click"), this.state !== "menu" && this.setState("menu"); let ci = this.meta.checkinState(), now2 = new Date, midnight = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate() + 1).getTime(); this.ui.dailySync(Object.assign(Object.assign({}, ci), { quests: this.meta.quests(), pts: this.save.dailyPts, chests: this.save.dailyChests, resetIn: fmtLeft(midnight - now2.getTime()), pass: { active: this.meta.passActive, claimed: this.save.passDay === dayKey(), days: Math.ceil((this.save.passUntil - Date.now()) / 864e5) } })), this.ui.refreshProfile(this.save), this.ui.show("daily"); }
         openEvents(quiet = !1) { var _a13; quiet || this.audio.play("click"); let sc = schedule(), cls = toBase(this.meta.cls), mine = sc.live ? cupFor(sc.live, cls) : cupFor(sc.next, cls), board = this.meta.cupBoard(mine), best = this.meta.cupBest(mine), session = (_a13 = sc.live) != null ? _a13 : sc.next; this.ui.eventsSync({ cls, bolts: this.save.expBest, live: !!sc.live, mine, now: Date.now(), best, rank: best > 0 ? board.you.rank : null, total: board.total, divisions: BASE_CLASSES.map(d => ({ div: d, cup: cupFor(session, d), open: d === cls, need: CLASS_MIN[d] })), prizes: prizesFor(cls), upcoming: sc.upcoming.map(s => ({ start: s.start, cup: cupFor(s, cls) })), trophies: this.save.trophies, boardOpen: this.cupBoardOpen, board }), this.ui.refreshProfile(this.save), this.ui.show("events"); }
@@ -14767,12 +14803,12 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         offerContinue() { if (this.tutorialMode || this.continuesUsed >= ADS.maxContinues)
             return this.tutorialMode || this.ui.toast(`${ICON.retry} 3rd crash \u2014 back to Start`, "#ff5a8a"), this.gameOver(); this.setState("continue"), this.input.enabled = !1, this.ui.continueOffer({ left: ADS.maxContinues - this.continuesUsed, tip: this.lastTip }), this.audio.play("beep"); }
         async continueByAd() { if (this.state !== "continue" || this.ads.showing)
-            return; let t = this.stateT, hold = this.holdContinue; this.holdContinue = !0; let t0 = performance.now(), ok = !1; try {
+            return; let t = this.stateT, hold = this.holdContinue; this.holdContinue = !0; let t02 = performance.now(), ok = !1; try {
             ok = await this.ads.rewarded("continue");
         }
         finally {
             this.holdContinue = hold;
-        } this.state === "continue" && (ok ? this.doContinue() : (this.stateT = t, performance.now() - t0 < 1500 && this.ui.toast(`${ICON.info} No ad available right now \u2014 try again in a moment`, "#4fc3ff"))); }
+        } this.state === "continue" && (ok ? this.doContinue() : (this.stateT = t, performance.now() - t02 < 1500 && this.ui.toast(`${ICON.info} No ad available right now \u2014 try again in a moment`, "#4fc3ff"))); }
         continueByCoins() { if (this.state !== "continue")
             return; }
         doContinue() { this.continuesUsed++, this.run.lives = 0, this.rig.mode = "run", this.ui.show("hud"), this.respawn(!0), this.run.invulnT = Math.max(this.run.invulnT, 3), this.ui.toastNow(`${ICON.check} <b>REVIVED!</b>`, "var(--gold)"); }
@@ -14843,7 +14879,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
         arsenalPerks() { var _a13; let x = this.xRun, r = this.run; if (!x || !r || this.tutorialMode)
             return; let p = x.perks; p.magnet && (r.magnetT = Math.max(r.magnetT, p.magnet)), p.shield && (r.shield = !0, r.shieldHits = Math.max((_a13 = r.shieldHits) != null ? _a13 : 0, p.shield), r.shieldT = 0), p.coins && (r.coins += p.coins, this.ui.pop(`+${p.coins}`, "#ffd060", x.name.toUpperCase(), -6)), p.safe && Promise.resolve().then(() => r.invulnT += p.safe); }
         goRace() { this.ui.hideOverlay("specialpick"), this.startTrack(this.pickTrackId); }
-        openBonus() { var _a13, _b3; this.audio.play("click"); let bs = bonusState(), now2 = Date.now(); this.ui.bonusSync({ live: !!bs.live, theme: ((_a13 = bs.live) != null ? _a13 : bs.next).theme, name: BONUS_NAME[((_b3 = bs.live) != null ? _b3 : bs.next).theme], left: bs.live ? fmtLeft(bs.live.end - now2) : "", opens: bs.live ? "" : `${localTime(bs.next.start)} \xB7 in ${fmtLeft(bs.next.start - now2)}`, opensAt: localTime(bs.next.start), next: bs.live ? `${BONUS_NAME[bs.next.theme]} \xB7 ${localTime(bs.next.start)}` : "", finish: Math.round(BONUS.finishCoins * LEVELS[this.save.settings.speed].reward), minutes: BONUS.raceMinutes, played: !!bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) >= BONUS.maxPlays, playsLeft: bs.live ? Math.max(0, BONUS.maxPlays - bonusPlaysUsed(this.save.bonusPlays, bs.live.key)) : BONUS.maxPlays, maxPlays: BONUS.maxPlays, openMinutes: BONUS.openMinutes, everyHours: BONUS.everyHours }); }
+        openBonus(quiet = !1) { var _a13, _b3; quiet || this.audio.play("click"); let bs = bonusState(), now2 = Date.now(); this.ui.bonusSync({ live: !!bs.live, theme: ((_a13 = bs.live) != null ? _a13 : bs.next).theme, name: BONUS_NAME[((_b3 = bs.live) != null ? _b3 : bs.next).theme], left: bs.live ? fmtLeft(bs.live.end - now2) : "", opens: bs.live ? "" : `${localTime(bs.next.start)} \xB7 in ${fmtLeft(bs.next.start - now2)}`, opensAt: localTime(bs.next.start), next: bs.live ? `${BONUS_NAME[bs.next.theme]} \xB7 ${localTime(bs.next.start)}` : "", finish: Math.round(BONUS.finishCoins * LEVELS[this.save.settings.speed].reward), minutes: BONUS.raceMinutes, played: !!bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) >= BONUS.maxPlays, playsLeft: bs.live ? Math.max(0, BONUS.maxPlays - bonusPlaysUsed(this.save.bonusPlays, bs.live.key)) : BONUS.maxPlays, maxPlays: BONUS.maxPlays, openMinutes: BONUS.openMinutes, everyHours: BONUS.everyHours }); }
         startBonus() { let bs = bonusState(); if (!bs.live) {
             this.ui.toast(`${ICON.clock} Next Gold Rush opens ${localTime(bs.next.start)}`, "#ffc21a");
             return;
@@ -14989,7 +15025,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             } m === "up" && (this.audio.play("land"), this.energyBurst(8, -3), this.rig.shake(.06)); }, airDash: dir => { this.vibrate(30); let r = this.run; r && (r.dashes = Math.max(0, r.dashes - 1)), r && (r.invulnT = Math.max(r.invulnT, TIMING.laneChange + .15)), this.vehicle.barrelRoll(1, dir === -1 ? 1 : -1, 15), this.audio.play("ring"), r && this.state === "run" && (r.score += 100 * r.scoreMul), this.ui.pop("CANYON DASH FLIP!", "#7ff5e2", "", -8); let c2 = this.vehicle.root.position; for (let i = 0; i < 22; i++)
                 this.particles.emit(c2.x, c2.y + (Math.random() - .5) * .6, .3 + Math.random(), -dir * (8 + Math.random() * 6), (Math.random() - .5) * 2, 3, i % 2 ? 3073736 : 11075568, .22, .35, { drag: 3, locked: !0 }); }, airDashStart: dir => { this.vibrate(28), this.audio.play("up"), this.audio.play("ring", { delay: .08 }), this.vehicle.boostKick(.6), this.rig.fovKick += 3, this.ui.pop("CANYON DASH!", "#7ff5e2", "", -8); let c2 = this.vehicle.root.position; for (let i = 0; i < 18; i++)
                 this.particles.emit(c2.x, c2.y + (Math.random() - .5) * .4, .4 + Math.random(), -dir * (5 + Math.random() * 5), 1 + Math.random() * 2, 3, i % 2 ? 3073736 : 15269883, .2, .32, { drag: 3, locked: !0 }); this.run && this.state === "run" && (this.run.score += 100 * this.run.scoreMul); }, dashAbsorbed: () => { }, airBlocked: dir => { this.audio.play("bump", { pan: dir * .4 }), this.state === "run" && !this.tutorialMode && this.ui.pop("LAND FIRST", "#9fb3dd", "", 4); }, bump: dir => { this.audio.play("bump", { pan: dir * .6 }), this.rig.shake(.18); } }; }
-        frame() { let rawDt = this.clock.getDelta(), t0 = PERF ? performance.now() : 0; this.manual || this.tick(Math.min(rawDt, 1 / 20), rawDt); let t1 = PERF ? performance.now() : 0; this.syncHome(), this.renderer.render(), PERF && this.perfFrame(rawDt * 1e3, t1 - t0, performance.now() - t1), DEBUG && this.updateDebug(); }
+        frame() { let rawDt = this.clock.getDelta(), t02 = PERF ? performance.now() : 0; this.manual || this.tick(Math.min(rawDt, 1 / 20), rawDt); let t1 = PERF ? performance.now() : 0; this.syncHome(), this.renderer.render(), bootFrame(rawDt * 1e3, this.state), PERF && this.perfFrame(rawDt * 1e3, t1 - t02, performance.now() - t1), DEBUG && this.updateDebug(); }
         perfFrame(frameMs, jsMs, renderMs) {
             var _a13;
             if (this.perfRec.add({ frame: frameMs, js: jsMs, render: renderMs }), this.perfT += frameMs, this.perfT < 500)
@@ -14999,7 +15035,7 @@ vRoadW = (modelMatrix * vec4(transformed, 1.0)).xyz;`), sh.fragmentShader = sh.f
             this.perfEl.textContent = `${s.fps} fps \xB7 p95 ${s.frame.p95} ms \xB7 JS ${s.js.avg} \xB7 draw ${s.render.avg} ms
 ${s.calls} calls \xB7 ${Math.round(s.tris / 1e3)}k tris \xB7 ${s.quality.toUpperCase()} @${s.dpr} \xB7 heap ${(_a13 = s.heapMB) != null ? _a13 : "\u2014"} MB`;
         }
-        perfStats(last) { let i = this.renderer.info, mem = performance.memory; return Object.assign(Object.assign({}, this.perfRec.report(last)), { calls: i.render.calls, tris: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, quality: this.renderer.quality, dpr: this.renderer.pixelRatio, heapMB: mem ? Math.round(mem.usedJSHeapSize / 1048576) : null }); }
+        perfStats(last2) { let i = this.renderer.info, mem = performance.memory; return Object.assign(Object.assign({}, this.perfRec.report(last2)), { calls: i.render.calls, tris: i.render.triangles, geometries: i.memory.geometries, textures: i.memory.textures, quality: this.renderer.quality, dpr: this.renderer.pixelRatio, heapMB: mem ? Math.round(mem.usedJSHeapSize / 1048576) : null }); }
         perfReset() { this.perfRec.reset(); }
         advance(seconds, step2 = 1 / 60) { for (let t = 0; t < seconds - 1e-9; t += step2)
             this.tick(step2, step2); }
@@ -15451,8 +15487,10 @@ speed ${w.speed.toFixed(1)}  dist ${w.dist.toFixed(0)}  obst ${w.obstacles.lengt
     setTimeout(measureSafe, 800);
     setTimeout(measureSafe, 3e3);
     var container = { get clientWidth() { return viewW; }, get clientHeight() { return viewH; }, appendChild: x => x, removeChild: x => x, addEventListener() { }, removeEventListener() { }, getBoundingClientRect: () => ({ left: 0, top: 0, width: viewW, height: viewH, right: viewW, bottom: viewH }), style: {} }, game = null, ui = null;
+    platform.onRenderer = r => { measure(r, () => { var _a13; return (_a13 = G3.document) != null && _a13.createElement ? G3.document.createElement("canvas") : T3.createCanvas(); }), applyColor(r, "auto"), bootMark("colour probe"); };
+    bootMark("native main");
     try {
-        game = new Game(container), ui = game.ui;
+        game = new Game(container), bootMark("game constructed"), ui = game.ui;
     }
     catch (e) {
         console.error("[sky-roadster] could not start the 3D view", e), bootError(e);
@@ -15490,7 +15528,7 @@ speed ${w.speed.toFixed(1)}  dist ${w.dist.toFixed(0)}  obst ${w.obstacles.lengt
         let quad2 = new Mesh(new PlaneGeometry(2, 2), mat3);
         quad2.frustumCulled = !1, uiScene.add(quad2);
         let renderer = game.renderer, now2 = () => typeof performance != "undefined" ? performance.now() : Date.now(), r0 = renderer.renderer;
-        measure(r0, () => { var _a13; return (_a13 = G3.document) != null && _a13.createElement ? G3.document.createElement("canvas") : T3.createCanvas(); }), applyColor(r0, "auto"), ui.colorCtl = { mode: () => color.mode, line: () => { var _a13, _b3; return `${colorLine()} \xB7 audio ${(_a13 = game == null ? void 0 : game.audio) != null && _a13.ctx ? (_b3 = game.audio.ctx.state) != null ? _b3 : "on" : "off"}`; }, cycle: () => { let i = COLOR_MODES.indexOf(color.mode), next = COLOR_MODES[(i + 1) % COLOR_MODES.length]; applyColor(r0, next), next === "normal" && color.applied.texture === !1 && ui.toast("Colour: normal \xB7 reopen the game if textures still look pale", "#4fc3ff"); } }, renderer.uiPass = r => { ui.frame(now2()) && (uiTex.needsUpdate = !0), mat3.uniforms.decode.value = color.applied.surface ? 1 : 0, r.render(uiScene, uiCam), opaque(r); };
+        ui.colorCtl = { mode: () => color.mode, line: () => { var _a13, _b3; return `${colorLine()} \xB7 audio ${(_a13 = game == null ? void 0 : game.audio) != null && _a13.ctx ? (_b3 = game.audio.ctx.state) != null ? _b3 : "on" : "off"}`; }, cycle: () => { let i = COLOR_MODES.indexOf(color.mode), next = COLOR_MODES[(i + 1) % COLOR_MODES.length]; applyColor(r0, next), next === "normal" && color.applied.texture === !1 && ui.toast("Colour: normal \xB7 reopen the game if textures still look pale", "#4fc3ff"); } }, renderer.uiPass = r => { ui.frame(now2()) && (uiTex.needsUpdate = !0), mat3.uniforms.decode.value = color.applied.surface ? 1 : 0, r.render(uiScene, uiCam), opaque(r); };
         let opaque = r => { let gl = r.getContext(); r.setRenderTarget(null), gl.colorMask(!1, !1, !1, !0), gl.clearColor(0, 0, 0, 1), gl.clear(gl.COLOR_BUFFER_BIT), gl.colorMask(!0, !0, !0, !0), r.resetState(); }, booted = !1, r3 = renderer.renderer, orig = r3.setAnimationLoop.bind(r3);
         r3.setAnimationLoop = cb => { booted = !0, orig(cb); };
         let raf = (_a6 = G3.requestAnimationFrame) != null ? _a6 : (cb => setTimeout(cb, 16)), pre = () => { if (!booted) {

@@ -150,7 +150,11 @@ export function schedule(now = Date.now()) {
 }
 
 /** local clock text of a session start, e.g. "23:00" */
-export const localTime = (ms: number) => new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+/** HH:MM on the local clock (v4.0.1: no Intl — mini-game runtimes may lack it or format in UTC) */
+export const localTime = (ms: number) => {
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
 
 export function eventBoard(e: EventInst, you: { name: string; score: number; color: string; pass?: boolean; av?: number; flag?: string }, now = Date.now()): Board {
   const f = Math.min(1, Math.max(0, (now - e.start) / (e.end - e.start)));

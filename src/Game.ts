@@ -1,3 +1,4 @@
+import { bootFrame, bootMark } from './core/bootMark.ts';
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
 import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
@@ -91,7 +92,7 @@ function cleanName(n: string) {
   return out.trim().slice(0, 14);
 }
 
-const VERSION = 'v4.0.0';
+const VERSION = 'v4.0.1';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -264,6 +265,7 @@ export class Game {
 
   constructor(container: HTMLElement) {
     this.renderer = new Renderer(container, this.save.settings.quality, this.rig.camera, platform.canvas);
+    platform.onRenderer?.(this.renderer.renderer);
     if (platform.android) {
       // v3.0.9: Android phones drew 2× (up to 3×) pixels through bloom — 1.5× keeps it sharp and smooth
       this.renderer.scaleCap = 1.5;
@@ -584,7 +586,9 @@ export class Game {
       this.audio.setHidden(document.hidden);
       if (document.hidden) void this.pushSave(); // leaving the app: save to the cloud right away
       else if (this.cloud.enabled) void this.cloudSync();
+      if (!document.hidden) this.bonusTick(); // back in the app: Gold Rush follows the clock
     });
+    window.setInterval(() => this.bonusTick(), 5000);
     // cloud save: hear back from Google / Apple sign-in, then line this device up with the account
     this.cloud.onSignedIn = () => {
       this.ui.toast('☁️ Signed in', '#4fc3ff');
@@ -625,14 +629,17 @@ export class Game {
   }
 
   async boot() {
+    bootMark('boot start');
     this.ui.setLoading(0.15);
     this.initCountry();
     // prewarm pools & compile shaders up-front so the first obstacles don't hitch
     this.obstacleViews.prewarm();
     this.pickupViews.prewarm();
+    bootMark('pools');
     await this.assets.loadAll(this.audio, (k) => this.ui.setLoading(0.15 + k * 0.5));
     const car = this.assets.model('vehicle.xwave');
     if (car) this.vehicle.useModel(car);
+    bootMark('assets + car');
     this.ui.setLoading(0.75);
     this.world.reset(1234);
     this.world.player.reset(1);
@@ -640,6 +647,7 @@ export class Game {
     this.track.setAccent(this.scenery.accent);
     this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
+    bootMark('world');
     {
       // v3.0.9: compile the pooled (hidden) obstacle / pickup meshes too — compile() skips invisible
       // objects, so their shaders were built on the first race frames (the hitch at race start)
@@ -652,6 +660,7 @@ export class Game {
       });
       try {
         this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
+        bootMark('compile');
         // v4.0: Home now shows the key art, not the world — draw ONE full world frame here (under the loading
         // screen) so the post-processing passes and render targets are built now, not on the first race frame
         if (!this.homeView.active) this.renderer.render();
@@ -661,6 +670,7 @@ export class Game {
         for (const o of hidden) o.visible = false;
       }
     }
+    bootMark('prewarm frame');
     this.ui.setLoading(0.92);
     // let the loading key art be seen (≥1.6 s from page start), never a blank flash; the bar keeps
     // running and only reaches 100 % right before the menu (v4.6 owner: "Loading", never "Ready")
@@ -681,6 +691,7 @@ export class Game {
     const prevSeen = this.save.lastSeen;
     void this.seedDb();
     this.goHome();
+    bootMark('home');
     window.setTimeout(() => this.launchPopups(prevSeen), 700);
     this.clock.start();
     this.renderer.renderer.setAnimationLoop(() => this.frame());
@@ -735,6 +746,14 @@ export class Game {
     this.meta.rollover();
     this.ui.refreshProfile(this.save);
     this.ui.freeCoins(this.freeCoinsLeft(), ADS.freeCoinsAmount);
+    this.syncHomeData();
+    this.perkBadges();
+    this.ui.show('start');
+  }
+
+  /** Home data (rank badges, Gold Rush strip). v4.0.1: also re-run while Home stays open so the Gold Rush
+   *  strip / popup follow the clock (a player who comes back at 1:15 sees the 1:00 event OPEN until 1:30). */
+  private syncHomeData() {
     const bs = bonusState();
     this.ui.myClass = this.meta.cls;
     this.ui.homeSync({
@@ -753,8 +772,20 @@ export class Game {
       sale: !this.save.starterBought,
       pass: this.meta.passActive,
     });
-    this.perkBadges();
-    this.ui.show('start');
+    this.bonusSyncKey = this.bonusKeyNow();
+  }
+
+  private bonusSyncKey = '';
+  private bonusKeyNow() {
+    const bs = bonusState();
+    return bs.live ? `L${bs.live.key}:${Math.floor((bs.live.end - Date.now()) / 60000)}` : `N${bs.next.key}:${Math.floor((bs.next.start - Date.now()) / 60000)}`;
+  }
+  /** called every few seconds and when the app comes back: refresh the Gold Rush info if the minute changed */
+  private bonusTick() {
+    if (this.state !== 'menu') return;
+    if (this.bonusKeyNow() === this.bonusSyncKey) return;
+    this.syncHomeData();
+    if (this.ui.isShown('bonus')) this.openBonus(true);
   }
 
   // =============================================================== live-ops screens
@@ -1796,8 +1827,8 @@ export class Game {
   }
 
   // ------------------------------------------------------------- v2 Bonus events
-  openBonus() {
-    this.audio.play('click');
+  openBonus(quiet = false) {
+    if (!quiet) this.audio.play('click');
     const bs = bonusState();
     const now = Date.now();
     this.ui.bonusSync({
@@ -2523,6 +2554,7 @@ export class Game {
     const t1 = PERF ? performance.now() : 0;
     this.syncHome();
     this.renderer.render();
+    bootFrame(rawDt * 1000, this.state);
     if (PERF) this.perfFrame(rawDt * 1000, t1 - t0, performance.now() - t1);
     if (DEBUG) this.updateDebug();
   }

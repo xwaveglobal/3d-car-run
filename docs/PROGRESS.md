@@ -4,6 +4,13 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-25 — v4.0.1 (branch `v4.0`): Gold Rush window + iPhone first load
+
+- Gold Rush: arriving at hh:15 still plays this hour's event until hh:30 (arithmetic slot, HH:MM without Intl, Home/popup refresh every 5 s + on resume). Test in `tests/bonus.test.ts`.
+- iPhone first-load stall (no-JIT JS): road tile 256 → 512 in background slices; colour probe right after the renderer; audio bank / reverb deferred out of the first tap; resumable music voices (`pluckSteps` / `harmonicaSteps` / `whistleSteps` / `masterSteps`). Measured with Chromium `--js-flags=--jitless` on the HS preview.
+- `[boot]` lines in the console (src/core/bootMark.ts) — ask the owner for an iPhone debug log if it still stalls.
+- Not pushed (owner: push only when asked). Test branch `test/video-autoplay` = v4.0 + Auto play / Game speed / test unlocks (local only).
+
 ## 2026-10-25 — v4.0.0 (branch `v4.0`): native TikTok mini game — WIP
 
 - Branch `v4.0` = `main` (v1.0.9) + the native layer of Sky Roadster `v5.0` (same v4.6.1 base, merged), HS kit

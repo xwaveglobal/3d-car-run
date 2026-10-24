@@ -189,6 +189,16 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v4.0.1 (native, branch `v4.0`) — Gold Rush window, faster first load on iPhone
+
+- **Gold Rush window**: the hourly event is open from hh:00 to hh:30. Arriving at 1:15 plays the 1:00 event until 1:30 (it never says "wait until 2:00"). The slot is computed with plain clock arithmetic (no multi-argument `Date` constructor, no `toLocaleTimeString`). The Home strip and the Bonus popup refresh with the clock and when the app comes back. Covered by `tests/bonus.test.ts`.
+- **First load on iPhone** (the iOS mini-game runtime runs JS without a JIT):
+  - the native build starts on the 256 road tile and draws the 512 tile in 4 ms background slices, then swaps it in;
+  - the colour probe runs as soon as the renderer exists, on an empty GPU queue;
+  - the first tap no longer synthesises the sound bank and reverb (37 ms instead of 633 ms in a no-JIT test); they are built a piece per timer tick;
+  - long music notes are resumable jobs (4,096 samples per call, same sound), so the background render never makes a long frame.
+- `[boot]` timeline in the console (`src/core/bootMark.ts`): boot phases and long frames in the first 20 s, so a phone's debug log shows where the time goes.
+
 ## v1.0.9 — Entry button always on Home
 
 - Home: Launch, Share and Entry are always shown as the three small buttons under the menu (Entry at the bottom),
