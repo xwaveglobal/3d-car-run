@@ -31,6 +31,7 @@ const T: [string, string, string, string, string, string][] = [
   ['Specials', 'Spéciaux', 'スペシャル', 'Especiais', 'Spezialitems', 'Especiales'],
   ['Coming up', 'À venir', '次のミッション', 'Em breve', 'Als Nächstes', 'Próximamente'],
   ['Tomorrow', 'Demain', '明日', 'Amanhã', 'Morgen', 'Mañana'],
+  ['End race', 'Finir la course', 'レース終了', 'Encerrar corrida', 'Rennen beenden', 'Terminar carrera'],
   ['Outlaw Arsenal', 'Arsenal du hors-la-loi', 'アウトロー武器庫', 'Arsenal fora da lei', 'Outlaw-Arsenal', 'Arsenal forajido'],
   ['Unlock once · then buy charges', 'Débloque une fois · puis achète des charges', '一度解放・その後チャージを購入', 'Desbloqueie uma vez · depois compre cargas', 'Einmal freischalten · dann Ladungen kaufen', 'Desbloquea una vez · luego compra cargas'],
   ['Tap the name to change it', 'Touche le nom pour le changer', '名前をタップして変更', 'Toque no nome para mudar', 'Tippe auf den Namen, um ihn zu ändern', 'Toca el nombre para cambiarlo'],

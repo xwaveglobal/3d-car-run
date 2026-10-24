@@ -418,9 +418,9 @@ export class Audio {
       } catch (e) {
         console.warn('[audio] bake', e);
       }
-      setTimeout(next, 8);
+      setTimeout(next, 45);
     };
-    setTimeout(next, 30);
+    setTimeout(next, 1200); // after the first frames of Home
   }
 
   /** the SFX recipes (live Web Audio nodes on the web, written into a buffer while baking) */
@@ -604,10 +604,14 @@ export class Audio {
     this.rendering = true;
     const run = async <T,>(p: Plan<T>) => {
       let t0 = performance.now();
+      // native phones: smaller slices with a frame's rest between them (the music renders in the background
+      // without making Home stutter)
+      const budget = this.baked ? 3 : 6;
+      const rest = this.baked ? 20 : 0;
       for (const j of p.jobs) {
         j();
-        if (performance.now() - t0 > 6) {
-          await new Promise((r) => setTimeout(r, 0));
+        if (performance.now() - t0 > budget) {
+          await new Promise((r) => setTimeout(r, rest));
           t0 = performance.now();
         }
       }

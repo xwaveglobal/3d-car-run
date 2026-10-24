@@ -111,6 +111,8 @@ export interface UIHandlers {
   continueAd(): void;
   continueCoins(): void;
   continueNo(): void;
+  /** v4.0: Retry from the revive screen (the race ends, a new one starts) */
+  continueRetry(): void;
   adDouble(): void;
   adFreeCoins(): void;
   adBoost(): void;
@@ -301,7 +303,7 @@ export class UI {
   private garageIndex = 0;
   private fastTapT = -1e9;
 
-  constructor(parent: HTMLElement, private h: UIHandlers) {
+  constructor(parent: HTMLElement, public h: UIHandlers) {
     this.root = document.createElement('div');
     this.root.id = 'ui';
     parent.appendChild(this.root);
@@ -699,7 +701,7 @@ export class UI {
         <div class="cont-ring"><svg viewBox="0 0 120 120"><circle class="bg" cx="60" cy="60" r="52"/><circle class="fg" data-k="contring" cx="60" cy="60" r="52"/></svg><b data-k="contsec">7</b></div>
         <p class="contleft" data-k="contleft"></p>
         <button class="btn big gold" data-a="contad">${ICON.play} Watch ad · Revive</button>
-        <button class="btn ghost sm" data-a="contno">No thanks · end race</button>
+        <div class="sbtns two controw"><button class="btn sm" data-a="contretry">${ICON.retry} Retry</button><button class="btn ghost sm" data-a="contno">End race</button></div>
       </div>
     </section>
 
@@ -861,6 +863,7 @@ export class UI {
         case 'bagbuy': if (this.lastSave) this.buySync(this.lastSave); return this.showOverlay('bagbuy');
         case 'sbuy': return this.h.buySpecial(el.dataset.v!);
         case 'bagpick': return this.h.bagPick();
+        case 'contretry': return this.h.continueRetry();
         case 'sgo': return this.h.goRace();
         case 'bonusgo': return this.h.bonusGo();
         case 'slocked': return this.toast(`${ICON.lock} Opens at rank AAA · try it now in Gold Rush`, '#b7a6ff');

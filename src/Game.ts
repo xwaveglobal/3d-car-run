@@ -372,6 +372,16 @@ export class Game {
           return this.gameOver();
         }
         if (this.state === 'countdown') return this.goHome();
+        // v4.0 (owner): the weekly rank board comes when the player leaves the result for Home — and only after a
+        // race that beat the best EXP; otherwise straight Home
+        if (this.pendingRank && (this.state === 'gameover' || this.state === 'finish') && !this.ui.isShown('runrank')) {
+          const pr = this.pendingRank;
+          this.pendingRank = null;
+          this.ui.runRank(pr);
+          if (pr.board.you.rank < pr.before) window.setTimeout(() => this.audio.play('combo'), 1500);
+          return;
+        }
+        this.pendingRank = null;
         if (back) return back();
         this.afterResults(() => this.goHome());
       },
@@ -507,6 +517,13 @@ export class Game {
       continueAd: () => void this.continueByAd(),
       continueCoins: () => this.continueByCoins(),
       continueNo: () => this.gameOver(),
+      // v4.0 (owner): the revive screen offers Retry too — the race ends (counted, as "end race"), then a new one
+      continueRetry: () => {
+        if (this.state !== 'continue') return;
+        this.gameOver();
+        this.pendingRank = null;
+        this.ui.h.retry();
+      },
       adDouble: () => void this.adDouble(),
       adFreeCoins: () => void this.adFreeCoins(),
       adBoost: () => void this.adBoost(),
@@ -635,6 +652,11 @@ export class Game {
       });
       try {
         this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
+        // v4.0: Home now shows the key art, not the world — draw ONE full world frame here (under the loading
+        // screen) so the post-processing passes and render targets are built now, not on the first race frame
+        if (!this.homeView.active) this.renderer.render();
+      } catch (e) {
+        console.warn('[boot] prewarm', e);
       } finally {
         for (const o of hidden) o.visible = false;
       }
@@ -3306,6 +3328,9 @@ export class Game {
     if (!revived) this.ui.toast(`${ICON.heart} RESPAWN · ${this.run.lives} ${this.run.lives === 1 ? 'life' : 'lives'} left`, 'var(--red)');
   }
 
+  /** v4.0: the post-race rank board, shown on the Home tap after a new best */
+  private pendingRank: { before: number; board: ReturnType<Meta['weekly']>; rows: ReturnType<typeof aroundYou>; clsUp: RankClass | null } | null = null;
+
   /** unused Roadster / HYPER / SOS charges at the finish line → bonus points (shown on the result) */
   private leftover: { pts: number; items: string } | null = null;
   private cashLeftovers() {
@@ -3514,12 +3539,12 @@ export class Game {
     this.ads.runEnded();
     this.ui.show('gameover');
     if (rewards && rewards.to > rewards.from) this.audio.play('mission');
-    // v4.6 (owner): EXP races open on the weekly rank board (the result card with Restart is under it)
-    if (!isBonusRun && !this.tutorialMode) {
+    // v4.0 (owner): the weekly rank board waits for the Home tap, and only after a new best EXP (else skipped)
+    this.pendingRank = null;
+    if (!isBonusRun && !this.tutorialMode && rewards && rewards.to > rewards.from) {
       const board = this.meta.weekly();
-      const clsUp = rewards && rewards.clsAfter !== rewards.clsBefore ? rewards.clsAfter : null;
-      this.ui.runRank({ before: wkBefore, board, rows: aroundYou(board, 2), clsUp });
-      if (board.you.rank < wkBefore) window.setTimeout(() => this.audio.play('combo'), 1500);
+      const clsUp = rewards.clsAfter !== rewards.clsBefore ? rewards.clsAfter : null;
+      this.pendingRank = { before: wkBefore, board, rows: aroundYou(board, 2), clsUp };
     }
   }
 

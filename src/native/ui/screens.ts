@@ -173,12 +173,7 @@ function start(ui: UI, g: Gfx) {
   const bonus = hot('bonus', 'events', () => ui.h.events());
   if (o?.bonus.live) dot(g, bonus.x + bonus.w * 0.92, bonus.y + bonus.h * 0.06, st.s);
   {
-    const r = art('play');
-    const k = (Math.sin(g.time / 410) + 1) / 2; // PLAY breathes (a soft light, the art stays)
-    g.alpha(0.12 + 0.18 * k);
-    g.rr(r.x + r.w * 0.03, r.y + r.h * 0.06, r.w * 0.94, r.h * 0.88, 20 * st.s, 'rgba(255,214,120,.55)');
-    g.alpha(1);
-    hot('play', 'play', () => ui.h.play());
+    hot('play', 'play', () => ui.h.play()); // the painted PLAY (still — Home is not redrawn on a timer)
   }
   hot('garage', 'garage', () => ui.h.garage());
   const shopR = hot('shop', 'shop', () => ui.h.shop());

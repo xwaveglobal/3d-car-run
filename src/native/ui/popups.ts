@@ -447,7 +447,7 @@ function finishOv(ui: UI, g: Gfx) {
 
 function continueOv(ui: UI, g: Gfx) {
   modal(ui, g, 'continue', { close: 'none', w: 320 }, (x, y, w) => {
-    g.text('REVIVE?', x + w / 2, y + 14, { size: 26, align: 'center', italic: true });
+    g.text('REVIVE?', x + w / 2, y + 14, { size: 26, align: 'center', font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null });
     y += 36;
     const cx = x + w / 2,
       cy = y + 60;
@@ -470,15 +470,18 @@ function continueOv(ui: UI, g: Gfx) {
     if (hs.canShowAd('continue')) button(g, 'contad', x, y, w, 54, `${ICON.play} Watch ad · Revive`, () => ui.h.continueAd(), { style: 'gold', size: 17 });
     else button(g, 'contad', x, y, w, 54, hs.hasAds() ? `${ICON.clock} Ad loading…` : `${ICON.info} No ad available`, () => {}, { style: 'ghost', disabled: true, size: 15 });
     y += 62;
-    button(g, 'contno', x + 30, y, w - 60, 38, 'No thanks · end race', () => ui.h.continueNo(), { style: 'ghost', size: 13 });
-    return y + 42;
+    // v4.0 (owner): Retry next to ending the race
+    const hw = (w - 8) / 2;
+    button(g, 'contretry', x, y, hw, 44, `${ICON.retry} Retry`, () => ui.h.continueRetry(), { style: 'blue', size: 15 });
+    button(g, 'contno', x + hw + 8, y, hw, 44, 'End race', () => ui.h.continueNo(), { style: 'ghost', size: 14 });
+    return y + 48;
   });
 }
 
 function pauseOv(ui: UI, g: Gfx) {
   const s = ui.save;
   modal(ui, g, 'pause', { close: 'none', w: 330 }, (x, y, w) => {
-    g.text('Paused', x + w / 2, y + 16, { size: 31, align: 'center', italic: true });
+    g.text('PAUSED', x + w / 2, y + 16, { size: 28, align: 'center', font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null });
     y += 44;
     const tw = (w - 16) / 3;
     const items: [string, string, string, () => void, boolean][] = [
@@ -486,7 +489,7 @@ function pauseOv(ui: UI, g: Gfx) {
       ['p-music', s?.settings.music ? ICON.music : ICON.musicOff, 'MUSIC', () => ui.h.toggleMusic(), !!s?.settings.music],
       ['p-q', ICON.gear, (ui.liveQuality ?? s?.settings.quality ?? 'high').toUpperCase(), () => ui.h.toggleQuality(), true],
     ];
-    items.forEach(([k, ic, l, fn, on], i) => button(g, k, x + i * (tw + 8), y, tw, 46, l, fn, { style: on ? 'dark' : 'ghost', icon: ic, size: 15 }));
+    items.forEach(([k, ic, l, fn, on], i) => button(g, k, x + i * (tw + 8), y, tw, 46, l, fn, { style: on ? 'dark' : 'ghost', icon: ic, size: 12.5 }));
     y += 56;
     button(g, 'resume', x, y, w, 60, `${ICON.play} Resume`, () => ui.h.resume(), { style: 'gold', size: 24 });
     y += 68;

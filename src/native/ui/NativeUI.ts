@@ -161,7 +161,9 @@ export class UI {
   animating(t: number) {
     if (this.notice || this.notices.length || this.pops || this.big || this.flyers.length) return true;
     if (this.shown.has('countdown') && t - this.countT < 1200) return true;
-    if (this.shown.has('loading') || this.shown.has('start') || this.shown.has('continue') || this.shown.has('tutprompt') || this.tutHint) return true;
+    // v4.0: Home is the still key art — it is not redrawn on a timer (a full-screen UI texture upload each time
+    // made Home stutter on Android); it redraws when something changes, plus once a second (badges, fonts)
+    if (this.shown.has('loading') || this.shown.has('continue') || this.shown.has('tutprompt') || this.tutHint) return true;
     if (this.shown.has('classup') || (this.shown.has('runrank') && this.rr && t - this.rr.t0 < 5200)) return true;
     if (t - this.shopFlashT < 900) return true;
     if (this.shown.has('hud') && (this.hud.danger || this.rocketReady || t - this.hud.rocketWaitT < 800)) return true;
@@ -179,6 +181,7 @@ export class UI {
     // there instead of 25 fps; the 3D city keeps its full frame rate (smoother on Android)
     const homeIdle = this.shown.has('start') && !OVERLAYS.some((o) => this.shown.has(o)) && !this.notice && !this.notices.length && !this.pops && !this.flyers.length && t > this.railMovingUntil;
     if (!need && this.animating(t) && since > (run ? 33 : homeIdle ? 90 : 40)) need = true;
+    if (!need && homeIdle && since > 1000) need = true;
     if (!need) return false;
     this.dirty = false;
     this.hudDirty = false;
