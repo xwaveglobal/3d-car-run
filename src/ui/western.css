@@ -445,7 +445,8 @@ html, body { background: var(--bg); }
 #ui .screen:not(#start) .head .icon-btn, #ui .screen:not(#start) .mhead .icon-btn, #ui .screen:not(#start) .p3h .icon-btn, #ui .screen:not(#start) .modal .icon-btn.sm, #ui #start .mhead .icon-btn {
   border-radius: 9px !important; color: #3a1a04 !important; border: 2px solid #5a2e08 !important;
   background: linear-gradient(180deg, #ffd884 0%, #f0a43a 45%, #c06818 100%) !important;
-  box-shadow: inset 0 0 0 2px rgba(255,236,170,.55), inset 0 -3px 0 rgba(90,40,0,.35), 0 3px 0 #3a1a04, 0 4px 8px rgba(0,0,0,.35) !important;
+  box-shadow: none !important; /* flat (Step 06.5 rule: no shadow / glow on non-Home buttons) */
+  outline: 1.5px solid rgba(255,236,170,.55); outline-offset: -4px;
 }
 #ui .screen:not(#start) .head .icon-btn svg, #ui .screen:not(#start) .mhead .icon-btn svg, #ui .screen:not(#start) .p3h .icon-btn svg, #ui .screen:not(#start) .modal .icon-btn.sm svg { color: #3a1a04 !important; stroke-width: 3; }
 
