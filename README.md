@@ -189,6 +189,23 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.2 — Home = the owner's key art; UI kit graphics
+
+- **Home rebuilt like the key art** (`assets-src/reference/home-v2.webp`): the painted desert, logo and dust are the
+  background; the real 3D car stands where the painted car was (behind-right view, drift pose, wheels turning,
+  dust puffs). No road or scenery is drawn on Home (cheaper than before).
+- Live sprites cut from the owner's UI sheet (`assets-src/reference/ui-kit-sheet.webp`): profile bar, coin bar,
+  gear, menu, BONUS and ENTRY signposts, PLAY plaque, Garage / Shop / Missions. Red dots are live (Gold Rush
+  open, reward ready, Daily waiting) instead of painted.
+- **Swipe the car** on Home to browse the cars: owned cars are selected at once, locked ones show as a
+  silhouette with "Unlocks at rank …"; tap the car to open the Garage. (New car models come later.)
+- The right signpost shows Entry, then Launch once Entry is claimed, then Share; Share & Win and Gold Rush are
+  also in the More menu.
+- Layout works on every screen: the art is width-fitted and bottom-aligned on tall phones (sky above), and
+  height-fitted with blurred sides on tablets / desktop (`src/ui/homeStage.ts`).
+- Other screens: the coin-bar sprite in every header, gold square Back / Close buttons, the sheet's medallion
+  avatars (first six) and dice, the sheet's logo everywhere the logo appears.
+
 ## v1.0.1 — first test release on `main`
 
 The v1.0.0 transformation plus everything fixed while verifying it:

@@ -40,6 +40,8 @@ src/render/          Three.js views — read-only consumers of gameplay state
 src/render/western/  v1.0.0 Western world: atlas.ts (one procedural texture atlas), kit.ts (parts → one baked geometry),
                      PropField.ts (instanced scrolling props), props.ts (catalogue), scenes.ts (one builder per place),
                      looks.ts (sky / fog / light, road style, readability, tyre dust), obstacles.ts (Western obstacle looks)
+src/render/HomeView.ts  v1.0.2 Home: painted key art (full-screen quad) + the 3D car + dust; drawn instead of the world while Home is open
+src/ui/homeStage.ts  v1.0.2 Home layout math (key-art pixels → screen), shared by the page and the renderer; sprites in src/assets/images/home/
 src/western/         v1.0.0 pure data: themes.ts (world id → place name / scene), items.ts (item & special identities)
 src/render/car/      v4 3D car: glbParse.ts (own GLB reader), MeshCar.ts (wheels, sprung body, pop-up spoiler, nitro, dive pose), CarFx.ts (shield aura, ghost / pickup edge light, crash shards), carMotion.ts (pure, tested), x1Textures.ts
 src/render/DebugCollision.ts  ?debug=collision overlay (visual bounds vs hitboxes; dev only)
@@ -74,6 +76,7 @@ builds/              prebuilt single-file HTML snapshots (playable by opening th
 9. **Gold Rush** = 180 s of active gameplay, credited once per run (`src/meta/GoldRush.ts`, `tests/goldrush.test.ts`). Don't let boosters, rewards, pause, ads or the device clock change it; keep the entry rules (hourly, 30 min, 3 plays) unless the owner says otherwise.
 10. **Persistent ids stay**: save key `xwave-sky-rush-v1`, cloud keys, `window.__xwave`, API paths, leaderboard seeds, the GLB `xwave-x1.glb` keep their old names on purpose (old saves and the server keep working). Rename only player-facing text.
 11. **Western look**: new props / obstacles use the shared atlas material (`src/render/western/`), keep their inner edge off the road (PropField `clear`) and keep obstacle silhouettes inside the hitbox of `ObstacleRules.ts`.
+12. **Home = the owner's key art** (`assets-src/reference/home-v2.webp`): place Home elements in key-art pixels (`HOME_LAYOUT`), never by hand-tuned CSS offsets; badges stay live (never painted).
 
 ## Workflow
 

@@ -31,6 +31,7 @@ const SpeedBlurShader = {
 export const OVERLAY_LAYER = 1;
 
 import { GRAPHICS, type GraphicsQuality } from '../config.ts';
+import type { HomeView } from './HomeView.ts';
 /** v4.2: LOW / MEDIUM / HIGH presets (config GRAPHICS) */
 export type Quality = GraphicsQuality;
 
@@ -87,6 +88,8 @@ export class Renderer {
   }
   /** the WebGL context is lost (render calls are skipped until it is restored) */
   lost = false;
+  /** v1.0.2 Home: while active, the key art + the 3D car are drawn instead of the world */
+  home: HomeView | null = null;
 
   private makeRenderer(_q: Quality) {
     const r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false, stencil: false });
@@ -152,6 +155,7 @@ export class Renderer {
     this.width = w;
     this.height = h;
     this.renderer.setSize(w, h, false);
+    this.home?.resize(w, h, this.renderer.getPixelRatio());
     if (this.composer) {
       this.composer.setPixelRatio(this.pixelRatio);
       this.composer.setSize(w, h);
@@ -194,6 +198,12 @@ export class Renderer {
     // count every pass of the frame (scene, post-processing, car overlay) in renderer.info
     this.renderer.info.autoReset = false;
     this.renderer.info.reset();
+    if (this.home?.active) {
+      // Home: painted key art + the car, straight to the canvas (no bloom: the art keeps its colours)
+      this.renderer.setRenderTarget(null);
+      this.renderer.render(this.home.scene, this.home.camera);
+      return;
+    }
     if (this.composer) this.composer.render();
     else this.renderer.render(this.scene, this.camera);
     // overlay: the car render (layer OVERLAY_LAYER) is drawn last, straight onto the canvas,

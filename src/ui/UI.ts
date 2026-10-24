@@ -4,9 +4,21 @@ import './western.css';
 import { HUD_EAGLE, HUD_LAUNCH, ITEM_NAME_W, SPECIAL_HOW_W, SPECIAL_LINE_W, SPECIAL_SHORT_W } from '../western/items.ts';
 import { ICON } from './icons.ts';
 import { copyText } from './ShareCard.ts';
-import { AVATAR_COUNT, avatarForName, avatarSvg, classCorner } from './avatars.ts';
+import { AVATAR_COUNT, DICE_IMG, avatarForName, avatarSvg, classCorner } from './avatars.ts';
 import { CLASSES, CLASS_COLOR, CLASS_MIN, XPT, classBadge, classFor as classOfBolts, classForScore, playerRank, type RankClass } from '../meta/Rank.ts';
 import logoUrl from '../assets/images/car-run-logo.webp';
+import { HOME_LAYOUT, homeStage } from './homeStage.ts';
+import hBonus from '../assets/images/home/bonus.webp';
+import hEntry from '../assets/images/home/entry.webp';
+import hSign from '../assets/images/home/sign.webp';
+import hPlay from '../assets/images/home/play.webp';
+import hGarage from '../assets/images/home/garage.webp';
+import hShop from '../assets/images/home/shop.webp';
+import hMissions from '../assets/images/home/missions.webp';
+import hProfile from '../assets/images/home/profile.webp';
+import hCurrency from '../assets/images/home/currency.webp';
+import hGear from '../assets/images/home/gear.webp';
+import hMenu from '../assets/images/home/menu.webp';
 import appIcon from '../assets/images/app-icon.webp';
 import { amount, calendarGift, coinFace, coinPile, friends, giftBox, megaphone, phonePlus, shareNodes, starBig, tapMarks, wifiRobot } from './art.ts';
 import loadingUrl from '../assets/images/loading.webp';
@@ -168,14 +180,20 @@ export interface UIHandlers {
   buyBoost(k: string): void;
   setLang(code: string): void;
   dailyPop(): void;
+  /** v1.0.2 Home: swipe the car (1 = next, -1 = previous) */
+  carSwipe(dir: 1 | -1): void;
 }
 
 /** Magic Bag: drawstring pouch with a star */
 const BAG_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="bgp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98bff"/><stop offset="1" stop-color="#6a2ee0"/></linearGradient></defs><path d="M8.3 7.4C5 9.6 3.6 13 4.3 16.4c.7 3.2 3.6 4.8 7.7 4.8s7-1.6 7.7-4.8c.7-3.4-.7-6.8-4-9z" fill="url(#bgp)" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><path d="M8.6 7.4c-.9-1.6-.3-3.4 1.3-3.4 1 0 1.3.7 2.1.7s1.1-.7 2.1-.7c1.6 0 2.2 1.8 1.3 3.4z" fill="#8a52f0" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><rect x="7.6" y="6.8" width="8.8" height="1.9" rx=".9" fill="#ffd23d" stroke="#7a4a00" stroke-width=".6"/><path d="M12 11.2l1.05 2.15 2.35.33-1.7 1.66.4 2.34L12 16.6l-2.1 1.08.4-2.34-1.7-1.66 2.35-.33z" fill="#ffe680"/><circle cx="17.6" cy="11" r=".8" fill="#fff"/><circle cx="6.6" cy="13.4" r=".55" fill="#fff" opacity=".8"/></svg>`;
 
 /** tutorial (book + ?) and launch (megaphone) icons */
-/** v1.0.0: More menu (three planks) */
-const MENU_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3.5" y="5" width="17" height="3" rx="1.2"/><rect x="3.5" y="10.5" width="17" height="3" rx="1.2"/><rect x="3.5" y="16" width="17" height="3" rx="1.2"/></g></svg>`;
+/** v1.0.2 Home: an element's place on the key art (art px → CSS vars, see western.css .home2 .hs) */
+const hpos = (k: keyof typeof HOME_LAYOUT) => {
+  const [x, y, w] = HOME_LAYOUT[k];
+  return `--x:${x};--y:${y};--w:${w}`;
+};
+
 const TUT_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M10.2 8.3a2 2 0 1 1 2.6 1.9c-.5.2-.8.6-.8 1.1v.6"/><path d="M12 14.4h.01"/></g></svg>`;
 /** what a finished / crashed run paid out (result screens) */
 export interface RunRewards {
@@ -244,7 +262,6 @@ const avaHtml = (av: number, rc: RankClass, cls = '', extra = '') => `<span clas
 /** EXP logo (rank shield) */
 /** v2.2.8 Home mock-up icons: white rocket (Launch) and an outline car (Garage) */
 const ROCKET_W = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.8 3.2c2.9-.6 5.4-.4 6 .2.6.6.8 3.1.2 6-.6 3-2.6 5.8-5.3 7.7l.3 2.6-2.6 2-1.1-3.2-3.6-3.6-3.2-1.1 2-2.6 2.6.3C11 8.8 11.8 3.8 14.8 3.2z" fill="#fff"/><circle cx="16" cy="8" r="1.8" fill="#2c4a9a"/><path d="M6.5 14.8c-1.6.4-2.8 2.4-3 5.7 3.3-.2 5.3-1.4 5.7-3z" fill="#7fe6ff"/></svg>`;
-const CAR_LINE = `<svg viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M4 13.5 5.8 8.6A2 2 0 0 1 7.7 7.3h8.6a2 2 0 0 1 1.9 1.3l1.8 4.9"/><rect x="2.8" y="13" width="18.4" height="5.2" rx="1.8"/><path d="M5.2 18.2v1.6M18.8 18.2v1.6"/></g><circle cx="7" cy="15.6" r="1.1" fill="currentColor"/><circle cx="17" cy="15.6" r="1.1" fill="currentColor"/></svg>`;
 const BOLT = XPT;
 const fmt = (n: number) => Math.floor(n).toLocaleString('en-US');
 const $ = <T extends HTMLElement = HTMLElement>(root: ParentNode, sel: string) => root.querySelector(sel) as T;
@@ -340,6 +357,10 @@ export class UI {
     const mo = new MutationObserver(() => this.scheduleFit());
     for (const ov of Array.from(this.root.querySelectorAll<HTMLElement>('.screen.overlay'))) mo.observe(ov, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'hidden'] });
     window.addEventListener('resize', () => this.scheduleFit());
+    // v1.0.2 Home: key-art stage + swipeable car
+    window.addEventListener('resize', () => this.layoutHome());
+    this.layoutHome();
+    this.bindCarSwipe();
     // v1.0.0: display fonts (Rye + Alfa Slab One) are bundled in western.css — no runtime CDN
   }
 
@@ -352,7 +373,6 @@ export class UI {
   }
 
   private template() {
-    const logo = `<div class="logo"><img class="xw" src="${logoUrl}" alt="3D Car Run" draggable="false" /></div>`;
     const loadingBg = `<img class="loadbg" src="${loadingUrl}" alt="" draggable="false" />`;
     return `
     <section id="loading" class="screen show">
@@ -396,42 +416,37 @@ export class UI {
       </div>
     </section>
 
-    <section id="start" class="screen">
-      <div class="top-row">
-        <button class="profile" data-a="profile" aria-label="Your profile">
-          <span data-k="ava"></span>
-          <span class="pmeta"><b><span data-k="pname">Pilot</span> <i class="pedit">✎</i></b><small data-k="pline"></small></span>
+    <section id="start" class="screen home2">
+      <!-- v1.0.2: Home = the owner's key art (painted background drawn by the renderer) + live sprites.
+           Every element is placed in key-art pixels (src/ui/homeStage.ts → HOME_LAYOUT). -->
+      <div class="hcar" data-k="carzone" style="${hpos('car')}" aria-label="Swipe to choose a car">
+        <div class="hcarname" data-k="carname" hidden></div>
+      </div>
+      <button class="hs hsign" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><img src="${hBonus}" alt="" draggable="false" /><em class="hdot" data-k="bonusdot" hidden></em></button>
+      <button class="hs hsign" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><img src="${hEntry}" alt="" draggable="false" /><em class="hdot badge" hidden></em></button>
+      <button class="hs hsign blank" data-a="perk" data-v="launch" data-k="pk-launch" style="${hpos('sign')}" aria-label="Launch reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ROCKET_W}</span><span class="slb">LAUNCH</span><em class="hdot badge" hidden></em></button>
+      <button class="hs hsign blank" data-a="perk" data-v="share" data-k="pk-share" style="${hpos('sign')}" aria-label="Share reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ICON.share}</span><span class="slb">SHARE</span><em class="hdot badge" hidden></em></button>
+      <button class="hs hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><img src="${hPlay}" alt="" draggable="false" /></button>
+      <button class="hs hbtn" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><img src="${hGarage}" alt="" draggable="false" /><em class="hdot" data-k="garagedot" hidden></em></button>
+      <button class="hs hbtn" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><img src="${hShop}" alt="" draggable="false" /><em class="msale" data-k="saletag">−80%</em></button>
+      <button class="hs hbtn" data-a="missions" style="${hpos('missions')}" aria-label="Missions"><img src="${hMissions}" alt="" draggable="false" /></button>
+      <div class="htop">
+        <button class="hs hprofile" data-a="profile" style="${hpos('profile')}" aria-label="Your profile">
+          <img src="${hProfile}" alt="" draggable="false" />
+          <span class="hava" data-k="ava"></span>
+          <b class="hname"><span data-k="pname">Pilot</span></b>
+          <span class="hline" data-k="pline"></span>
         </button>
-        <div class="tr">
-          <button class="wallet" data-a="shop" aria-label="Coins · open shop">${ICON.coin}<b data-k="wallet">0</b><i class="plus" data-a="freepop" role="button" aria-label="Free coins · watch an ad">${ICON.plus}</i></button>
-          <button class="icon-btn" data-a="settings" aria-label="Settings">${ICON.gear}</button>
-          <button class="icon-btn morebtn" data-a="more" aria-label="More">${MENU_ICON}<em class="badge dot" data-k="morebadge" hidden></em></button>
+        <div class="hs hcoins" style="${hpos('currency')}">
+          <img src="${hCurrency}" alt="" draggable="false" />
+          <button class="hc-shop" data-a="shop" aria-label="Coins · open shop"><b data-k="wallet">0</b></button>
+          <button class="hc-plus" data-a="freepop" aria-label="Free coins · watch an ad"></button>
         </div>
+        <button class="hs hround" data-a="settings" style="${hpos('gear')}" aria-label="Settings"><img src="${hGear}" alt="" draggable="false" /></button>
+        <button class="hs hround" data-a="more" style="${hpos('menu')}" aria-label="More"><img src="${hMenu}" alt="" draggable="false" /><em class="hdot" data-k="morebadge" hidden></em></button>
       </div>
-      <div class="brand">${logo}</div>
-      <div class="mid">
-      <div class="rail left">
-        <button class="rbtn" data-a="events"><span class="ri g-cups">${ICON.gift}</span><span class="rl">Gold Rush</span><em class="tag live">OPEN</em></button>
-        <button class="rbtn" data-a="daily"><span class="ri g-daily">${ICON.calendar}</span><span class="rl">Daily</span><em class="badge" data-k="dailybadge" hidden>1</em></button>
-      </div>
-      <div class="rail right">
-        <button class="rbtn" data-a="perk" data-v="share" data-k="pk-share"><span class="ri g-share">${ICON.share}</span><span class="rl">Share</span><em class="badge" hidden>!</em></button>
-        <button class="rbtn" data-a="perk" data-v="entry" data-k="pk-entry"><span class="ri g-entry">${ICON.gift}</span><span class="rl">Entry</span><em class="badge" hidden>!</em></button>
-        <button class="rbtn" data-a="perk" data-v="launch" data-k="pk-launch"><span class="ri g-launch">${ROCKET_W}</span><span class="rl">Launch</span><em class="badge" hidden>!</em></button>
-      </div>
-      </div>
-      <div class="menu">
-        <button class="cupstrip" data-a="events" data-k="cupstrip" hidden></button>
-
-        <div class="menu-btns">
-          <button class="btn mbtn" data-a="play"><span class="ib">${ICON.play}</span><span class="lb">Play</span><span class="pchev"><i></i><i></i></span></button>
-          <div class="minirow">
-            <button class="mini garage" data-a="garage">${CAR_LINE}<span>Garage</span></button>
-            <button class="mini shop" data-a="shop">${ICON.bag}<span>Shop</span><em class="msale" data-k="saletag">−80%</em></button>
-            <button class="mini missions" data-a="missions">${ICON.target}<span>Missions</span></button>
-          </div>
-        </div>
-      </div>
+      <span data-k="dailybadge" hidden></span>
+      <button class="cupstrip" data-a="events" data-k="cupstrip" hidden></button>
     </section>
 
     <section id="settings" class="screen overlay">
@@ -467,6 +482,8 @@ export class UI {
           <button class="mitem" data-a="profile"><span class="mi">${ICON.user}</span><b>Profile</b><small>Name, avatar, class</small></button>
           <button class="mitem" data-a="bag"><span class="mi">${BAG_ICON}</span><b>Saddle Bag</b><small>Your specials</small></button>
           <button class="mitem" data-a="settings"><span class="mi">${ICON.gear}</span><b>Settings</b><small>Sound, graphics, language</small></button>
+          <button class="mitem" data-a="perk" data-v="share"><span class="mi">${ICON.share}</span><b>Share &amp; Win</b><small>Coins every day</small></button>
+          <button class="mitem" data-a="events"><span class="mi">${ICON.gift}</span><b>Gold Rush</b><small>3-minute bonus run</small></button>
         </div>
       </div>
     </section>
@@ -1033,6 +1050,64 @@ export class UI {
 
   // --------------------------------------------------------------- fit-to-screen
   private fitQueued = false;
+  /** v1.0.2 Home: place the key-art stage (same math as the renderer's painted background) */
+  layoutHome() {
+    const el = this.screens.start;
+    if (!el) return;
+    const w = this.root.clientWidth || window.innerWidth;
+    const h = this.root.clientHeight || window.innerHeight;
+    const st = homeStage(w, h);
+    el.style.setProperty('--sx', `${st.x.toFixed(2)}px`);
+    el.style.setProperty('--sy', `${st.y.toFixed(2)}px`);
+    el.style.setProperty('--s', st.s.toFixed(5));
+    // taller than the art: the top bar stays pinned to the top of the screen (over the sky extension)
+    el.classList.toggle('tall', st.y > 1);
+  }
+
+  private bindCarSwipe() {
+    const zone = this.root.querySelector<HTMLElement>('[data-k="carzone"]');
+    if (!zone) return;
+    let x0 = 0;
+    let y0 = 0;
+    let id = -1;
+    zone.addEventListener('pointerdown', (e) => {
+      id = e.pointerId;
+      x0 = e.clientX;
+      y0 = e.clientY;
+      zone.setPointerCapture?.(id);
+    });
+    const end = (e: PointerEvent) => {
+      if (e.pointerId !== id) return;
+      id = -1;
+      const dx = e.clientX - x0;
+      const dy = e.clientY - y0;
+      if (Math.abs(dx) > 28 && Math.abs(dx) > Math.abs(dy) * 1.2) this.h.carSwipe(dx < 0 ? 1 : -1);
+      else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) this.h.garage();
+    };
+    zone.addEventListener('pointerup', end);
+    zone.addEventListener('pointercancel', () => (id = -1));
+  }
+
+  private carNameT = 0;
+  /** v1.0.2 Home: the car's name plate under the car while choosing (null hides it) */
+  carName(o: { name: string; sub: string; locked: boolean; i: number; n: number } | null) {
+    const el = this.root.querySelector<HTMLElement>('[data-k="carname"]');
+    if (!el) return;
+    window.clearTimeout(this.carNameT);
+    if (!o) {
+      el.hidden = true;
+      return;
+    }
+    const dots = Array.from({ length: o.n }, (_, i) => `<i class="${i === o.i ? 'on' : ''}"></i>`).join('');
+    el.innerHTML = `<b>${o.locked ? ICON.lock : ''}${o.name}</b><small>${o.sub}</small><span class="cdots">${dots}</span>`;
+    el.classList.toggle('locked', o.locked);
+    el.hidden = false;
+    el.classList.remove('pop');
+    void el.offsetWidth;
+    el.classList.add('pop');
+    this.carNameT = window.setTimeout(() => (el.hidden = true), 2600);
+  }
+
   private scheduleFit() {
     if (this.fitQueued) return;
     this.fitQueued = true;
@@ -1782,10 +1857,11 @@ export class UI {
   /** the player's own class (for their avatar plate) */
   myClass: RankClass = 'D';
 
-  homeSync(o: { name: string; color: string; best: number; avatar: number; bolts: number; weekRank: number | null; allRank?: number | null; dailyBadge: number; bonus: { live: boolean; name: string; theme: string; text: string }; sale: boolean; pass: boolean }) {
+  homeSync(o: { name: string; color: string; best: number; avatar: number; avatarPicked?: boolean; bolts: number; weekRank: number | null; allRank?: number | null; dailyBadge: number; bonus: { live: boolean; name: string; theme: string; text: string }; sale: boolean; pass: boolean }) {
     this.setAll('pname', o.name);
     // home chip: plain avatar (no corner badge over the text) · rank badge · best EXP
-    $(this.root, '[data-k="ava"]').innerHTML = `<span class="ava img rk-${this.myClass} ${o.pass ? 'pass' : ''}">${avatarSvg(o.avatar)}</span>`;
+    // v1.0.2: the key art's cowboy is the portrait until the player picks an avatar
+    $(this.root, '[data-k="ava"]').innerHTML = o.avatarPicked ? `<span class="ava img rk-${this.myClass} ${o.pass ? 'pass' : ''}">${avatarSvg(o.avatar)}</span>` : '';
     $(this.root, '[data-k="pline"]').innerHTML = `${classBadge(this.myClass)}<span class="pbolt">${fmt(o.bolts)}${BOLT}</span>`;
     // all-time position on the avatar (tap → profile)
     $(this.root, '[data-k="ava"]').insertAdjacentHTML('beforeend', `<em class="avrank">${o.allRank ? `#${o.allRank >= 10000 ? `${Math.round(o.allRank / 1000)}K` : fmt(o.allRank)}` : '#—'}</em>`);
@@ -1802,7 +1878,9 @@ export class UI {
     const strip = $(this.root, '[data-k="cupstrip"]');
     strip.style.setProperty('--cc', BONUS_COLOR[c.theme] ?? '#ffc21a');
     strip.innerHTML = `<span class="ci">${ICON.gift}</span><span class="ct"><b>GOLD RUSH · ${c.name}</b><small class="bt">${c.live ? '<em class="live">OPEN</em>' : '<em class="soon">NEXT</em>'}<span>${c.text}</span></small></span><span class="cgo">${ICON.chevR}</span>`;
-    this.root.querySelectorAll<HTMLElement>('.rbtn .tag.live').forEach((t) => (t.hidden = !c.live));
+    // v1.0.2: the BONUS sign carries a red dot while a Gold Rush is open
+    const bd = this.root.querySelector<HTMLElement>('[data-k="bonusdot"]');
+    if (bd) bd.hidden = !c.live;
   }
 
   /** v1.0.0 Gold Rush HUD: the 3-minute timer plate (null hides it); red under 30 s */
@@ -1860,7 +1938,7 @@ export class UI {
       <div class="ph">${avaHtml(o.avatar, o.cls, 'xl')}<div class="pn">
         <div class="nameedit"><input data-k="pnameinput" maxlength="14" value="${esc(o.name)}" aria-label="Pilot name" /><button class="btn sm blue" data-a="savepname">Save</button></div>
         <small>Tap the name to change it</small></div></div>
-      <div class="avrow2"><div class="avstrip" data-k="pavstrip">${strip}</div><button class="btn sm purple" data-a="avrand" aria-label="Random avatar">🎲</button></div>
+      <div class="avrow2"><div class="avstrip" data-k="pavstrip">${strip}</div><button class="avdice" data-a="avrand" aria-label="Random avatar">${DICE_IMG}</button></div>
       <button class="ctryrow bagrow" data-a="bag"><span class="fl">${BAG_ICON}</span><span><small>Saddle Bag</small><b>Specials · 1 per race</b></span><em>Open</em></button>
       <button class="ctryrow" data-a="country"><span class="fl">${flagOf(o.country)}</span><span><small>Country</small><b>${esc(countryName(o.country || 'US'))}</b></span><em>Change</em></button>
       ${this.classCard(o.cls, o.bolts, o.next, o.k, o.need)}
@@ -2464,15 +2542,16 @@ export class UI {
   }
 
   perkBadges(o: Record<'entry' | 'launch' | 'share', 'todo' | 'ready' | 'done'>) {
+    // v1.0.2 Home (key art): ONE signpost on the right — Entry until it is claimed, then Launch, then
+    // Share (claimable again every day). Exhausted Entry / Launch never come back. A red dot = reward ready.
+    const show = o.entry !== 'done' ? 'entry' : o.launch !== 'done' ? 'launch' : 'share';
     for (const [k, st] of Object.entries(o)) {
       const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
       if (!b) continue;
-      // v1.0.0 (master prompt): exhausted Entry and Launch rewards disappear (the rails close the gap);
-      // Share stays visible — it is claimable again every day
-      b.hidden = st === 'done' && (k === 'launch' || k === 'entry');
+      b.hidden = k !== show;
       b.classList.toggle('done', st === 'done');
       const e = b.querySelector<HTMLElement>('.badge');
-      if (e) e.hidden = st !== 'ready' || k === 'share'; // no '!' on Share
+      if (e) e.hidden = st !== 'ready';
     }
   }
 

@@ -28,6 +28,12 @@ const T: [string, string, string, string, string, string][] = [
   ['Profile', 'Profil', 'プロフィール', 'Perfil', 'Profil', 'Perfil'],
   ['Name, avatar, class', 'Nom, avatar, classe', '名前・アバター・クラス', 'Nome, avatar, classe', 'Name, Avatar, Klasse', 'Nombre, avatar, clase'],
   ['Saddle Bag', 'Sacoche', 'サドルバッグ', 'Alforje', 'Satteltasche', 'Alforja'],
+  // v1.0.2 (Home key art)
+  ['Share & Win', 'Partage et gagne', 'シェアで報酬', 'Compartilhe e ganhe', 'Teilen & gewinnen', 'Comparte y gana'],
+  ['Coins every day', 'Des pièces chaque jour', '毎日コイン', 'Moedas todo dia', 'Jeden Tag Münzen', 'Monedas cada día'],
+  ['3-minute bonus run', 'Course bonus de 3 min', '3分ボーナスラン', 'Corrida bônus de 3 min', '3-Minuten-Bonuslauf', 'Carrera bonus de 3 min'],
+  ['LAUNCH', 'LANCEMENT', 'ローンチ', 'LANÇAMENTO', 'START', 'LANZAMIENTO'],
+  ['SHARE', 'PARTAGER', 'シェア', 'COMPARTILHAR', 'TEILEN', 'COMPARTIR'],
   ['Your specials', 'Tes spéciaux', 'あなたのスペシャル', 'Seus especiais', 'Deine Spezialitems', 'Tus especiales'],
   ['Settings', 'Paramètres', '設定', 'Ajustes', 'Einstellungen', 'Ajustes'],
   ['Sound, graphics, language', 'Son, graphismes, langue', 'サウンド・画質・言語', 'Som, gráficos, idioma', 'Sound, Grafik, Sprache', 'Sonido, gráficos, idioma'],

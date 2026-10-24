@@ -20,6 +20,8 @@ import { BONUS, BONUS_NAME, BONUS_SECTIONS, bonusPlaysUsed, bonusState } from '.
 /** Bonus roads start a little into the difficulty curve (friendly, but not empty) */
 const BONUS_DIFF_OFFSET = 900;
 import { Renderer } from './render/Renderer.ts';
+import { HomeView } from './render/HomeView.ts';
+import homeArt from './assets/images/home/home-bg.webp';
 import { CameraRig } from './render/CameraRig.ts';
 import { Vehicle, SKINS, carVisibility, carsForRank } from './render/Vehicle.ts';
 import { CarShatter } from './render/Shatter.ts';
@@ -43,7 +45,7 @@ import { Ads, ADS } from './ads/Ads.ts';
 import { advancedScript, basicScript, boostScript, WORLD_LESSONS, type BoostKind, type TrainingScript, type TutorialStep } from './gameplay/Tutorial.ts';
 import { PASS_H, PASS_L, PASS_N } from './gameplay/types.ts';
 import { MAPS, TIER_NAME, type Tier } from './gameplay/Difficulty.ts';
-import { FAIRNESS, V2_POWERUPS, BONUS_SET, CLASS_REWARD, CLOUD, GRAPHICS, nextGraphics, type GraphicsQuality } from './config.ts';
+import { FAIRNESS, V2_POWERUPS, BONUS_SET, CLASS_REWARD, CLOUD, GRAPHICS, HOME_SHOW, nextGraphics, type GraphicsQuality } from './config.ts';
 import { RANK_ORDER, rankDist, expRate, VARIANTS, type Variant } from './gameplay/Difficulty.ts';
 import type { Box, PickupKind, RowSpec } from './gameplay/types.ts';
 import { Meta, type EventResult, type RunSummary } from './meta/Meta.ts';
@@ -65,7 +67,7 @@ import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
 
-const VERSION = 'v1.0.1';
+const VERSION = 'v1.0.2';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -246,6 +248,11 @@ export class Game {
       this.vehicle.prewarm(this.renderer.renderer, this.renderer.scene, this.rig.camera);
     };
     const scene = this.renderer.scene;
+    // v1.0.2 Home: the owner's key art + the 3D car (drawn instead of the world while Home is open)
+    this.homeView = new HomeView(homeArt, scene.environment);
+    this.homeView.makeEnv(this.renderer.renderer);
+    this.renderer.home = this.homeView;
+    this.renderer.resize();
     this.scenery = new Scenery(scene);
     scene.add(this.scenery.group, this.track.group, this.vehicle.root);
     // v4.2 graphics preset: city density / extras, road detail (the renderer applied its part)
@@ -324,6 +331,7 @@ export class Game {
       setSpeed: (lv) => this.setSpeed(lv),
       nextTrack: () => this.afterResults(() => this.nextTrack()),
       garage: () => this.openGarage(),
+      carSwipe: (dir) => this.carSwipe(dir),
       missions: () => this.openMissions(), // v2.2: Missions are their own screen again (career chains)
       home: () => {
         const back = this.returnTo;
@@ -664,6 +672,7 @@ export class Game {
       color: this.meta.color,
       best: this.save.best,
       avatar: this.save.avatar,
+      avatarPicked: !!this.save.perks.avatarPicked,
       bolts: this.save.expBest,
       weekRank: this.save.expWeek > 0 ? this.meta.weekly().you.rank : null,
       allRank: this.save.expBest > 0 ? this.meta.allTime().you.rank : null,
@@ -2306,6 +2315,7 @@ export class Game {
     const t0 = PERF ? performance.now() : 0;
     if (!this.manual) this.tick(Math.min(rawDt, 1 / 20), rawDt);
     const t1 = PERF ? performance.now() : 0;
+    this.syncHome();
     this.renderer.render();
     if (PERF) this.perfFrame(rawDt * 1000, t1 - t0, performance.now() - t1);
     if (DEBUG) this.updateDebug();
@@ -2353,6 +2363,7 @@ export class Game {
   }
 
   private tick(dt: number, rawDt: number) {
+    this.syncHome();
     if (this.ads?.showing) return; // ad on screen: everything holds still
     // Step 06.5 Patch 02: PAUSED is one authoritative frozen state — no game time, timers, physics,
     // collisions, spawns or visuals advance, and nothing ends the run until the player picks
@@ -2407,7 +2418,60 @@ export class Game {
   }
 
   /** Menu/garage: car hovers on the highway while the city scrolls by slowly. */
+  // ---- v1.0.2 Home showcase
+  private homeView: HomeView;
+  /** the car shown on Home (swipe); an owned car shown there becomes the selected car */
+  private homeCar = '';
+  /** Home is open (with or without an overlay on top): draw the key art + the car instead of the world */
+  private syncHome() {
+    const want = this.state === 'menu' && this.ui.isShown('start');
+    if (want === this.homeView.active) return;
+    if (want) {
+      this.homeView.attach(this.vehicle.root);
+    } else {
+      this.homeView.active = false;
+      this.renderer.scene.add(this.vehicle.root);
+      // the Home drift pose / slide never leaks into the race
+      this.vehicle.root.rotation.set(0, 0, 0);
+      this.vehicle.root.position.x = this.world.player.x;
+      if (this.homeCar && this.homeCar !== this.save.vehicle) this.applySkin(this.save.vehicle);
+      this.homeCar = '';
+      this.ui.carName(null);
+    }
+  }
+
+  private homeCars() {
+    return SKINS.filter((k) => !k.future);
+  }
+
+  /** swipe on Home: next / previous car; owned cars are selected right away, locked ones only shown */
+  private carSwipe(dir: 1 | -1) {
+    if (!this.homeView.active) return;
+    const cars = this.homeCars();
+    const cur = Math.max(0, cars.findIndex((k) => k.id === (this.homeCar || this.save.vehicle)));
+    const i = (cur + dir + cars.length) % cars.length;
+    const k = cars[i];
+    this.homeCar = k.id;
+    const owned = this.save.unlocked.includes(k.id);
+    this.audio.play('click');
+    this.vibrate(8);
+    this.homeView.swipe(dir, () => this.applySkin(k.id, true));
+    if (owned && this.save.vehicle !== k.id) {
+      this.save.vehicle = k.id;
+      this.persist();
+    }
+    this.ui.carName({ name: k.name, sub: owned ? `${k.rarity ?? ''} · Selected`.replace(/^ · /, '') : `Unlocks at rank ${k.need ?? 'D'}`, locked: !owned, i, n: cars.length });
+  }
+
   private updateAmbient(dt: number) {
+    if (this.homeView.active) {
+      const p = this.world.player;
+      p.update(dt);
+      this.vehicle.update(p, dt, HOME_SHOW.wheelSpeed, 0);
+      this.homeView.update(dt, this.vehicle.root, p.x);
+      this.audio.intensity = 0;
+      return;
+    }
     this.menuDist += dt * 16;
     const p = this.world.player;
     p.update(dt);

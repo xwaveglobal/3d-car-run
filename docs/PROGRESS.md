@@ -4,6 +4,18 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.2: Home = key art (owner: "ngoài home sử dụng y hệt ảnh 4 … xe ngoài home có thể lướt chọn được")
+
+- Home: painted key art background (`src/assets/images/home/home-bg.webp`, built by `scripts/home/make-home-bg.py`)
+  + sprites from the owner's UI sheet (`scripts/home/cut-sprites.py`, `dedot.py`, `blank.py`) placed in key-art
+  pixels (`src/ui/homeStage.ts`), + the 3D car (`src/render/HomeView.ts`, tuning `HOME_SHOW` in config.ts).
+- Swipe the car on Home (all 6 cars; owned = selected, locked = silhouette). Other car models: later (owner).
+- Header coin bar, Back / Close buttons, avatars 0–5, dice and logo now use the sheet graphics.
+- Half-done / next: owner review on a phone; real per-car models; the cowboy portrait is the default avatar on Home
+  until the player picks one (other screens still show the emblem).
+
+---
+
 ## 2026-10-24 — v1.0.1: first test release (owner: "Main sẽ là 1.0.1")
 
 - `VERSION` / package.json → 1.0.1; README changelog; the v1.0.0 review fixes are part of 1.0.1.

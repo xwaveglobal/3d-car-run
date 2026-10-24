@@ -3,6 +3,17 @@
  * A new pilot gets a random one; it can be changed or re-rolled in the profile.
  */
 import { CLASS_COLOR, type RankClass } from '../meta/Rank.ts';
+import avBolt from '../assets/images/kit/av-bolt.webp';
+import avFire from '../assets/images/kit/av-fire.webp';
+import avStar from '../assets/images/kit/av-star.webp';
+import avCrown from '../assets/images/kit/av-crown.webp';
+import avWings from '../assets/images/kit/av-wings.webp';
+import avPlanet from '../assets/images/kit/av-planet.webp';
+import avDice from '../assets/images/kit/av-dice.webp';
+
+/** v1.0.2: the owner's UI sheet medallions replace the first six emblems (same order, same indices) */
+const KIT_AVATARS = [avBolt, avFire, avStar, avCrown, avWings, avPlanet];
+export const DICE_IMG = `<img class="kitico dice" src="${avDice}" alt="" draggable="false" />`;
 
 // v2.1 — owner: the helmet portraits looked bad. New set: clean racing emblems (badge style) —
 // 16 emblems × 2 colour schemes = 32 avatars (same count, so saved avatar indices stay valid).
@@ -53,6 +64,7 @@ export const AVATAR_COUNT = 32;
 let uid = 0;
 export function avatarSvg(i: number) {
   const k = ((i % AVATAR_COUNT) + AVATAR_COUNT) % AVATAR_COUNT;
+  if (k < KIT_AVATARS.length) return `<img class="avsvg kitav" src="${KIT_AVATARS[k]}" alt="" draggable="false" />`;
   const emblem = EMBLEMS[k % EMBLEMS.length];
   const [c1, c2, hi] = PALETTES[(k * 3 + Math.floor(k / EMBLEMS.length) * 5) % PALETTES.length];
   const id = `av${k}_${(uid = (uid + 1) % 1e9).toString(36)}`;

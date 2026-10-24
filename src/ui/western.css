@@ -338,3 +338,121 @@ html, body { background: var(--bg); }
 #start .rbtn, #start .rbtn[data-a] { height: 46px !important; padding: 3px 2px !important; }
 #start .rbtn .ri svg { width: 20px !important; height: 20px !important; }
 #start .rbtn::after { bottom: -9px; height: 8px; }
+
+/* ===================================================================== v1.0.2 HOME (key art, "ảnh 4")
+   The renderer paints the key art (logo, canyon, dust) and the 3D car; these are the live sprites cut from
+   the owner's UI sheet, placed in key-art pixels: left = stage x + art x × scale (src/ui/homeStage.ts). */
+#ui #start.home2 { display: none; padding: 0 !important; gap: 0 !important; background: none !important; }
+#ui #start.home2.show { display: block; }
+#ui #start.home2::before, #ui #start.home2::after { display: none !important; }
+#start.home2 .hs {
+  position: absolute; z-index: 2; padding: 0; margin: 0; border: 0; background: none; box-shadow: none; cursor: pointer;
+  left: calc(var(--sx) + var(--x) * var(--s) * 1px);
+  top: calc(var(--sy) + var(--y) * var(--s) * 1px);
+  width: calc(var(--w) * var(--s) * 1px);
+  -webkit-tap-highlight-color: transparent; transition: transform .12s ease-out, filter .12s;
+}
+#start.home2 .hs > img { display: block; width: 100%; height: auto; pointer-events: none; user-select: none;
+  filter: drop-shadow(0 calc(6 * var(--s) * 1px) calc(8 * var(--s) * 1px) rgba(40, 14, 0, .55)); }
+#start.home2 button.hs:active, #start.home2 .hc-shop:active, #start.home2 .hc-plus:active { transform: scale(.95); filter: brightness(1.12); }
+#start.home2 .hs:focus-visible { outline: 3px solid #ffd77a; outline-offset: 2px; border-radius: 12px; }
+/* tall phones: the top bar is pinned under the status bar, the rest stays on the art */
+#start.home2.tall .htop .hs { top: calc(var(--safe-t, env(safe-area-inset-top, 0px)) + 8px + (var(--y) - 38) * var(--s) * 1px); }
+
+/* PLAY breathes (the call to action), the rest is still */
+#start.home2 .hplay > img { animation: hplay 2.4s ease-in-out infinite; }
+@keyframes hplay { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }
+@media (prefers-reduced-motion: reduce) { #start.home2 .hplay > img { animation: none; } }
+
+/* red notification dot, like the key art */
+#start.home2 .hdot { position: absolute; z-index: 3; top: -6%; right: -4%; width: calc(30 * var(--s) * 1px); height: calc(30 * var(--s) * 1px);
+  min-width: 10px; min-height: 10px; padding: 0; border-radius: 50%; font-size: 0; display: block;
+  background: radial-gradient(circle at 50% 50%, #ff2a2a 0 38%, #fff 40% 52%, #c40000 54% 100%);
+  box-shadow: 0 1px 3px rgba(0,0,0,.6); animation: none; }
+#start.home2 .hdot[hidden] { display: none; }
+#start.home2 .hbtn .hdot { top: -14%; right: -3%; }
+#start.home2 .hround .hdot { top: -8%; right: -8%; }
+
+/* blank signpost (Launch / Share): icon + label in the sign's own lettering */
+#start.home2 .hsign.blank .sic { position: absolute; left: 50%; top: 20%; width: 36%; transform: translateX(-50%); color: #f3d79a; pointer-events: none;
+  filter: drop-shadow(0 2px 0 #4a2208) drop-shadow(0 0 1px #4a2208); }
+#start.home2 .hsign.blank .sic svg { width: 100%; height: auto; display: block; }
+#start.home2 .hsign.blank .sic svg * { fill: #f3d79a !important; stroke: #f3d79a; }
+#start.home2 .hsign.blank .slb { position: absolute; left: 0; right: 0; top: 64%; text-align: center; pointer-events: none;
+  font: 400 calc(29 * var(--s) * 1px) / 1 var(--font); letter-spacing: .5px; color: #f6e3b4;
+  text-shadow: 0 2px 0 #3a1a06, 1px 0 0 #3a1a06, -1px 0 0 #3a1a06, 0 -1px 0 #3a1a06; }
+#start.home2 .msale { position: absolute; top: -18%; right: -2%; padding: 1px 6px; border-radius: 8px; font: 400 11px/1.3 var(--font);
+  background: linear-gradient(180deg, #ff5a3a, #c41a0a); color: #fff; border: 1.5px solid #fff2c8; transform: rotate(6deg); }
+#start.home2 .msale[hidden] { display: none; }
+
+/* profile bar: portrait in the ring, rank on the yellow plate, name + class + EXP on the plank */
+#start.home2 .hprofile { text-align: left; }
+#start.home2 .hava { position: absolute; left: 4.7%; top: 11%; width: 21.3%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; }
+#start.home2 .hava > .ava { position: absolute; inset: 0; width: 100% !important; height: 100% !important; border-radius: 50%; overflow: hidden; border: 0 !important; box-shadow: none !important; }
+#start.home2 .hava > .ava svg { width: 100%; height: 100%; display: block; }
+#start.home2 .hava .avrank { position: absolute; left: 47.8%; top: 104%; transform: translate(-50%, -50%); z-index: 2; background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 !important;
+  font: 400 calc(30 * var(--s) * 1px) / 1 var(--font) !important; color: #2a1404 !important; text-shadow: 0 1px 0 rgba(255,240,180,.7); white-space: nowrap; }
+#start.home2 .hname { position: absolute; left: 30.5%; right: 6%; top: 15%; pointer-events: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 400 calc(35 * var(--s) * 1px) / 1.1 var(--font); color: #fff1cf; text-shadow: 0 2px 0 #2a1204, 0 0 6px rgba(0,0,0,.4); }
+#start.home2 .hline { position: absolute; left: 30.5%; right: 6%; top: 52%; height: 31%; display: flex; align-items: center; gap: calc(10 * var(--s) * 1px); pointer-events: none;
+  font: 400 calc(32 * var(--s) * 1px) / 1 var(--font); color: #fff1cf; text-shadow: 0 2px 0 #2a1204; white-space: nowrap; }
+#start.home2 .hline .cbadge, #start.home2 .hline [class*="cls"] { flex: none; transform: scale(1.05); }
+#start.home2 .hline .pbolt { display: inline-flex; align-items: center; gap: calc(8 * var(--s) * 1px); color: #fff1cf !important; font: inherit !important; }
+#start.home2 .hline .pbolt svg { width: auto; height: calc(30 * var(--s) * 1px); }
+
+/* coin bar: the number between the coin and the + */
+#start.home2 .hcoins { cursor: default; }
+#start.home2 .hc-shop { position: absolute; left: 4%; top: 8%; bottom: 8%; width: 68%; padding: 0 0 0 26%; display: flex; align-items: center; justify-content: center; background: none; border: 0; cursor: pointer; }
+#start.home2 .hc-shop b { font: 400 calc(36 * var(--s) * 1px) / 1 var(--font) !important; color: #fff1cf !important; text-shadow: 0 2px 0 #2a1204; }
+#start.home2 .hc-plus { position: absolute; right: 5%; top: 8%; bottom: 8%; width: 23%; background: none; border: 0; border-radius: 50%; cursor: pointer; }
+
+/* the car: swipe area + the name plate while choosing */
+#start.home2 .hcar { position: absolute; z-index: 1; touch-action: none; cursor: grab;
+  left: calc(var(--sx) + (var(--x) - var(--w) / 2) * var(--s) * 1px);
+  top: calc(var(--sy) + (var(--y) - 200) * var(--s) * 1px);
+  width: calc(var(--w) * var(--s) * 1px); height: calc(380 * var(--s) * 1px); }
+#start.home2 .hcarname { position: absolute; left: 50%; top: -30%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 6px 16px 7px; border-radius: 10px; white-space: nowrap; pointer-events: none;
+  background: var(--rivets, none), linear-gradient(180deg, rgba(255,230,170,.08), rgba(0,0,0,.35)), var(--wood) center / 220px auto, #6b4322;
+  border: 2px solid #c8924a; box-shadow: 0 4px 10px rgba(30,10,0,.5); }
+#start.home2 .hcarname[hidden] { display: none; }
+#start.home2 .hcarname.pop { animation: cpop .22s ease-out; }
+@keyframes cpop { from { transform: translateX(-50%) scale(.85); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+#start.home2 .hcarname b { display: inline-flex; align-items: center; gap: 5px; font: 400 17px/1.1 var(--font-title); color: #ffe7b0; text-shadow: 0 2px 0 #2a1204; letter-spacing: 1px; text-transform: uppercase; }
+#start.home2 .hcarname b svg { width: 14px; height: 14px; }
+#start.home2 .hcarname small { font: 600 11px/1.2 var(--font-body, system-ui, sans-serif); color: #f3d9a8; }
+#start.home2 .hcarname.locked b { color: #d9c6a4; }
+#start.home2 .cdots { display: flex; gap: 5px; margin-top: 3px; }
+#start.home2 .cdots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,230,180,.35); }
+#start.home2 .cdots i.on { background: #ffc848; box-shadow: 0 0 4px #ffc848; }
+#start.home2 > [data-k="dailybadge"] { display: none !important; }
+
+/* v1.0.2 UI kit (owner's sheet): the coin bar sprite on every screen header, gold square back / close
+   buttons, medallion avatars */
+#ui .screen:not(#start) .wallet {
+  position: relative; display: inline-flex !important; align-items: center; justify-content: center; gap: 0 !important;
+  height: 38px !important; width: calc(38px * 405 / 124) !important; min-width: 0 !important; padding: 0 23% 0 27% !important;
+  background: url('../assets/images/home/currency.webp') center / 100% 100% no-repeat !important;
+  border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
+  filter: drop-shadow(0 2px 3px rgba(30,10,0,.5));
+}
+#ui .screen:not(#start) .wallet > svg { display: none !important; }
+#ui .screen:not(#start) .wallet b { font: 400 15px/1 var(--font) !important; color: #fff1cf !important; text-shadow: 0 2px 0 #2a1204; }
+#ui .screen:not(#start) .wallet .plus { position: absolute !important; right: 5%; top: 8%; bottom: 8%; width: 22%; margin: 0 !important; padding: 0 !important;
+  background: none !important; border: 0 !important; box-shadow: none !important; border-radius: 50% !important; }
+#ui .screen:not(#start) .wallet .plus svg { display: none !important; }
+
+#ui .screen:not(#start) .head .icon-btn, #ui .screen:not(#start) .mhead .icon-btn, #ui .screen:not(#start) .p3h .icon-btn, #ui .screen:not(#start) .modal .icon-btn.sm, #ui #start .mhead .icon-btn {
+  border-radius: 9px !important; color: #3a1a04 !important; border: 2px solid #5a2e08 !important;
+  background: linear-gradient(180deg, #ffd884 0%, #f0a43a 45%, #c06818 100%) !important;
+  box-shadow: inset 0 0 0 2px rgba(255,236,170,.55), inset 0 -3px 0 rgba(90,40,0,.35), 0 3px 0 #3a1a04, 0 4px 8px rgba(0,0,0,.35) !important;
+}
+#ui .screen:not(#start) .head .icon-btn svg, #ui .screen:not(#start) .mhead .icon-btn svg, #ui .screen:not(#start) .p3h .icon-btn svg, #ui .screen:not(#start) .modal .icon-btn.sm svg { color: #3a1a04 !important; stroke-width: 3; }
+
+#ui img.kitav { object-fit: contain; background: none !important; box-shadow: none !important; }
+#ui .ava.img img.kitav { width: 100%; height: 100%; border-radius: 50%; display: block; }
+#ui .avdice { width: 44px; height: 44px; padding: 0; border: 0; background: none; cursor: pointer; flex: none; }
+#ui .avdice img { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 2px rgba(0,0,0,.45)); }
+#ui .avdice:active { transform: scale(.94); }
+#ui .avpick img { width: 100%; height: 100%; display: block; object-fit: contain; }
+#ui .avpick:has(img.kitav) { border-radius: 50%; }

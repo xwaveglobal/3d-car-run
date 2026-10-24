@@ -448,6 +448,34 @@ export const CAMERA = {
 };
 
 /**
+ * v1.0.2 Home showcase (render/HomeView.ts): the 3D car on the owner's key art. The car stands still
+ * (wheels turning, dust behind), seen from behind-right like the art; swipe slides between cars.
+ */
+export const HOME_SHOW = {
+  fov: 24,
+  /** camera yaw around the car (rad, + = right of the car) and pitch above it */
+  yaw: 0.36,
+  pitch: 0.19,
+  lookY: 0.6,
+  /** world size that spans HOME_LAYOUT.car's width (bigger → the car looks smaller) */
+  carSpan: 2.85,
+  /** drift pose like the key art: nose turned right (rad), body leaning (rad) */
+  carYaw: -0.04,
+  carRoll: 0.035,
+  /** wheel spin on Home (road speed, m/s) */
+  wheelSpeed: 14,
+  hemi: 0.55,
+  sun: 3.2,
+  rim: 2.6,
+  fill: 0.3,
+  puffs: 28,
+  puffRate: 18,
+  puffAlpha: 0.5,
+  /** swipe: how far the car slides out (m) */
+  slide: 7,
+};
+
+/**
  * v4.2 (3D upgrade Step 04) graphics presets. Render-only: the game logic, speeds and hitboxes are
  * identical on every preset. MEDIUM is the starting preset until device benchmarks exist; a device
  * that cannot hold ~42 fps steps down on its own (resolution → bloom → LOW, session only).
