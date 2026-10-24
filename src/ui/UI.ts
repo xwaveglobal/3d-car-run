@@ -422,14 +422,14 @@ export class UI {
       <div class="hcar" data-k="carzone" style="${hpos('car')}" aria-label="Swipe to choose a car">
         <div class="hcarname" data-k="carname" hidden></div>
       </div>
-      <button class="hs hsign" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><img src="${hBonus}" alt="" draggable="false" /><em class="hdot" data-k="bonusdot" hidden></em></button>
-      <button class="hs hsign" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><img src="${hEntry}" alt="" draggable="false" /><em class="hdot badge" hidden></em></button>
+      <button class="hs hsign" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><img src="${hBonus}" alt="" draggable="false" /><span class="sr">Gold Rush</span><em class="hdot" data-k="bonusdot" hidden></em></button>
+      <button class="hs hsign" data-a="perk" data-v="entry" data-k="pk-entry" style="${hpos('sign')}" aria-label="Entry reward"><img src="${hEntry}" alt="" draggable="false" /><span class="sr">Entry</span><em class="hdot badge" hidden></em></button>
       <button class="hs hsign blank" data-a="perk" data-v="launch" data-k="pk-launch" style="${hpos('sign')}" aria-label="Launch reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ROCKET_W}</span><span class="slb">LAUNCH</span><em class="hdot badge" hidden></em></button>
       <button class="hs hsign blank" data-a="perk" data-v="share" data-k="pk-share" style="${hpos('sign')}" aria-label="Share reward" hidden><img src="${hSign}" alt="" draggable="false" /><span class="sic">${ICON.share}</span><span class="slb">SHARE</span><em class="hdot badge" hidden></em></button>
-      <button class="hs hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><img src="${hPlay}" alt="" draggable="false" /></button>
-      <button class="hs hbtn" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><img src="${hGarage}" alt="" draggable="false" /><em class="hdot" data-k="garagedot" hidden></em></button>
-      <button class="hs hbtn" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><img src="${hShop}" alt="" draggable="false" /><em class="msale" data-k="saletag">−80%</em></button>
-      <button class="hs hbtn" data-a="missions" style="${hpos('missions')}" aria-label="Missions"><img src="${hMissions}" alt="" draggable="false" /></button>
+      <button class="hs hplay" data-a="play" style="${hpos('play')}" aria-label="Play"><img src="${hPlay}" alt="" draggable="false" /><span class="sr">Play</span></button>
+      <button class="hs hbtn" data-a="garage" style="${hpos('garage')}" aria-label="Garage"><img src="${hGarage}" alt="" draggable="false" /><span class="sr">Garage</span><em class="hdot" data-k="garagedot" hidden></em></button>
+      <button class="hs hbtn" data-a="shop" style="${hpos('shop')}" aria-label="Shop"><img src="${hShop}" alt="" draggable="false" /><span class="sr">Shop</span><em class="msale" data-k="saletag">−80%</em></button>
+      <button class="hs hbtn" data-a="missions" style="${hpos('missions')}" aria-label="Missions"><img src="${hMissions}" alt="" draggable="false" /><span class="sr">Missions</span></button>
       <div class="htop">
         <button class="hs hprofile" data-a="profile" style="${hpos('profile')}" aria-label="Your profile">
           <img src="${hProfile}" alt="" draggable="false" />
