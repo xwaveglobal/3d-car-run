@@ -6,6 +6,7 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ## 2026-10-24 — v1.0.4: panel polish (owner's 9 phone screenshots), Home car picker off
 
+- Checks: typecheck, `npm test` 14 / 14, real-build regression 68 / 68, the owner's 9 screens re-captured at 390×844.
 - See README v1.0.4. Owner: "mọi thứ ngay ngắn ko có tình trạng chữ hay các border bị sát nhau … tạm thời bỏ chức năng chọn xe".
 - The "error when closing at the end of a race" = the demo interstitial ("AD · DEMO") — now only with `?addemo`.
 - Capture script for the owner's screens at 390×844: see scratch `nine.mjs` pattern (Settings, More, Profile, Top Pilots,
