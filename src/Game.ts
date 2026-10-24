@@ -67,8 +67,31 @@ import { BonusTunnels } from './render/BonusTunnels.ts';
 import { drawShareCard, shareImage, copyText } from './ui/ShareCard.ts';
 import { ITEM_PRICE, UNLOCK_BOOSTS, V1_ITEM_PRICE, SPECIALS, type SpecialKey } from './meta/Daily.ts';
 import { dayKey } from './core/Save.ts';
+import { platform } from './platform.ts';
 
-const VERSION = 'v1.0.9';
+/**
+ * Pilot name: letters (any script), digits, space and _ . - only, max 14.
+ * (No Unicode property escapes: some mini-game JS engines on Android reject /\p{L}/u.)
+ */
+function cleanName(n: string) {
+  let out = '';
+  for (const ch of Array.from(n)) {
+    const cp = ch.codePointAt(0) ?? 0;
+    const ok =
+      /[0-9 _.\-]/.test(ch) ||
+      ch.toLowerCase() !== ch.toUpperCase() || // cased letters (Latin, Greek, Cyrillic, Vietnamese…)
+      (cp >= 0x00c0 && cp < 0x0250) ||
+      (cp >= 0x0590 && cp < 0x1100) || // Hebrew, Arabic, Indic, Thai…
+      (cp >= 0x1100 && cp < 0x1200) || // Hangul Jamo
+      (cp >= 0x3040 && cp < 0x30ff) || // Kana
+      (cp >= 0x3400 && cp < 0xa000) || // CJK
+      (cp >= 0xac00 && cp < 0xd7b0); // Hangul
+    if (ok) out += ch;
+  }
+  return out.trim().slice(0, 14);
+}
+
+const VERSION = 'v4.0.0';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -240,7 +263,12 @@ export class Game {
   private tutorialT = 0;
 
   constructor(container: HTMLElement) {
-    this.renderer = new Renderer(container, this.save.settings.quality, this.rig.camera);
+    this.renderer = new Renderer(container, this.save.settings.quality, this.rig.camera, platform.canvas);
+    if (platform.android) {
+      // v3.0.9: Android phones drew 2× (up to 3×) pixels through bloom — 1.5× keeps it sharp and smooth
+      this.renderer.scaleCap = 1.5;
+      this.renderer.setQuality(this.renderer.quality);
+    }
     this.vehicle.camera = this.rig.camera;
     // v4: once the 3D car replaces the rear image, home and race use the 3D camera setups
     this.vehicle.onModelReady = () => {
@@ -491,7 +519,7 @@ export class Game {
       toggleAssist: () => this.toggleAssist(),
       toggleComfort: () => this.toggleComfort(),
       toggleCamMotion: () => {
-        this.save.settings.camMotion = this.save.settings.camMotion !== true;
+        this.save.settings.camMotion = this.save.settings.camMotion === false; // v5: ON by default (undefined = on)
         this.rig.dynamic = this.save.settings.camMotion;
         this.vehicle.setCarSize(this.rig.dynamic ? 1 : RENDER.carScaleFixed / RENDER.carScale);
         this.persist();
@@ -516,7 +544,7 @@ export class Game {
 
     this.audio.setSfx(this.save.settings.sound);
     this.audio.setMusic(this.save.settings.music);
-    this.rig.dynamic = this.save.settings.camMotion === true; // v4.6 setting "Camera motion", default OFF
+    this.rig.dynamic = this.save.settings.camMotion !== false; // setting "Camera motion" — v5 (owner): default ON
     this.vehicle.setCarSize(this.rig.dynamic ? 1 : RENDER.carScaleFixed / RENDER.carScale); // fixed view: a bit bigger
     this.migrateV2();
     // v4.6 (owner): the game always opens on NORMAL (a level picked on Home lasts for this session)
@@ -595,7 +623,22 @@ export class Game {
     this.track.setAccent(this.scenery.accent);
     this.track.setStyle(ROAD_STYLE[this.scenery.world]);
     this.applyReadability();
-    this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
+    {
+      // v3.0.9: compile the pooled (hidden) obstacle / pickup meshes too — compile() skips invisible
+      // objects, so their shaders were built on the first race frames (the hitch at race start)
+      const hidden: THREE.Object3D[] = [];
+      this.renderer.scene.traverse((o) => {
+        if (!o.visible) {
+          hidden.push(o);
+          o.visible = true;
+        }
+      });
+      try {
+        this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
+      } finally {
+        for (const o of hidden) o.visible = false;
+      }
+    }
     this.ui.setLoading(0.92);
     // let the loading key art be seen (≥1.6 s from page start), never a blank flash; the bar keeps
     // running and only reaches 100 % right before the menu (v4.6 owner: "Loading", never "Ready")
@@ -623,6 +666,9 @@ export class Game {
 
   // =============================================================== states
   private setState(s: State) {
+    // v5 fix (owner screenshot): leaving a wrecked car (game over / finish) for the menus put it back
+    // together — the parts that broke off on the final crash stayed on the road next to it on Home
+    if (s === 'menu' && this.state !== 'menu') this.vehicle.resetPose();
     this.state = s;
     this.stateT = 0;
   }
@@ -656,6 +702,7 @@ export class Game {
   /** Home screen without resetting the world (closing a modal / page). */
   showHome() {
     this.vehicle.resetFx();
+    if (this.vehicle.wrecked) this.vehicle.resetPose(); // never a wrecked car on Home
     // never carry training / race overlays onto Home
     this.ui.tutorial(false);
     this.ui.tutPrompt(null);
@@ -901,6 +948,7 @@ export class Game {
 
   private async shareLink(kind: 'share' | 'invite') {
     if (kind === 'share') return this.shareCard(false);
+    if (platform.share) return platform.share(`Race me in Sky Roadster! Best ${this.bestExp.toLocaleString('en-US')} EXP.`);
     const url = `${location.origin}${location.pathname}${kind === 'invite' ? `?ref=${this.save.pid.toString(36)}` : ''}`;
     const text = kind === 'invite' ? `Race me in 3D Car Run! Join with my link and we both get ${PERK.invite} coins.` : `I'm racing in 3D Car Run — best score ${this.save.best.toLocaleString('en-US')}. Can you beat me?`;
     try {
@@ -922,7 +970,7 @@ export class Game {
     if (a === 'entry') {
       if (k.entry || !this.perkState().entrySteps.every(Boolean)) return;
       k.entry = true;
-      this.grantCoins(PERK.entry, 'Entry reward');
+      this.grantCoins(PERK.entry, 'Reward Claimed! · Entry Reward');
       this.ui.closePopup();
       this.perkBadges();
       return;
@@ -930,7 +978,7 @@ export class Game {
     if (a === 'launch') {
       if (k.launch || !this.standalone) return;
       k.launch = true;
-      this.grantCoins(PERK.launch, 'Launch reward');
+      this.grantCoins(PERK.launch, 'Reward Claimed! · Launch Reward');
       this.ui.closePopup();
       this.perkBadges();
       return;
@@ -940,7 +988,7 @@ export class Game {
         if (!ok) return;
         if (a === 'share' && k.shareDay !== today) {
           k.shareDay = today;
-          this.grantCoins(PERK.share, 'Share reward');
+          this.grantCoins(PERK.share, 'Reward Claimed! · Share Reward');
         } else if (a === 'invite' && k.inviteDay !== today) {
           k.inviteDay = today;
           k.invites = (k.invites ?? 0) + 1;
@@ -1017,6 +1065,18 @@ export class Game {
     const p = productBySku(sku);
     if (!p) return;
     this.audio.play('click');
+    if (platform.buy) {
+      // v3 native: HSGame delivers the items into the profile (coins / no_ads) — never granted here
+      const r = await platform.buy(p.sku);
+      if (!r.ok) return void (r.error && r.error !== 'cancel' ? this.ui.toast(`${ICON.info} ${r.error}`, 'var(--red)') : undefined);
+      this.save.purchases++;
+      this.persist();
+      this.audio.play('mission');
+      this.ui.toast(r.delivered === false ? `${ICON.clock} ${p.name} · paid — it arrives next time you open the game` : `${ICON.check} ${p.name} · thank you!`, 'var(--gold)');
+      this.ui.shopSync(this.save);
+      this.ui.refreshProfile(this.save);
+      return;
+    }
     const ok = await this.store.purchase(p);
     if (!ok) return;
     const g = p.grant;
@@ -1035,7 +1095,7 @@ export class Game {
   }
 
   private setName(n: string) {
-    const name = n.replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 14);
+    const name = cleanName(n);
     this.save.name = name;
     this.persist();
     this.ui.toast(`${ICON.user} Pilot name: ${this.meta.name}`);
@@ -1093,6 +1153,7 @@ export class Game {
   private async shareGameLink(copyOnly = false) {
     const url = this.shareUrl;
     const text = `Race me in 3D Car Run! Rank ${this.rank} · ${this.bestExp.toLocaleString('en-US')} EXP.`;
+    if (platform.share) return platform.share(text);
     if (!copyOnly) {
       try {
         if (navigator.share) {
@@ -1115,6 +1176,7 @@ export class Game {
     return `${ofRun}-${this.run?.exp ?? 0}-${this.bestExp}-${this.save.vehicle}-${this.save.avatar}-${this.meta.name}`;
   }
   private prepareCard(ofRun: boolean) {
+    if (platform.native) return Promise.resolve(null); // v3 native: the platform share sheet takes text only
     const key = this.cardKey(ofRun);
     if (this.cardCache?.key === key) return this.cardCache.blob;
     const run = this.run;
@@ -1132,6 +1194,7 @@ export class Game {
     const rank = ofRun && run && !this.course ? classFor(run.exp) : this.rank;
     const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Outlaw Rush' : 'Endless'}` : `${this.meta.name} · best race`;
     void sub;
+    if (platform.share) return platform.share(`Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in Sky Roadster! Can you beat me?`);
     const ready = this.cardCache?.key === this.cardKey(ofRun);
     if (!ready) this.ui.toast(`${ICON.share} Making your card…`, '#ffb02e');
     const blob = await this.prepareCard(ofRun);
@@ -1299,13 +1362,26 @@ export class Game {
   }
 
   private async continueByAd() {
-    if (this.state !== 'continue') return;
+    if (this.state !== 'continue' || this.ads.showing) return;
     const t = this.stateT;
-    const ok = await this.ads.rewarded('continue');
+    // v3.0.11: the revive countdown is frozen while the ad loads / plays. On real phones the video
+    // takes seconds to load: the countdown used to run out underneath it and end the race, so the
+    // button looked dead.
+    const hold = this.holdContinue;
+    this.holdContinue = true;
+    const t0 = performance.now();
+    let ok = false;
+    try {
+      ok = await this.ads.rewarded('continue');
+    } finally {
+      this.holdContinue = hold;
+    }
+    if (this.state !== 'continue') return;
     if (ok) {
       this.doContinue();
     } else {
       this.stateT = t; // the countdown resumes where it was
+      if (performance.now() - t0 < 1500) this.ui.toast(`${ICON.info} No ad available right now — try again in a moment`, '#4fc3ff');
     }
   }
 

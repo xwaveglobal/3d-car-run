@@ -1,3 +1,4 @@
+import { platform } from '../platform.ts';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -79,10 +80,13 @@ export class Renderer {
   /** max anisotropic filtering supported (road/lane textures stay sharp at grazing angles) */
   maxAniso = 4;
 
-  constructor(private container: HTMLElement, quality: Quality, private camera: THREE.PerspectiveCamera) {
+  /** v3 native: drawn after everything else each frame (the canvas UI layer) */
+  uiPass: ((r: THREE.WebGLRenderer) => void) | null = null;
+
+  constructor(private container: HTMLElement, quality: Quality, private camera: THREE.PerspectiveCamera, private canvas?: HTMLCanvasElement) {
     this.quality = quality;
     this.renderer = this.makeRenderer(quality);
-    container.appendChild(this.renderer.domElement);
+    if (!canvas) container.appendChild(this.renderer.domElement);
     this.maxAniso = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -109,10 +113,30 @@ export class Renderer {
   home: HomeView | null = null;
 
   private makeRenderer(_q: Quality) {
-    const r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', alpha: false, stencil: false });
+    // v3.0.11 Android launch hotfix: some Android GPUs / mini-game runtimes refuse the first context
+    // (MSAA + high-performance). Retry with safer settings instead of failing the launch.
+    const base = { alpha: false, stencil: false, ...(this.canvas ? { canvas: this.canvas } : {}) };
+    const tries: THREE.WebGLRendererParameters[] = [
+      { ...base, antialias: true, powerPreference: 'high-performance' },
+      { ...base, antialias: false, powerPreference: 'default' },
+      { ...base, antialias: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false },
+    ];
+    let r: THREE.WebGLRenderer | null = null;
+    let err: unknown = null;
+    for (const p of tries) {
+      try {
+        r = new THREE.WebGLRenderer(p);
+        break;
+      } catch (e) {
+        err = e;
+        console.warn('[renderer] WebGL context failed, retrying with safer settings', e);
+      }
+    }
+    if (!r) throw err ?? new Error('WebGL unavailable');
     r.outputColorSpace = THREE.SRGBColorSpace;
     r.toneMapping = THREE.ACESFilmicToneMapping;
     r.toneMappingExposure = GRADE.exposure;
+    if (this.canvas) return r; // v3 native: the screen canvas is sized by the runtime adapter
     r.domElement.style.display = 'block';
     r.domElement.style.width = '100%';
     r.domElement.style.height = '100%';
@@ -149,7 +173,7 @@ export class Renderer {
     if (post && !this.composer) {
       // the composer renders into its own target: give it MSAA, otherwise the canvas
       // antialias flag is silently ignored and every edge looks soft/jagged
-      const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: this.renderer.capabilities.isWebGL2 ? 4 : 0 });
+      const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: this.renderer.capabilities.isWebGL2 ? (platform.android ? 2 : 4) : 0 }); // v3.0.11: lighter MSAA on Android
       this.composer = new EffectComposer(this.renderer, rt);
       this.renderPass = new RenderPass(this.scene, this.camera);
       this.composer.addPass(this.renderPass);
@@ -241,6 +265,10 @@ export class Renderer {
     r.render(this.scene, this.camera);
     this.camera.layers.set(0);
     this.scene.background = bg;
+    if (this.uiPass) {
+      r.clearDepth();
+      this.uiPass(r);
+    }
     r.autoClear = auto;
   }
 

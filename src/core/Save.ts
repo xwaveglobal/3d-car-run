@@ -1,3 +1,4 @@
+import { kv } from './kv.ts';
 import type { CareerStats } from '../meta/Career.ts';
 /** Persistent player profile in localStorage (wrapped: storage can be blocked). */
 
@@ -20,7 +21,7 @@ export interface SaveData {
   unlocked: string[];
   upgrades: { engine: number; shield: number; magnet: number };
   missions: { active: { id: string; progress: number }[]; completed: number; rank: number };
-  settings: { sound: boolean; music: boolean; quality: 'high' | 'medium' | 'low'; gfx3?: boolean; speed: 'easy' | 'normal' | 'hard'; assist?: boolean; comfort?: boolean; autoClaim?: boolean; vibrate?: boolean; lang?: string; /** v4.6 "Camera motion": race camera moves with the car (default off = fixed view) */ camMotion?: boolean };
+  settings: { sound: boolean; music: boolean; quality: 'high' | 'medium' | 'low'; gfx3?: boolean; speed: 'easy' | 'normal' | 'hard'; assist?: boolean; comfort?: boolean; autoClaim?: boolean; vibrate?: boolean; lang?: string; /** "Camera motion": race camera moves with the car — v5: unset = ON; false = fixed view */ camMotion?: boolean };
   /** rewarded "free coins": day key + how many claimed that day */
   adFreeDay?: string;
   adFreeCount?: number;
@@ -180,10 +181,37 @@ const defaults = (): SaveData => ({
   perks: {},
 });
 
+/**
+ * v3: where the save lives. Web = localStorage; the native TikTok build plugs in the HS profile
+ * (src/native/save.ts) — `bind` then ties wallet / items to the profile's own fields.
+ */
+export interface SaveBackend {
+  read(): string | null;
+  write(json: string, s: SaveData): void;
+  bind?(s: SaveData): void;
+}
+let backend: SaveBackend = {
+  read: () => kv.get(KEY),
+  write: (json) => kv.set(KEY, json),
+};
+export function setSaveBackend(b: SaveBackend) {
+  backend = b;
+}
+
 export function loadSave(): SaveData {
+  const s = loadSaveRaw();
+  try {
+    backend.bind?.(s);
+  } catch (e) {
+    console.warn('save bind', e);
+  }
+  return s;
+}
+
+function loadSaveRaw(): SaveData {
   const d = defaults();
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = backend.read();
     if (!raw) return d;
     const p = JSON.parse(raw) as Partial<SaveData>;
     // defaults refresh (v1.10): HIGH graphics, music and sound ON — applied once to old saves
@@ -233,7 +261,7 @@ export function loadSave(): SaveData {
 
 export function writeSave(s: SaveData) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(s));
+    backend.write(JSON.stringify(s), s);
   } catch {
     /* storage unavailable — progress lives for this session only */
   }

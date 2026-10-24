@@ -10,3 +10,7 @@ dist-esbuild
 server/data.json
 __pycache__/
 dist-web/
+
+# HS pack output (zip to upload)
+*-tiktok.zip
+*-android.zip

@@ -9,6 +9,7 @@
  *
  * Placements and frequency rules live in ADS (config below) — tune there.
  */
+import { platform } from '../platform.ts';
 
 export type RewardPlacement = 'continue' | 'double_coins' | 'free_coins' | 'head_start';
 export type InterPlacement = 'between_runs';
@@ -19,8 +20,8 @@ export const ADS = {
   interstitialEveryRuns: 1, // v2: an ad after each race that ends (Remove Ads turns it off)
   /** … and never more often than this many seconds */
   interstitialMinGapSec: 45,
-  /** players' first runs are ad-free */
-  noInterstitialBeforeRun: 2,
+  /** players' first runs are ad-free (v4.0 owner: 3) */
+  noInterstitialBeforeRun: 3,
   /** no interstitial right after the player chose to watch a rewarded ad */
   rewardedGraceSec: 30,
   freeCoinsPerDay: 5,
@@ -34,13 +35,19 @@ export const ADS = {
   continueSeconds: 7,
 };
 
-interface AdProvider {
+export interface AdProvider {
   readonly name: string;
   rewarded(placement: RewardPlacement): Promise<boolean>;
   interstitial(placement: InterPlacement): Promise<void>;
 }
 
 type AdBreakFn = (o: Record<string, unknown>) => void;
+
+/** v3 native: the platform's own ad provider (HSGame.showAd) — set before the Game is created */
+let platformProvider: AdProvider | null = null;
+export function setAdProvider(p: AdProvider) {
+  platformProvider = p;
+}
 
 /** Google Ad Placement API (H5 Games Ads). */
 class H5GamesAdsProvider implements AdProvider {
@@ -130,6 +137,38 @@ class MockAdProvider implements AdProvider {
   }
 }
 
+/**
+ * v3.0.11: never wait forever on a platform ad. If the platform's promise is lost (an ad that
+ * fails to load / close event never delivered), `showing` used to stay true and every later ad
+ * button — Revive included — silently did nothing, and a lost interstitial froze the game-over
+ * buttons. A generous cap settles it instead.
+ */
+function capped<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let done = false;
+    const t = setTimeout(() => {
+      if (done) return;
+      done = true;
+      console.warn('[ads] no answer from the ad provider — continuing');
+      resolve(fallback);
+    }, ms);
+    p.then(
+      (v) => {
+        if (done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(v);
+      },
+      () => {
+        if (done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(fallback);
+      },
+    );
+  });
+}
+
 export interface AdHooks {
   /** mute + freeze the game while an ad is on screen */
   pause(): void;
@@ -147,7 +186,7 @@ export class Ads {
 
   constructor(parent: HTMLElement, private hooks: AdHooks) {
     const w = window as unknown as { adBreak?: AdBreakFn };
-    this.provider = typeof w.adBreak === 'function' ? new H5GamesAdsProvider(w.adBreak) : new MockAdProvider(parent);
+    this.provider = platformProvider ?? (typeof w.adBreak === 'function' ? new H5GamesAdsProvider(w.adBreak) : new MockAdProvider(parent));
     this.lastInterstitial = performance.now();
   }
 
@@ -162,7 +201,9 @@ export class Ads {
     this.stats.rewardedShown++;
     this.hooks.pause();
     try {
-      const ok = await this.provider.rewarded(placement);
+      // called synchronously: still inside the tap. Native (HS kit 3.2.4): the kit itself loads within 8 s or
+      // answers null and lets a stuck ad go after 60 s — no extra cap of ours (HS: no own ad guards)
+      const ok = platform.native ? await this.provider.rewarded(placement).catch(() => false) : await capped(this.provider.rewarded(placement), 90000, false);
       if (ok) {
         this.stats.rewardedCompleted++;
         this.lastRewarded = performance.now();
@@ -185,6 +226,21 @@ export class Ads {
    */
   async maybeInterstitial(placement: InterPlacement, totalRuns: number) {
     const now = performance.now();
+    // v4.0 native (HS kit 3.2.4): only the ad-free first races stay in code; the gap between interstitials is the
+    // place's "cooldown" in the HS dashboard (tiktok.hs-dashboard.json) — no pacing / locks of our own
+    if (platform.native) {
+      if (!ADS.enabled || this.showing || totalRuns < ADS.noInterstitialBeforeRun) return;
+      this.showing = true;
+      this.hooks.pause();
+      try {
+        await this.provider.interstitial(placement).catch(() => undefined);
+        this.stats.interstitials++;
+      } finally {
+        this.showing = false;
+        this.hooks.resume();
+      }
+      return;
+    }
     if (
       !ADS.enabled ||
       this.showing ||
@@ -200,7 +256,7 @@ export class Ads {
     this.showing = true;
     this.hooks.pause();
     try {
-      await this.provider.interstitial(placement);
+      await capped(this.provider.interstitial(placement), 45000, undefined);
       this.stats.interstitials++;
       this.runsSinceInterstitial = 0;
       this.lastInterstitial = performance.now();

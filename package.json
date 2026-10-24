@@ -1,8 +1,8 @@
 {
   "name": "3d-car-run",
   "private": true,
-  "version": "1.0.9",
-  "description": "3D Car Run \u2014 mobile-first Western desert 3D racing runner (Three.js + TypeScript + Vite)",
+  "version": "4.0.0",
+  "description": "3D Car Run v4 — Western desert 3D racing runner: native TikTok mini game (HS SDK) + web build (Three.js + TypeScript)",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test:fairness": "node --experimental-transform-types --no-warnings tests/fairness.test.ts",
     "test:difficulty": "node --experimental-transform-types --no-warnings tests/difficulty.test.ts",
-    "test": "npm run test:fairness && npm run test:difficulty && npm run test:air && npm run test:exp && npm run test:phases && npm run test:bonus && npm run test:server && npm run test:car && npm run test:camera && npm run test:motion && npm run test:env && npm run test:airdash && npm run test:goldrush && npm run test:audio",
+    "test": "npm run test:fairness && npm run test:difficulty && npm run test:air && npm run test:exp && npm run test:phases && npm run test:bonus && npm run test:server && npm run test:car && npm run test:camera && npm run test:motion && npm run test:env && npm run test:airdash && npm run test:goldrush && npm run test:audio && npm run test:perks",
     "test:air": "node --experimental-transform-types --no-warnings tests/airlane.test.ts",
     "test:exp": "node --experimental-transform-types --no-warnings tests/exp.test.ts",
     "test:phases": "node --experimental-transform-types --no-warnings tests/phases.test.ts",
@@ -28,7 +28,13 @@
     "test:airdash": "node --experimental-transform-types --no-warnings tests/airdash.test.ts",
     "test:goldrush": "node --experimental-transform-types --no-warnings tests/goldrush.test.ts",
     "test:audio": "node --experimental-transform-types --no-warnings tests/audio.test.ts",
-    "test:envshots": "node scripts/env/preview-env.mjs docs/3d-upgrade/step04 \"test=1=env_selftest\""
+    "test:envshots": "node scripts/env/preview-env.mjs docs/3d-upgrade/step04 \"test=1=env_selftest\"",
+    "test:perks": "node --experimental-transform-types --no-warnings tests/perks.test.ts",
+    "build:tiktok": "node scripts/build-tiktok.mjs",
+    "check:tiktok": "node scripts/tiktok-tools.mjs check",
+    "preview:tiktok": "node scripts/tiktok-tools.mjs preview",
+    "pack:tiktok": "node scripts/tiktok-tools.mjs pack",
+    "images:native": "python3 scripts/native-images.py"
   },
   "dependencies": {
     "three": "0.169.0"

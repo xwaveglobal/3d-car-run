@@ -34,27 +34,10 @@ import guide3 from '../assets/images/guide/guide-3.jpg';
 import { CHAINS, activeChains, pilotLevel, upcomingMissions } from '../meta/Career.ts';
 import { dayKey, type SaveData } from '../core/Save.ts';
 import { SKINS, carVisibility } from '../render/Vehicle.ts';
-import carZenith from '../assets/images/cars/zenith.webp';
-import carVolt from '../assets/images/cars/volt.webp';
-import carPhantom from '../assets/images/cars/phantom.webp';
-import carInferno from '../assets/images/cars/inferno.webp';
-import carNexus from '../assets/images/cars/nexus.webp';
-import carVega from '../assets/images/cars/vega.webp';
-import rearZenith from '../assets/images/cars/rear-zenith.webp';
-import rearVega from '../assets/images/cars/rear-vega.webp';
-import rearVolt from '../assets/images/cars/rear-volt.webp';
-import rearPhantom from '../assets/images/cars/rear-phantom.webp';
-import rearInferno from '../assets/images/cars/rear-inferno.webp';
-import rearNexus from '../assets/images/cars/rear-nexus.webp';
-// v4.5.1 (owner): every car picture in the panels is a render of the in-game 3D X1 in that car's colourway
-// (scripts/car/thumbs-x1.mjs + thumbs-pack.py); locked cars use the same render, blacked out by CSS
-const carShadow = carZenith;
-const CAR_IMG: Record<string, string> = { zenith: carZenith, vega: carVega, volt: carVolt, phantom: carPhantom, inferno: carInferno, nexus: carNexus };
-const CAR_REAR: Record<string, string> = { zenith: rearZenith, vega: rearVega, volt: rearVolt, phantom: rearPhantom, inferno: rearInferno, nexus: rearNexus };
-export const carImage = (id: string) => CAR_IMG[id] ?? carZenith;
-/** transparent in-race rear render (share card); cars without one use their thumbnail */
-export const carRear = (id: string) => CAR_REAR[id] ?? rearZenith;
-export const logoImg = logoUrl;
+import { CAR_IMG, carImage, carRear, logoImg } from './shared.ts';
+export { carImage, carRear, logoImg };
+// locked cars use the same render, blacked out by CSS
+const carShadow = CAR_IMG.zenith;
 const RARITY_COLOR: Record<string, string> = { Common: '#4fb3ff', Rare: '#a77bff', Epic: '#ffc24a', Legendary: '#ff4a3c', Mythic: '#d04dff', Ultimate: '#7dfff2' };
 import { LEVELS } from '../config.ts';
 import type { Run } from '../gameplay/Run.ts';
@@ -81,12 +64,8 @@ const THUMBS: Record<string, string> = {
   'canyon-launcher': thLaunch,
 };
 
-export type UpgradeKey = 'engine' | 'shield' | 'magnet';
-export const UPGRADE_MAX = 5;
-export const upgradeCost = (lvl: number) => Math.round(150 * Math.pow(lvl + 1, 1.6) / 10) * 10;
-
-/** Show a small "demo rivals" note under sample leaderboards (set false once boards are online). */
-export const SAMPLE_BOARD_NOTE = true;
+import { UPGRADE_MAX, upgradeCost, SAMPLE_BOARD_NOTE, type UpgradeKey } from './shared.ts';
+export { UPGRADE_MAX, upgradeCost, SAMPLE_BOARD_NOTE, type UpgradeKey };
 
 export interface UIHandlers {
   /** Step 06.5: the class promotion celebration was acknowledged (Continue) */
@@ -1191,7 +1170,7 @@ export class UI {
     this.root.querySelectorAll<HTMLElement>('.switch[data-a="sound"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.sound)));
     this.root.querySelectorAll<HTMLElement>('.switch[data-a="music"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.music)));
     this.root.querySelectorAll<HTMLElement>('.switch[data-a="comfort"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.comfort !== false)));
-    this.root.querySelectorAll<HTMLElement>('.switch[data-a="cammotion"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.camMotion === true)));
+    this.root.querySelectorAll<HTMLElement>('.switch[data-a="cammotion"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.camMotion !== false)));
     this.root.querySelectorAll<HTMLElement>('.switch[data-a="vibrate"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.vibrate !== false)));
     this.root.querySelectorAll<HTMLElement>('.switch[data-a="assist"]').forEach((b) => b.setAttribute('aria-checked', String(s.settings.assist !== false)));
     const q = this.liveQuality ?? s.settings.quality;
@@ -2528,7 +2507,7 @@ export class UI {
           `<div class="pzsteps">
             ${step(1, 'Open your pilot profile', st[0], `<div class="pzrow"><span class="pztile plus">${ICON.plus}</span><span class="pztile chat">${ICON.user}<em>99+</em></span><span class="pztile ava on">${avatarSvg(av)}${tapMarks()}</span></div>`, 'profile')}
             ${step(2, 'Set your pilot name', st[1], `<div class="pzbanner"><img src="${logoUrl}" alt="" /><span class="pzname">${name}</span><span class="pzmenu">${ICON.pen}</span></div>`, 'profile')}
-            ${step(3, 'Pick your racing helmet', st[2], `<div class="pzcard"><img src="${carZenith}" alt="" /><span class="pzhelm">${avatarSvg(av)}</span>${hand}${tapMarks('r')}</div>`, 'profile')}
+            ${step(3, 'Pick your racing helmet', st[2], `<div class="pzcard"><img src="${carImage('zenith')}" alt="" /><span class="pzhelm">${avatarSvg(av)}</span>${hand}${tapMarks('r')}</div>`, 'profile')}
             ${step(4, 'Claim your rewards', done, coinBanner(d.entryReward))}
           </div>` +
           (done
