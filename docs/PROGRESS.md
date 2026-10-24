@@ -1,6 +1,26 @@
-# Progress log
+# Progress log — 3D Car Run (entries before v1.0.0 are the Sky Roadster history)
 
 Newest entry on top. Every AI session adds a short entry: what was done, what is unfinished, what's next.
+
+---
+
+## 2026-10-24 — v1.0.0: 3D CAR RUN (new repo xwaveglobal/3d-car-run, from Sky Roadster v4.6.1)
+
+**Owner request**: new repo from the 4.6.1 branch; apply the FINAL MASTER PROMPT V2 (Western desert
+transformation, `assets-src/reference/`); the result is **v1** on `main`; the original stays on another branch.
+
+**Done** (report: `docs/carrun-v1/README.md`):
+- Branches: `archive/sky-roadster-v4.6.1` = the untouched original; `main` = 3D Car Run v1.0.0 (merged from `feat/carrun-v1`).
+- Branding everywhere a player looks; save keys / backend contracts / storage ids unchanged.
+- Western UI design system (`src/ui/western.css`), bundled fonts, More menu, Race Start screen (level picker moved off Home), Entry + Launch hide when claimed.
+- 16 desert places on the unchanged world ids (`src/render/western/`, `src/western/themes.ts`), new road, Western obstacles (same hitboxes), star coins, Western pickups, item / special names (`src/western/items.ts`).
+- GOLD RUSH — 3 MIN BONUS RUN (`src/meta/GoldRush.ts`, `tests/goldrush.test.ts`).
+- Western VFX (tyre dust, Nitro, rings), procedural Western soundtrack + wind, share card, i18n of the new labels.
+- `npm test` 13 / 13; real-build QA: see the report (Step 06.5 suite re-run on the new build, Gold Rush QA, per-place screenshots).
+
+**Build note (cloud)**: npm registry is blocked here → three + @types/three r169 were vendored into `node_modules/` from GitHub (git sparse clone), esbuild linked from /opt/npm-tools; build with `node scripts/build-esbuild.mjs`. On the owner's PC `npm install` works as usual.
+
+**Known / next**: phone FPS and audio by ear not checked (cloud only); place thumbnails on Race Start are crops of the owner's concept art; native / TikTok port not started (out of scope of this prompt).
 
 ---
 

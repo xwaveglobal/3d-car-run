@@ -262,14 +262,14 @@ if (want('special')) {
       for (let i = 0; i < 18; i++) G.advance(1 / 60);
       return { state: G.state, src: G.lastSpecialSource, lives: G.run.lives, carried: G.carried, items: G.save.items[k], items0, isSuper: G.world.player.isSuper, isEscape: G.world.player.isEscape, toast: window.__toasts().join(' | ') };
     }, k);
-    const name = { super: 'ROADSTER', hyper: 'HYPER', escape: 'SOS' }[k];
+    const name = { super: 'CANYON LAUNCHER', hyper: 'EAGLE JUMP', escape: 'LAST STAND' }[k]; // v1.0.0 names
     check(r.state === 'run' && r.src === 'AUTO_LAST_CHANCE' && r.lives === 1 && r.items === r.items0 - 1 && r.carried === null, `${name}: lethal hit with no revive left → auto-activated through the same pathway, exactly one charge, run continues`, r);
     await shot(file);
     await ev(() => { const G = window.__g; let n = 0; while (G.world.player.vmode === 'up' && n++ < 900) window.__steps(1 / 60); window.__steps(1.5); });
     return r;
   };
   const r1 = await auto('super', '21_special_auto_roadster');
-  check(/ROADSTER AUTO ACTIVATED/.test(r1.toast), 'notification "ROADSTER AUTO ACTIVATED!" shown (non-blocking toast)', r1.toast);
+  check(/LAST STAND RESCUE · CANYON LAUNCHER/.test(r1.toast), 'notification "LAST STAND RESCUE · CANYON LAUNCHER!" shown (non-blocking toast)', r1.toast);
   await auto('hyper', '22_special_auto_hyper');
   const r3 = await auto('escape', '23_special_auto_sos');
   // notification close-up: SOS toast right after activation
@@ -428,7 +428,7 @@ if (want('bag')) {
   await ev(() => { const G = window.__g; G.save.special = null; Object.assign(G.save.items, { super: 1, hyper: 0, escape: 2 }); G.setState?.('tracks'); G.ui.show('tracks'); G.openSpecialPick('endless'); G.ui.showOverlay('specialpick'); });
   await page.waitForTimeout(500);
   const eq = await ev(() => ({ special: window.__g.save.special, toast: window.__toasts().join(' | ') }));
-  check(!!eq.special && /MAGIC BAG: .* EQUIPPED/.test(eq.toast), 'pre-race: "MAGIC BAG: … EQUIPPED" with the real item name', eq);
+  check(!!eq.special && /SADDLE BAG: .* EQUIPPED/.test(eq.toast), 'pre-race: "SADDLE BAG: … EQUIPPED" with the real item name', eq);
   await shot('04_magic_bag_auto_equipped', 'patch02');
   await ev(() => { const G = window.__g; G.ui.hideOverlay('specialpick'); G.save.special = null; Object.assign(G.save.items, { super: 0, hyper: 0, escape: 0 }); G.openSpecialPick('endless'); G.ui.showOverlay('specialpick'); });
   await page.waitForTimeout(3500); // let the previous toast leave

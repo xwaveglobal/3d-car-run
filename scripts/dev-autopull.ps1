@@ -1,14 +1,14 @@
-# Sky Roadster - local dev server that follows GitHub automatically (Windows PowerShell 5+).
+# 3D Car Run - local dev server that follows GitHub automatically (Windows PowerShell 5+).
 # Runs `npm run dev`, then checks origin/main every $Interval seconds; on a new commit it
 # pulls, reinstalls packages if package.json changed, and Vite reloads the browser.
-# Started by SkyRoadster-Dev.bat - you normally don't run this file directly.
+# Started by CarRun3D-Dev.bat - you normally don't run this file directly.
 
 param([int]$Interval = 20)
 
 $ErrorActionPreference = 'Continue'
 $Repo = Split-Path -Parent $PSScriptRoot
 Set-Location $Repo
-$Host.UI.RawUI.WindowTitle = 'Sky Roadster - localhost (auto update)'
+$Host.UI.RawUI.WindowTitle = '3D Car Run - localhost (auto update)'
 
 function Say($msg, $color = 'Gray') {
   Write-Host ("[{0}] {1}" -f (Get-Date -Format 'HH:mm:ss'), $msg) -ForegroundColor $color

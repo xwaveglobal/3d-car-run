@@ -2467,9 +2467,9 @@ export class UI {
     for (const [k, st] of Object.entries(o)) {
       const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
       if (!b) continue;
-      // Entry stays after it is claimed (its popup then links to Daily / Shop / Garage / Tutorial / Race / Cups);
-      // Launch disappears once claimed; Share is daily
-      b.hidden = st === 'done' && k === 'launch';
+      // v1.0.0 (master prompt): exhausted Entry and Launch rewards disappear (the rails close the gap);
+      // Share stays visible — it is claimable again every day
+      b.hidden = st === 'done' && (k === 'launch' || k === 'entry');
       b.classList.toggle('done', st === 'done');
       const e = b.querySelector<HTMLElement>('.badge');
       if (e) e.hidden = st !== 'ready' || k === 'share'; // no '!' on Share

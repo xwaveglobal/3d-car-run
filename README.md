@@ -1,8 +1,10 @@
-# Sky Roadster
+# 3D Car Run
 
-Sky Roadster (formerly "XWAVE Flying Run") is a high-speed 3D endless runner. Pilot the XWAVE flying car through a neon sky-city: swipe left or right to switch lanes, up to fly over barriers, down to dive under beams. Collect energy coins, grab shields, magnets and turbo boosts, and chain near misses for combo points. Race five tracks from Future City to the XWAVE Megacity, or go Endless and chase your best score.
+3D Car Run is a mobile-first Western desert racing game for the browser (H5). Tear down dusty Route 66 highways, red-rock canyons, ghost towns, train yards and moonlit desert roads: swipe left or right to switch lanes, up to jump over barricades, down to dive under hanging signs and mine timbers. Grab gold coins, Sheriff Guard, Gold Magnet and Dust Storm Nitro, chase the 3-minute **Gold Rush** bonus run and climb the weekly ranks.
 
-**Stack:** Three.js r169 · TypeScript · Vite · WebGL · zero runtime CDNs (every model, texture and sound is generated procedurally and can be swapped for real files).
+It started (v1.0.0) as a full Western transformation of the Sky Roadster v4.6.1 code — same proven runner (lanes, jumps, fairness, EXP, ranks, economy, saves, server), a completely new world, UI, items, VFX and audio. The original game is kept untouched on the branch `archive/sky-roadster-v4.6.1` (and in its own repository, xwaveglobal/sky-roadster).
+
+**Stack:** Three.js r169 · TypeScript · Vite · WebGL · zero runtime CDNs (every model, texture and sound is generated procedurally; the two Western fonts are bundled, OFL).
 
 ---
 
@@ -38,7 +40,7 @@ npm run typecheck
 | **Fly up** (clear low obstacles) | swipe ↑ | ↑ / W / Space |
 | **Fly down** (pass under beams) | swipe ↓ | ↓ / S |
 | **Air Dash** (with charges, while airborne): cross 2 lanes with a flip | swipe ← / → in the air | ← / → in the air |
-| **Sky Escape** (emergency item) | SOS button | E / Enter |
+| **Last Stand** (emergency special) | RESCUE button | E / Enter |
 | Pause | ⏸ button | Esc / P |
 
 Swipes fire the moment your finger passes the threshold (not on release), and one drag can chain gestures (e.g. left, then up).
@@ -53,9 +55,9 @@ URL flags: `?debug` (FPS, draw calls, state readout, hitbox wireframes) · `?aut
 - **Interruption rules:** UP while high extends the hold; DOWN while high is a fast dive (and vice-versa); a second lane swipe mid-slide retargets immediately; inputs during an anticipation are buffered (160 ms).
 - **Scoring:** distance, coins, near misses (+50), ring fly-throughs (+100), dodges, combo multiplier (+0.5× every 10 dodges, up to 4×), missions.
 - **Speed** ramps from 76 to 166 km/h over distance; obstacle density and pattern complexity rise with it.
-- **Worlds** change every 1,000 m through a glowing portal: Future City → Neon Tunnel → Cloud City → Space Zone → XWAVE Megacity → loop.
+- **Places** change along the Endless rank road through a wooden "WELCOME TO …" gate: Desert Valley → Train Yard → Canyon Bridge → Oil Field → Rock Tunnel → Red Rock Canyon → Night Highway → Ancient Ruins → Ghost Town → Sandstorm → Badlands → Coastal Cliff (see `src/western/themes.ts`).
 
-### Speed levels (home screen)
+### Speed levels (Race Start screen)
 
 | Level | For | Speed | Obstacle spacing | Score |
 |---|---|---|---|---|
@@ -186,6 +188,37 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 ### Meta
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
+
+## v1.0.0 — 3D Car Run: the Western transformation (from Sky Roadster v4.6.1)
+
+Full report, mapping tables and screenshots: `docs/carrun-v1/README.md`.
+
+- **Branding**: 3D Car Run everywhere a player looks (title, PWA manifest, icons, loading art, logo, share
+  card and texts, popups, server mails). Save keys, backend paths, storage ids and leaderboard seeds are
+  unchanged, so existing progress carries over.
+- **Western UI design system** (`src/ui/western.css`): wood, saddle leather, bronze rivets and aged metal;
+  Rye + Alfa Slab One bundled (the Google Fonts CDN link is gone). Home: signposts, a wooden PLAY plaque,
+  a More menu (Top Pilots, Daily, How to Play, Profile, Saddle Bag, Settings); the level selector moved
+  to the new **Race Start** screen. No glow and no button shadows (owner rule kept).
+- **16 desert places** for the 16 gameplay worlds (ids, Endless order and obstacle mix unchanged):
+  instanced prop fields on one atlas material (`src/render/western/`), new sun-bleached road with yellow
+  edge lines, guardrails, telephone poles, Route 66 signs, stone bridge piers, per-place light and fog.
+- **Obstacles**: same hitboxes, Western silhouettes per place (crates, barrels, hay, sawhorses, hanging
+  signs, mine timbers, pickup trucks, log / tanker trucks, stagecoach, horseshoe hoops, boulders,
+  railroad crossings, stockade gates with saloon doors).
+- **GOLD RUSH — 3 MIN BONUS RUN** (`src/meta/GoldRush.ts`): exactly 180 s of active gameplay, pause-safe,
+  clamp-safe, 30-second warning, 10 → 1 countdown, completion reward credited once per run; entry rules
+  unchanged (hourly, open 30 min, 3 plays).
+- **Items & specials** renamed onto the existing abilities (`src/western/items.ts`): Sheriff Guard, Gold
+  Magnet, Dust Storm Nitro, Canyon Dash, Gold Fever, Ghost Rider, Canyon Launcher, Eagle Jump, Last Stand,
+  Outlaw Treasure, Double Bounty — new 3D pickups, icons and star coins.
+- **VFX & audio**: tyre dust, sand landings, Nitro exhaust, gold rings; an original procedural Western
+  soundtrack and desert wind.
+- Tests: `tests/goldrush.test.ts` added; `npm test` 13 / 13.
+
+---
+
+# Sky Roadster history (archive, before 3D Car Run)
 
 ## v4.6.1 — owner decisions: Zenith ice blue, rarity by class, C / B / A rewards, Step 07 closed
 
