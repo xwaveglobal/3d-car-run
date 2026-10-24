@@ -42,6 +42,7 @@ export const ICON = {
   chevL: line('<path d="M14.5 5 7.5 12l7 7"/>', 2.8),
   chevR: line('<path d="M9.5 5l7 7-7 7"/>', 2.8),
   check: line('<path d="M5 12.5 10 17.5 19.5 7"/>', 3),
+  pen: svg('<path d="M4 20h4L19 9l-4-4L4 16z" fill="currentColor"/><path d="M14 6l4 4" stroke="#3a1a04" stroke-width="1.4"/>'),
   lock: svg('<rect x="5" y="10.5" width="14" height="10" rx="2.4" fill="currentColor"/><path d="M8.3 10.5V8a3.7 3.7 0 0 1 7.4 0v2.5" fill="none" stroke="currentColor" stroke-width="2.2"/>'),
   engine: svg('<path d="M3 12h3l2-4h7l2 3h2v-2h2v8h-2v-2h-2l-2 3H9l-2-3H3z" fill="currentColor"/>'),
   // game items (full colour)

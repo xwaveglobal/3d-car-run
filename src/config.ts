@@ -487,6 +487,8 @@ export const HOME_SHOW = {
   puffs: 28,
   puffRate: 18,
   puffAlpha: 0.4,
+  /** swipe on Home to browse the cars — off for now (owner, v1.0.4: "tạm thời bỏ chức năng chọn xe ngoài home") */
+  carPicker: false,
   /** swipe: how far the car slides out (m) */
   slide: 7,
 };

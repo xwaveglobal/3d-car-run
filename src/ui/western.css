@@ -471,3 +471,78 @@ html, body { background: var(--bg); }
 @media (prefers-reduced-motion: reduce) { #start.home2 .hplay::after { animation: none; } }
 #start.home2 .hs.hot .hdot, #start.home2 .hsign .hdot { top: 1%; right: 5%; }
 #start.home2 .hsign.blank > img { filter: none; }
+#start.home2 .hcar.off { pointer-events: none; }
+
+/* ===================================================================== v1.0.4 polish (owner's phone screenshots)
+   Everything inside its frame, nothing touching a border, one Western look (no navy, no purple). */
+
+/* full pages (Top Pilots, Daily, Missions, Shop, Garage…): a dimmed desert instead of the old navy */
+#ui .screen.page, #ui #missions {
+  background: linear-gradient(180deg, rgba(26, 13, 5, .55), rgba(16, 8, 3, .82)), url('../assets/images/ui/page-bg.webp') center / cover no-repeat, #2a1608 !important;
+  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
+}
+
+/* Settings: labels fit their tile (wrap to two lines instead of "…"), rows in the slab face, not italic */
+#ui .stile { gap: 8px !important; padding: 8px 10px 8px 12px !important; min-height: 46px; }
+#ui .stile .sl { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.15 !important; font-size: 13px !important; min-width: 0; flex: 1; }
+#ui .stile .switch { flex: none; }
+#ui .srow .sl, #ui .srow b { font-style: normal !important; }
+#ui .srow .sl { font: 400 15px var(--font) !important; color: #fff1d0 !important; }
+#ui .srow .si { background: rgba(0, 0, 0, .25) !important; border-radius: 8px; }
+
+/* More: text clear of the corner rivets; the Daily count is a round red badge */
+#more .mitem { padding: 12px 16px 14px !important; gap: 3px !important; }
+#more .mitem small { font-size: 10.5px !important; line-height: 1.2; max-width: 100%; padding: 0 6px; }
+#more .mitem b { font-size: 13.5px !important; }
+#ui .badge { border-radius: 999px !important; min-width: 20px; height: 20px; padding: 0 6px !important; display: inline-grid !important; place-items: center; font: 800 11px/1 var(--font-body) !important; font-style: normal !important; transform: none !important; }
+#more .mitem .badge { position: absolute; top: -8px; right: -8px; }
+#ui .badge[hidden] { display: none !important; }
+
+/* Profile: the big EXP without a box behind it (iOS draws the clipped gradient as a box), the two
+   buttons side by side like the mockup, the avatar strip fades out where it scrolls */
+#ui .rk-exp b, #ui .result .final, #ui .result .endexp .final {
+  background: none !important; -webkit-background-clip: border-box !important; background-clip: border-box !important;
+  -webkit-text-fill-color: currentColor !important; color: #ffe7b0 !important;
+  text-shadow: 0 3px 0 rgba(40, 16, 4, .85), 0 0 14px rgba(255, 190, 90, .25) !important; filter: none !important;
+}
+#ui .prof .sbtns.two .btn:last-child, #ui .sbtns.two .btn:last-child { grid-column: auto !important; }
+#ui .avstrip { -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); padding-right: 14px !important; }
+
+/* Top Pilots podium: wooden steps with silver / gold / bronze trim */
+#ui .pod .step { border-radius: 10px 10px 4px 4px !important; font-family: var(--font) !important; font-style: normal !important; font-weight: 400 !important; color: #fff1d0 !important;
+  background: linear-gradient(180deg, rgba(0,0,0,.05), rgba(0,0,0,.35)), var(--wood) center / 220px auto, #4f3420 !important; border: 2px solid #ad8a58; text-shadow: 0 2px 0 #2a1204; }
+#ui .pod.p1 .step { border-color: #f0c050 !important; box-shadow: inset 0 0 0 2px rgba(240,192,80,.35); }
+#ui .pod.p2 .step { border-color: #c9d0da !important; }
+#ui .pod.p3 .step { border-color: #c8844a !important; }
+
+/* reward popups (Entry / Launch / Share): bronze steps, warm boxes, the close button inside the frame */
+#ui .pop3 .p3h [data-a="closeov"] { top: 8px !important; right: 8px !important; width: 36px !important; height: 36px !important; border-radius: 9px !important;
+  background: linear-gradient(180deg, #ffd884 0%, #f0a43a 45%, #c06818 100%) !important; border: 2px solid #5a2e08 !important; box-shadow: none !important; color: #3a1a04 !important; }
+#ui .pop3 .p3h [data-a="closeov"] svg { color: #3a1a04 !important; }
+#ui .pzn { background: radial-gradient(circle at 35% 30%, #ffd77a, #c87a1a 65%, #6a3008) !important; color: #2a1204 !important; border: 2px solid #3a1a06 !important; box-shadow: none !important; }
+#ui .pzs.done .pzn { background: radial-gradient(circle at 35% 30%, #8ee06a, #3a8a2a 70%) !important; color: #fff !important; }
+#ui .pza, #ui .pzcoins, #ui .pzcard, #ui .pzshare {
+  background: linear-gradient(180deg, rgba(86, 60, 40, .6), rgba(30, 18, 8, .8)) !important; border: 1.5px solid rgba(190, 150, 100, .55) !important; box-shadow: none !important; }
+#ui .pztile { background: rgba(30, 18, 8, .85) !important; border: 1.5px solid rgba(190, 150, 100, .6) !important; }
+#ui .pztile.plus { background: rgba(30, 18, 8, .85) !important; border: 1.5px solid #f0c050 !important; }
+#ui .pztile.ava { overflow: hidden !important; border-color: #f0c050 !important; box-shadow: none !important; }
+#ui .pztile.ava > :first-child, #ui .pzhelm > :first-child { width: 100% !important; height: 100% !important; display: block; border-radius: 50%; }
+#ui .pzhelm { overflow: hidden; border-radius: 50%; }
+#ui .pzsteps::before, #ui .pzs::before { background: rgba(190, 150, 100, .5) !important; }
+#ui .pzmenu { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(180deg, #ffd884, #c06818) !important; color: #3a1a04 !important; border: 1.5px solid #5a2e08; font-size: 0 !important; }
+#ui .pzmenu svg { width: 18px; height: 18px; }
+#ui .pzbanner .pzname { font-style: normal !important; }
+
+/* Gold Rush / race result: bronze title rules that stay inside the card, coins headline */
+#gameover .title::before, #gameover .title::after { width: 28px !important; background: linear-gradient(90deg, transparent, #ad8a58) !important; }
+#gameover .title::after { background: linear-gradient(90deg, #ad8a58, transparent) !important; }
+#ui .result { overflow: hidden; }
+#ui .result .endexp.coins .ex svg { width: 40px !important; height: 40px !important; }
+#ui .result .stats.mini .stat { padding: 8px 12px !important; gap: 8px; }
+#finish .stats.mini .stat { padding: 6px 6px !important; min-width: 0; }
+#finish .stats.mini .stat .label { font-size: 9px !important; letter-spacing: .5px !important; }
+
+/* race HUD: the special button sits below the hearts, its label inside the disc */
+#hud { --spTop: 156px; }
+#hud .rocketbtn span, #hud .sos span { font-size: 8px !important; letter-spacing: 0 !important; white-space: nowrap; max-width: 52px; overflow: hidden; line-height: 1; margin-top: 1px; }
+#hud .rocketbtn, #hud .sos { width: 60px !important; height: 60px !important; flex-direction: column; justify-content: center; }

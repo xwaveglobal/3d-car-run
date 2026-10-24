@@ -8,6 +8,7 @@ import { AVATAR_COUNT, DICE_IMG, avatarForName, avatarSvg, classCorner } from '.
 import { CLASSES, CLASS_COLOR, CLASS_MIN, XPT, classBadge, classFor as classOfBolts, classForScore, playerRank, type RankClass } from '../meta/Rank.ts';
 import logoUrl from '../assets/images/car-run-logo.webp';
 import { HOME_LAYOUT, homeStage } from './homeStage.ts';
+import { HOME_SHOW } from '../config.ts';
 import hSign from '../assets/images/home/sign-blank.webp';
 import hProfile from '../assets/images/home/profile.webp';
 import hCurrency from '../assets/images/home/currency.webp';
@@ -413,7 +414,7 @@ export class UI {
     <section id="start" class="screen home2">
       <!-- v1.0.2: Home = the owner's key art (painted background drawn by the renderer) + live sprites.
            Every element is placed in key-art pixels (src/ui/homeStage.ts → HOME_LAYOUT). -->
-      <div class="hcar" data-k="carzone" style="${hpos('car')}" aria-label="Swipe to choose a car">
+      <div class="hcar${HOME_SHOW.carPicker ? '' : ' off'}" data-k="carzone" style="${hpos('car')}" aria-hidden="true">
         <div class="hcarname" data-k="carname" hidden></div>
       </div>
       <button class="hs hot" data-a="events" style="${hpos('bonus')}" aria-label="Gold Rush"><span class="sr">Gold Rush</span><em class="hdot" data-k="bonusdot" hidden></em></button>
@@ -775,12 +776,12 @@ export class UI {
         <div class="res-top"><button class="icon-btn sm" data-a="home" aria-label="Close">${ICON.close}</button><img class="res-logo" src="${logoUrl}" alt="" /><button class="icon-btn sm" data-a="share" aria-label="Share">${ICON.share}</button></div>
         <div class="title" data-k="gotitle">FINISH</div>
         <div class="brag" data-k="brag" hidden></div>
-        <div class="endexp"><span class="ex">${XPT}</span><div class="final exp" data-k="final">0</div></div>
+        <div class="endexp" data-k="endexp"><span class="ex" data-k="endlbl">${XPT}</span><div class="final exp" data-k="final">0</div></div>
         <div class="endrow"><span class="erank" data-k="erank"></span><span class="newbest" data-k="newbest">${ICON.trophy} NEW BEST</span><span class="epos" data-k="epos"></span></div>
         <div class="tipbox" data-k="gtip" hidden></div>
         <div class="stats mini two" data-k="gstats">
           <div class="stat"><span class="label">Distance</span><span class="v">${ICON.flag}<span data-k="gdist">0</span></span></div>
-          <div class="stat"><span class="label">Best</span><span class="v"><span data-k="gbest">0</span></span></div>
+          <div class="stat"><span class="label" data-k="gbestlbl">Best</span><span class="v"><span data-k="gbest">0</span></span></div>
         </div>
         <div class="rwd" data-k="grwd"></div>
         <button class="btn gold adbtn" data-a="ad2x" data-k="ad2x">${ICON.play} Watch ad · +20% coins</button>
@@ -1490,6 +1491,18 @@ export class UI {
     this.pushNotice({ kind: 'banner', w: world, n: name });
   }
 
+  /** v1.0.4: a result card opens — drop race banners (they would sit over the card's logo) */
+  clearBanner() {
+    this.noticeQ = this.noticeQ.filter((q) => q.kind !== 'banner');
+    if (this.noticeCur.startsWith('b:') && this.noticeTimer) {
+      window.clearTimeout(this.noticeTimer);
+      this.noticeTimer = 0;
+      this.noticeCur = '';
+      $(this.root, '#banner').classList.remove('show');
+      this.pumpNotice();
+    }
+  }
+
   /** comfort: softer full-screen flashes */
   setComfort(on: boolean) {
     $(this.root, '#flash').classList.toggle('soft', on);
@@ -1536,8 +1549,13 @@ export class UI {
          <button class="btn gold bg-share" data-a="share">${ICON.share} Share my rank</button>`
       : '';
     this.setAll('final', fmt(o.score));
-    this.setAll('gbest', fmt(o.best));
-    this.setAll('gdist', o.length ? `${fmt((o.dist / o.length) * 100)}%` : `${fmt(o.dist)} m`);
+    // v1.0.4: Gold Rush pays coins (no EXP): the big number is coins, the second stat is the coins too,
+    // distance in metres (the Gold Rush road is built far longer than 3 minutes, a % means nothing)
+    $(this.root, '[data-k="endlbl"]').innerHTML = o.bonus ? ICON.coin : XPT;
+    $(this.root, '[data-k="endexp"]').classList.toggle('coins', !!o.bonus);
+    this.setAll('gbestlbl', o.bonus ? 'Coins' : 'Best');
+    this.setAll('gbest', fmt(o.bonus ? o.coins : o.best));
+    this.setAll('gdist', o.length && !o.bonus ? `${fmt((o.dist / o.length) * 100)}%` : `${fmt(o.dist)} m`);
     const er = $(this.root, '[data-k="erank"]');
     er.innerHTML = o.runRank ? `${classBadge(o.runRank, 'lg')}<span><small>RACE RANK</small><b>${o.runRank}</b></span>` : '';
     if (o.runRank) er.style.setProperty('--cc', CLASS_COLOR[o.runRank]);
@@ -2470,7 +2488,7 @@ export class UI {
         return head(giftBox(46), 'ENTRY REWARD', 'art') +
           `<div class="pzsteps">
             ${step(1, 'Open your pilot profile', st[0], `<div class="pzrow"><span class="pztile plus">${ICON.plus}</span><span class="pztile chat">${ICON.user}<em>99+</em></span><span class="pztile ava on">${avatarSvg(av)}${tapMarks()}</span></div>`, 'profile')}
-            ${step(2, 'Set your pilot name', st[1], `<div class="pzbanner"><img src="${logoUrl}" alt="" /><span class="pzname">${name}</span><span class="pzmenu">≡</span></div>`, 'profile')}
+            ${step(2, 'Set your pilot name', st[1], `<div class="pzbanner"><img src="${logoUrl}" alt="" /><span class="pzname">${name}</span><span class="pzmenu">${ICON.pen}</span></div>`, 'profile')}
             ${step(3, 'Pick your racing helmet', st[2], `<div class="pzcard"><img src="${carZenith}" alt="" /><span class="pzhelm">${avatarSvg(av)}</span>${hand}${tapMarks('r')}</div>`, 'profile')}
             ${step(4, 'Claim your rewards', done, coinBanner(d.entryReward))}
           </div>` +

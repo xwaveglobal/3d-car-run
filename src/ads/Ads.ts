@@ -191,7 +191,10 @@ export class Ads {
       totalRuns < ADS.noInterstitialBeforeRun ||
       this.runsSinceInterstitial < ADS.interstitialEveryRuns ||
       now - this.lastInterstitial < ADS.interstitialMinGapSec * 1000 ||
-      now - this.lastRewarded < ADS.rewardedGraceSec * 1000
+      now - this.lastRewarded < ADS.rewardedGraceSec * 1000 ||
+      // v1.0.3 owner test: without a real ad network, no placeholder "AD · DEMO" box between runs (it read as
+      // an error when closing a race). Rewarded ads keep their demo (the player taps "Watch ad" for them).
+      (this.provider.name === 'mock' && !/[?&]addemo/.test(location.search))
     )
       return;
     this.showing = true;

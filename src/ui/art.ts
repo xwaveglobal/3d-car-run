@@ -29,7 +29,7 @@ export function coinPile(w = 220, h = 120) {
       s += `<ellipse cx="${x}" cy="${yy}" rx="22" ry="8" fill="url(#${top})" stroke="#c77800" stroke-width="1"/>`;
     }
     const ty = y - (n - 1) * 7;
-    s += `<path d="m${x} ${ty - 6}1.8 3.6 4 .6-2.9 2.8.7 4L${x} ${ty + 3.2}l-3.6 1.8.7-4-2.9-2.8 4-.6z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/>`;
+    s += `<path d="m${x} ${ty - 6} 1.8 3.6 4 .6-2.9 2.8.7 4L${x} ${ty + 3.2}l-3.6 1.8.7-4-2.9-2.8 4-.6z" fill="#fff4c2" stroke="#b86a00" stroke-width=".8"/>`;
     return s;
   };
   const loose = (x: number, y: number, r: number, rot: number) =>

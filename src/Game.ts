@@ -2446,7 +2446,7 @@ export class Game {
 
   /** swipe on Home: next / previous car; owned cars are selected right away, locked ones only shown */
   private carSwipe(dir: 1 | -1) {
-    if (!this.homeView.active) return;
+    if (!this.homeView.active || !HOME_SHOW.carPicker) return;
     const cars = this.homeCars();
     const cur = Math.max(0, cars.findIndex((k) => k.id === (this.homeCar || this.save.vehicle)));
     const i = (cur + dir + cars.length) % cars.length;
@@ -3187,6 +3187,7 @@ export class Game {
   }
 
   private showFinish() {
+    this.ui.clearBanner();
     const run = this.run;
     const c = this.course!;
     this.finishShown = true;
@@ -3201,8 +3202,8 @@ export class Game {
       const speedBonus = pay.speedBonus;
       if (settled.fresh) this.recordMeta(true);
       this.persist();
-      // celebration: coin shower + banner (the result card opens right after)
-      this.ui.banner('GOLD RUSH COMPLETE!', `+${pay.total.toLocaleString('en-US')} COINS`);
+      // celebration: coin shower (the result card headline says GOLD RUSH COMPLETE)
+      this.ui.clearBanner();
       this.audio.play('combo');
       this.vibrate([30, 40, 30, 40, 60]);
       {
@@ -3265,6 +3266,7 @@ export class Game {
   }
 
   private gameOver() {
+    this.ui.clearBanner();
     this.holdContinue = false;
     this.returnTo = null;
     const run = this.run;
