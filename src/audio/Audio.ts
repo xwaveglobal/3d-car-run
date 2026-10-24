@@ -1,9 +1,17 @@
 /**
- * Procedural Web Audio: every SFX is synthesized, plus a small sequencer for the music.
- * v1.0.0 (3D Car Run): an original Western soundtrack (plucked-string guitar, boom-chicka bass,
- * whistle lead, train-beat brushes) and a desert-wind bed — all generated, no samples, no licensed
- * material. Any SFX can be overridden by a real file via `loadOverride(name, url)` (assets/manifest.ts).
+ * Procedural Web Audio: every SFX is synthesized; the music is rendered once into seamless loops.
+ * v1.0.3 (3D Car Run): a Western / cowboy soundtrack — "Campfire" on Home (fingerpicked guitar +
+ * harmonica) and "Dust Trail Gallop" in races (boom-chicka guitar, whistle, train beat, clip-clop; a
+ * banjo layer joins during Nitro). The instruments are computed in src/audio/westernSynth.ts (exact
+ * pitch — the v1.0.0 Web Audio feedback-loop guitar played every note at ~40 Hz). The loops render in
+ * the background a few ms at a time, then play as looping buffers (no scheduler timer, cheap on phones).
+ * All generated: no samples, no licensed material. Any SFX can be overridden by a real file via
+ * `loadOverride(name, url)` (assets/manifest.ts).
  */
+import { campPlan, ridePlan, renderBell, renderPluck, renderStrum, type Plan } from './westernSynth.ts';
+
+/** render rate of the music / SFX buffers (guitar, whistle, drums sound complete at 24 kHz) */
+const SYNTH_SR = 24000;
 export type Sfx =
   | 'coin' | 'lane' | 'up' | 'down' | 'land' | 'power' | 'shield' | 'shieldBreak' | 'crash' | 'explode'
   | 'near' | 'ring' | 'beep' | 'go' | 'mission' | 'click' | 'turbo' | 'respawn' | 'bump' | 'combo' | 'warp' | 'expire' | 'fanfare';
@@ -20,16 +28,24 @@ export class Audio {
   musicOn = true;
   private coinPitch = 0;
   private coinPitchT = 0;
-  // music
-  private seqTimer: number | null = null;
-  private step = 0;
-  private nextTime = 0;
-  private bpm = 112;
-  /** warm lowpass + echo for the music (pads / arp) */
-  private musicTone!: BiquadFilterNode;
-  private echo!: GainNode;
-  intensity = 0; // 0 menu, 1 run, 2 turbo
-  private playing = false;
+  // music: rendered loops + their layer gains
+  private reverb!: ConvolverNode;
+  private songs: { camp?: AudioBuffer; base?: AudioBuffer; drums?: AudioBuffer; nitro?: AudioBuffer } = {};
+  private rendering = false;
+  private layers: Partial<Record<'camp' | 'base' | 'drums' | 'nitro', { src: AudioBufferSourceNode; g: GainNode }>> = {};
+  private sfxBufs: Record<string, AudioBuffer> = {};
+  private _intensity = 0;
+  /** 0 = Home / menus (Campfire), 1 = racing (Gallop), 2 = Nitro (+ banjo) */
+  get intensity() {
+    return this._intensity;
+  }
+  set intensity(v: number) {
+    if (v === this._intensity) return;
+    const was = this._intensity;
+    this._intensity = v;
+    this.applyIntensity(was);
+  }
+  playing = false;
 
   /** called when the context becomes able to sound (first gesture, back from background) */
   onRunning: (() => void) | null = null;
@@ -73,29 +89,28 @@ export class Audio {
     this.sfxBus.gain.value = this.sfxOn ? 0.9 : 0;
     this.sfxBus.connect(this.master);
     this.musicBus = c.createGain();
-    this.musicBus.gain.value = this.musicOn ? 0.32 : 0;
+    this.musicBus.gain.value = this.musicOn ? 0.42 : 0;
     this.musicBus.connect(this.master);
-    // soft, airy mix: everything melodic goes through a gentle lowpass; the arp also feeds a
-    // dotted-eighth echo so it shimmers like a road at night
-    this.musicTone = c.createBiquadFilter();
-    this.musicTone.type = 'lowpass';
-    this.musicTone.frequency.value = 2600;
-    this.musicTone.Q.value = 0.5;
-    this.musicTone.connect(this.musicBus);
-    this.echo = c.createGain();
-    this.echo.gain.value = 0.55;
-    const dl = c.createDelay(1);
-    dl.delayTime.value = (60 / this.bpm) * 0.75;
-    const fb = c.createGain();
-    fb.gain.value = 0.32;
-    const damp = c.createBiquadFilter();
-    damp.type = 'lowpass';
-    damp.frequency.value = 1800;
-    this.echo.connect(dl).connect(damp).connect(fb).connect(dl);
-    damp.connect(this.musicTone);
+    // canyon reverb on the music (generated impulse: 1.8 s of decaying, darkening noise)
+    this.reverb = c.createConvolver();
+    const ir = c.createBuffer(2, Math.round(c.sampleRate * 1.8), c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = ir.getChannelData(ch);
+      let lp = 0;
+      for (let i = 0; i < d.length; i++) {
+        const k = i / d.length;
+        lp += (Math.random() * 2 - 1 - lp) * (0.5 - k * 0.42);
+        d[i] = lp * Math.pow(1 - k, 2.6) * (i < c.sampleRate * 0.012 ? 0 : 1);
+      }
+    }
+    this.reverb.buffer = ir;
+    const wet = c.createGain();
+    wet.gain.value = 0.22;
+    this.reverb.connect(wet).connect(this.musicBus);
     this.noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    this.buildSfx();
     for (const [n, u] of this.pendingOverrides) void this.loadOverride(n, u);
     this.pendingOverrides.length = 0;
     this.prime();
@@ -148,7 +163,7 @@ export class Audio {
 
   setMusic(on: boolean) {
     this.musicOn = on;
-    if (this.ctx) this.musicBus.gain.value = on ? 0.32 : 0;
+    if (this.ctx) this.musicBus.gain.value = on ? 0.42 : 0;
   }
 
   // ---------------------------------------------------------------- helpers
@@ -250,8 +265,9 @@ export class Audio {
         this.noise(t, 0.35, 0.3, 900, 200, 0.6, 'lowpass');
         break;
       case 'power':
-        [0, 4, 7, 12].forEach((n, i) => this.osc('triangle', 523 * Math.pow(2, n / 12), 523 * Math.pow(2, n / 12), t + i * 0.055, 0.2, 0.12));
-        this.noise(t, 0.4, 0.08, 4000, 9000, 1);
+        // pickup: a bright guitar strum + a spur jingle
+        this.playBuf('strumD', t, 0.55, pan);
+        this.playBuf('bell', t + 0.05, 0.12, pan, 1.5);
         break;
       case 'shield':
         this.osc('sine', 400, 900, t, 0.35, 0.12);
@@ -262,26 +278,34 @@ export class Audio {
         this.osc('triangle', 900, 200, t, 0.35, 0.12);
         break;
       case 'crash':
-        this.noise(t, 0.6, 0.6, 2000, 120, 0.7, 'lowpass');
-        this.osc('sine', 110, 35, t, 0.6, 0.45);
+        // body hit + splintering wood + a metal clank
+        this.noise(t, 0.6, 0.55, 2000, 120, 0.7, 'lowpass');
+        this.osc('sine', 110, 35, t, 0.6, 0.42);
+        this.noise(t + 0.02, 0.3, 0.3, 700, 300, 2.5, 'bandpass');
+        this.playBuf('bellLow', t + 0.03, 0.14, 0, 0.55);
         break;
       case 'explode':
         this.noise(t, 1.2, 0.7, 1200, 60, 0.6, 'lowpass');
         this.osc('sine', 80, 25, t, 1.0, 0.5);
         break;
       case 'near':
-        this.noise(t, 0.18, 0.3, 3000, 8000, 3, 'bandpass', undefined, pan);
-        this.osc('square', 1800, 2600, t, 0.08, 0.04);
+        // whip crack: a fast rising swish ending in a sharp snap
+        this.noise(t, 0.12, 0.22, 900, 5000, 1.5, 'bandpass', undefined, pan);
+        this.noise(t + 0.11, 0.035, 0.5, 6000, 3000, 0.8, 'highpass', undefined, pan);
         break;
       case 'ring':
         [0, 7, 12].forEach((n, i) => this.osc('sine', 880 * Math.pow(2, n / 12), 880 * Math.pow(2, n / 12), t + i * 0.04, 0.3, 0.09));
         break;
       case 'beep':
-        this.osc('square', 660, 660, t, 0.12, 0.08);
+        // countdown: a saloon bell
+        this.playBuf('bell', t, 0.4, 0, 0.67);
         break;
       case 'go':
-        this.osc('square', 1320, 1320, t, 0.3, 0.09);
-        this.osc('sawtooth', 660, 1320, t, 0.3, 0.05);
+        // starting pistol + ricochet, then the bell an octave up
+        this.noise(t, 0.16, 0.7, 5000, 400, 0.7, 'lowpass');
+        this.osc('sine', 140, 45, t, 0.18, 0.35);
+        this.osc('sine', 2600, 1100, t + 0.06, 0.32, 0.035);
+        this.playBuf('bell', t + 0.02, 0.32, 0, 1);
         break;
       case 'fanfare':
         // class promotion: a sheriff's bugle call (G – C – E – G, the last one held) over a drum roll
@@ -294,10 +318,14 @@ export class Audio {
         this.osc('sine', 1568, 1568, t + 0.75, 0.6, 0.04);
         break;
       case 'mission':
-        [0, 4, 7, 12, 16].forEach((n, i) => this.osc('square', 660 * Math.pow(2, n / 12), 660 * Math.pow(2, n / 12), t + i * 0.08, 0.22, 0.06));
+        // a full G-chord strum, then a banjo lick up the chord
+        this.playBuf('strumG', t, 0.7);
+        ['b1', 'b2', 'b3', 'b4'].forEach((k, i) => this.playBuf(k, t + 0.18 + i * 0.075, 0.42));
         break;
       case 'combo':
-        this.osc('triangle', 880, 1760, t, 0.18, 0.09);
+        // spur jingle
+        this.playBuf('bell', t, 0.16, 0, 2);
+        this.playBuf('bell', t + 0.05, 0.12, 0, 2.5);
         break;
       case 'click':
         // metal-on-wood UI click (a hammered bronze stud)
@@ -311,12 +339,13 @@ export class Audio {
         this.osc('square', 140, 260, t, 0.5, 0.03);
         break;
       case 'respawn':
-        [12, 7, 4, 0].reverse().forEach((n, i) => this.osc('sine', 440 * Math.pow(2, n / 12), 440 * Math.pow(2, n / 12), t + i * 0.07, 0.3, 0.1));
+        // back in the saddle: a quick banjo run up
+        ['b1', 'b2', 'b3', 'b4'].forEach((k, i) => this.playBuf(k, t + i * 0.06, 0.4));
         break;
       case 'warp':
-        // a new place: desert wind gust + a twang
-        this.noise(t, 1.4, 0.32, 300, 1400, 0.8);
-        this.pluckKS(52, t + 0.1, 0.16, this.sfxBus);
+        // a new place: desert wind gust + a low guitar twang
+        this.noise(t, 1.4, 0.26, 300, 1400, 0.8);
+        this.playBuf('twang', t + 0.1, 0.5);
         break;
       case 'expire':
         this.osc('triangle', 700, 350, t, 0.25, 0.08);
@@ -324,174 +353,146 @@ export class Audio {
     }
   }
 
+  // ---------------------------------------------------------------- Western SFX buffers
+  private buf(x: Float32Array) {
+    const c = this.ctx!;
+    const b = c.createBuffer(1, x.length, SYNTH_SR);
+    b.getChannelData(0).set(x);
+    return b;
+  }
+  private buildSfx() {
+    this.sfxBufs = {
+      bell: this.buf(renderBell(SYNTH_SR, 1318, 0.9)),
+      bellLow: this.buf(renderBell(SYNTH_SR, 784, 1.2)),
+      strumG: this.buf(renderStrum(SYNTH_SR, [43, 50, 55, 59, 62, 67], 0.22, 0.018)),
+      strumD: this.buf(renderStrum(SYNTH_SR, [50, 57, 62, 66, 69], 0.22, 0.012)),
+      twang: this.buf(renderPluck(SYNTH_SR, 40, 0.5, 1.2)),
+      b1: this.buf(renderPluck(SYNTH_SR, 67, 0.9, 0.5)),
+      b2: this.buf(renderPluck(SYNTH_SR, 71, 0.9, 0.5)),
+      b3: this.buf(renderPluck(SYNTH_SR, 74, 0.9, 0.5)),
+      b4: this.buf(renderPluck(SYNTH_SR, 79, 0.9, 0.7)),
+    };
+  }
+  private playBuf(k: string, t: number, vol: number, pan = 0, rate = 1) {
+    const c = this.ctx!;
+    const b = this.sfxBufs[k];
+    if (!b) return;
+    const s = c.createBufferSource();
+    s.buffer = b;
+    s.playbackRate.value = rate;
+    const g = c.createGain();
+    g.gain.value = vol;
+    s.connect(g);
+    let out: AudioNode = g;
+    if (pan && c.createStereoPanner) {
+      const p = c.createStereoPanner();
+      p.pan.value = pan;
+      g.connect(p);
+      out = p;
+    }
+    out.connect(this.sfxBus);
+    s.start(t);
+  }
+
   // ---------------------------------------------------------------- music
   startMusic() {
     if (!this.ctx || this.playing) return;
     this.playing = true;
-    this.step = 0;
-    this.nextTime = this.ctx.currentTime + 0.05;
-    this.seqTimer = window.setInterval(() => this.schedule(), 25);
+    void this.renderSongs();
+    this.applyIntensity(-1);
   }
   stopMusic() {
     this.playing = false;
-    if (this.seqTimer !== null) window.clearInterval(this.seqTimer);
-    this.seqTimer = null;
-    if (this.wind) {
-      try {
-        this.wind.src.stop();
-      } catch {
-        /* not started */
+    for (const k of Object.keys(this.layers) as (keyof typeof this.layers)[]) this.stopLayer(k);
+  }
+
+  /** render the loops once, a few ms at a time (never a long frame); Home's loop first */
+  private async renderSongs() {
+    if (this.rendering || this.songs.camp) return;
+    this.rendering = true;
+    const run = async <T,>(p: Plan<T>) => {
+      let t0 = performance.now();
+      for (const j of p.jobs) {
+        j();
+        if (performance.now() - t0 > 6) {
+          await new Promise((r) => setTimeout(r, 0));
+          t0 = performance.now();
+        }
       }
-      this.wind = null;
+      return p.done();
+    };
+    try {
+      this.songs.camp = this.buf(await run(campPlan(SYNTH_SR)));
+      this.applyIntensity(-1);
+      const ride = await run(ridePlan(SYNTH_SR));
+      this.songs.base = this.buf(ride.base);
+      this.songs.drums = this.buf(ride.drums);
+      this.songs.nitro = this.buf(ride.nitro);
+      this.applyIntensity(-1);
+    } finally {
+      this.rendering = false;
     }
   }
 
-  private schedule() {
-    const c = this.ctx;
-    if (!c) return;
-    const spb = 60 / this.bpm / 4; // 16th notes
-    while (this.nextTime < c.currentTime + 0.12) {
-      this.note(this.step, this.nextTime, spb);
-      this.nextTime += spb;
-      this.step = (this.step + 1) % 128;
+  private stopLayer(k: keyof typeof this.layers, fade = 0.4) {
+    const L = this.layers[k];
+    if (!L || !this.ctx) return;
+    const t = this.ctx.currentTime;
+    L.g.gain.cancelScheduledValues(t);
+    L.g.gain.setValueAtTime(L.g.gain.value, t);
+    L.g.gain.linearRampToValueAtTime(0, t + fade);
+    try {
+      L.src.stop(t + fade + 0.05);
+    } catch {
+      /* already stopped */
     }
+    delete this.layers[k];
   }
 
-
-
-
-
-  /**
-   * Plucked string (Karplus-Strong): a short noise burst into a tuned feedback delay with a lowpass in
-   * the loop — a nylon / steel guitar twang. Each note owns its tiny graph and stops itself.
-   */
-  private pluckKS(midi: number, t0: number, vol: number, out: AudioNode, bright = 2600, sustain = 0.985) {
+  /** start a set of layers together from the top of the loop (they stay in sync) */
+  private startLayers(keys: (keyof typeof this.layers)[], vols: number[], fade = 0.6) {
     const c = this.ctx!;
-    const hz = 440 * Math.pow(2, (midi - 69) / 12);
-    const src = c.createBufferSource();
-    src.buffer = this.noiseBuf;
-    const burst = c.createGain();
-    burst.gain.setValueAtTime(vol, t0);
-    burst.gain.exponentialRampToValueAtTime(0.0001, t0 + Math.min(0.02, 2 / hz + 0.004));
-    const dl = c.createDelay(0.1);
-    dl.delayTime.value = 1 / hz;
-    const lp = c.createBiquadFilter();
-    lp.type = 'lowpass';
-    lp.frequency.value = bright;
-    const fb = c.createGain();
-    fb.gain.value = sustain;
-    const env = c.createGain();
-    env.gain.setValueAtTime(1, t0);
-    env.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.4);
-    src.connect(burst).connect(dl);
-    dl.connect(lp).connect(fb).connect(dl);
-    lp.connect(env).connect(out);
-    src.start(t0, Math.random() * 0.5);
-    src.stop(t0 + 0.03);
-    // tear the loop down after the note has died
-    window.setTimeout(() => {
-      try {
-        fb.disconnect();
-        env.disconnect();
-      } catch {
-        /* already gone */
-      }
-    }, Math.max(0, (t0 - c.currentTime + 1.6) * 1000));
+    const t = c.currentTime + 0.06;
+    keys.forEach((k, i) => {
+      const b = this.songs[k];
+      if (!b || this.layers[k]) return;
+      const src = c.createBufferSource();
+      src.buffer = b;
+      src.loop = true;
+      const g = c.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vols[i], t + fade);
+      src.connect(g);
+      g.connect(this.musicBus);
+      g.connect(this.reverb);
+      src.start(t);
+      this.layers[k] = { src, g };
+    });
   }
 
-  /** whistle lead (sine with a slow vibrato), sent to the echo — the lone rider */
-  private whistle(midi: number, t0: number, dur: number, vol: number) {
-    const c = this.ctx!;
-    const hz = 440 * Math.pow(2, (midi - 69) / 12);
-    const o = c.createOscillator();
-    o.type = 'sine';
-    o.frequency.value = hz;
-    const lfo = c.createOscillator();
-    lfo.frequency.value = 5.5;
-    const lg = c.createGain();
-    lg.gain.setValueAtTime(0, t0);
-    lg.gain.linearRampToValueAtTime(hz * 0.012, t0 + dur * 0.5);
-    lfo.connect(lg).connect(o.frequency);
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.06);
-    g.gain.setValueAtTime(vol, t0 + dur * 0.75);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g);
-    g.connect(this.musicTone);
-    g.connect(this.echo);
-    o.start(t0);
-    lfo.start(t0);
-    o.stop(t0 + dur + 0.05);
-    lfo.stop(t0 + dur + 0.05);
+  private setLayer(k: keyof typeof this.layers, v: number, tc = 0.25) {
+    const L = this.layers[k];
+    if (!L || !this.ctx) return;
+    L.g.gain.setTargetAtTime(v, this.ctx.currentTime, tc);
   }
 
-  /** desert wind bed: looping noise through a slowly wandering bandpass (very quiet) */
-  private wind: { src: AudioBufferSourceNode; g: GainNode } | null = null;
-  private startWind() {
-    const c = this.ctx;
-    if (!c || this.wind) return;
-    const src = c.createBufferSource();
-    src.buffer = this.noiseBuf;
-    src.loop = true;
-    const bp = c.createBiquadFilter();
-    bp.type = 'bandpass';
-    bp.frequency.value = 520;
-    bp.Q.value = 0.7;
-    const lfo = c.createOscillator();
-    lfo.frequency.value = 0.07;
-    const lg = c.createGain();
-    lg.gain.value = 260;
-    lfo.connect(lg).connect(bp.frequency);
-    const g = c.createGain();
-    g.gain.value = 0.045;
-    src.connect(bp).connect(g).connect(this.musicBus);
-    src.start();
-    lfo.start();
-    this.wind = { src, g };
-  }
+  private static VOL = { camp: 0.9, base: 0.85, drums: 0.7, nitro: 0.55 };
 
-  /**
-   * Original procedural Western soundtrack (no samples, no licensed material → safe for commercial use).
-   * Andalusian cadence Am – G – F – E at 112 bpm: boom-chicka bass + strummed chords (plucked strings),
-   * a whistle melody on the open road, train-beat brushes and a soft kick while racing.
-   * Intensity 0 = menu (guitar + whistle), 1 = run (drums + bass drive), 2 = Nitro (double-time strum).
-   */
-  private note(step: number, t: number, spb: number) {
-    const bus = this.musicBus;
-    this.startWind();
-    // Am – G – F – E (the E bar takes the major third, G#)
-    const roots = [45, 43, 41, 40];
-    const chords = [
-      [0, 7, 12, 15, 19],
-      [0, 7, 12, 16, 19],
-      [0, 7, 12, 16, 19],
-      [0, 7, 12, 16, 20],
-    ];
-    const bar = Math.floor(step / 16) % 4;
-    const phrase = Math.floor(step / 64) % 2;
-    const root = roots[bar];
-    const ch = chords[bar];
-    const s = step % 16;
-    const run = this.intensity >= 1;
-    // boom: bass root on 1, fifth on 3 (and the pickup in the run)
-    if (s === 0 || s === 8 || (run && s === 14)) {
-      const m = root + (s === 8 ? 7 : s === 14 ? 12 : 0);
-      this.pluckKS(m, t, run ? 0.5 : 0.36, this.musicTone, 900, 0.992);
+  /** Home ↔ race: crossfade songs (the race song starts from its top); Nitro adds the banjo layer */
+  private applyIntensity(was: number) {
+    if (!this.ctx || !this.playing) return;
+    const V = Audio.VOL;
+    const racing = this._intensity >= 1;
+    if (!racing) {
+      if (was >= 1 || was === -1) for (const k of ['base', 'drums', 'nitro'] as const) this.stopLayer(k, 0.8);
+      if (this.songs.camp && !this.layers.camp) this.startLayers(['camp'], [V.camp], 1.2);
+      return;
     }
-    // chicka: strummed upper chord on the off-beats (a quick down-strum = 5 strings 12 ms apart)
-    const strum = this.intensity >= 2 ? s % 2 === 1 : s === 4 || s === 12 || (run && (s === 6 || s === 14));
-    if (strum) ch.slice(1).forEach((iv, i) => this.pluckKS(root + 12 + iv, t + i * 0.012, run ? 0.16 : 0.12, this.musicTone, 3200, 0.975));
-    // whistle melody (A minor pentatonic, two phrases) — sparse, with space between lines
-    const mel = phrase === 0 ? [[0, 69, 6], [6, 72, 2], [8, 76, 8]] : [[0, 74, 4], [4, 72, 4], [8, 69, 8]];
-    if (bar % 2 === 0 || !run)
-      for (const [at, m, len] of mel) if (s === at && (bar < 3 || phrase === 1)) this.whistle(m + (bar === 3 ? -1 : 0), t, spb * len * 0.95, run ? 0.035 : 0.045);
-    if (!run) return;
-    // soft kick on 1 and 3 (and 2 / 4 with Nitro)
-    if (s % 8 === 0 || (this.intensity >= 2 && s % 4 === 0)) this.osc('sine', 100, 40, t, 0.22, 0.3, bus);
-    // train-beat brushes: 16ths with accents on the off-beats
-    this.noise(t, 0.05, s % 4 === 2 ? 0.07 : 0.025, 5200, 4200, 0.9, 'bandpass', bus);
-    // rim-click on 2 and 4
-    if (s === 4 || s === 12) this.osc('triangle', 1700, 900, t, 0.04, 0.05, bus);
+    if (this.layers.camp) this.stopLayer('camp', 0.6);
+    if (this.songs.base && !this.layers.base) {
+      this.startLayers(['base', 'drums', 'nitro'], [V.base, V.drums, this._intensity >= 2 ? V.nitro : 0], 0.5);
+      return;
+    }
+    this.setLayer('nitro', this._intensity >= 2 ? V.nitro : 0, this._intensity >= 2 ? 0.08 : 0.5);
   }
 }
