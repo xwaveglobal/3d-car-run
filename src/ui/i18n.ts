@@ -28,6 +28,8 @@ const T: [string, string, string, string, string, string][] = [
   ['Profile', 'Profil', 'プロフィール', 'Perfil', 'Profil', 'Perfil'],
   ['Name, avatar, class', 'Nom, avatar, classe', '名前・アバター・クラス', 'Nome, avatar, classe', 'Name, Avatar, Klasse', 'Nombre, avatar, clase'],
   ['Saddle Bag', 'Sacoche', 'サドルバッグ', 'Alforje', 'Satteltasche', 'Alforja'],
+  ['Specials', 'Spéciaux', 'スペシャル', 'Especiais', 'Spezialitems', 'Especiales'],
+  ['Tap the name to change it', 'Touche le nom pour le changer', '名前をタップして変更', 'Toque no nome para mudar', 'Tippe auf den Namen, um ihn zu ändern', 'Toca el nombre para cambiarlo'],
   // v1.0.2 (Home key art)
   ['Share & Win', 'Partage et gagne', 'シェアで報酬', 'Compartilhe e ganhe', 'Teilen & gewinnen', 'Comparte y gana'],
   ['Coins every day', 'Des pièces chaque jour', '毎日コイン', 'Moedas todo dia', 'Jeden Tag Münzen', 'Monedas cada día'],

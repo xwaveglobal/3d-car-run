@@ -189,6 +189,22 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v1.0.5 — loading art, Western avatars, profile rebuild, lighter build
+
+- Loading screen: the owner's new key art (logo + car in the dust), 600 px wide, logo kept sharp, dust softened → 115 KB.
+- Size: the shipped car GLB is packed (`scripts/car/pack-x1.mjs`: int8 normals, empty UVs without data) 1.03 MB → 0.76 MB,
+  same geometry (test-locked against the approved master); Home art / logo / app icon re-encoded; unused kit images removed.
+  Single-file build ≈ 0.8 MB smaller.
+- Avatars: 32 Western medallions (hat, sheriff star, horseshoe, cactus, bull skull, wagon wheel, boot, lasso, campfire,
+  mesa sun, feather, lantern, cowboy, horse, ace, spur) in a studded brass ring — same indices, old saves keep theirs.
+- EXP tag: a brass plate everywhere (was cyan → purple).
+- Profile rebuilt in the wood / leather style: one rank card (rank, best EXP, races, car, progress, ladder), Saddle Bag /
+  Country as two wood tiles, no blue links, room between every block.
+- Screen headers: a crisp coin bar (the cut-out of the key art looked dented when squeezed) that never shrinks.
+- Race HUD: the special button is a parchment disc in a dark + brass ring (it melted into the sky).
+- Weekly ranking: SHARE / DETAILS / HOME with room around the words; gold tints instead of purple / blue.
+- Share rewards: gold SHARE / INVITE buttons, gold links. Share card: logo, title, rank and EXP no longer overlap.
+
 ## v1.0.4 — panel polish from the owner's phone screenshots
 
 - Every full page (Top Pilots, Daily, Missions, Shop…) sits on a dimmed desert instead of the old navy.

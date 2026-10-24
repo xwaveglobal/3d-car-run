@@ -103,67 +103,89 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
     load(d.car),
     load(`data:image/svg+xml;charset=utf-8,${encodeURIComponent(d.avatar.includes('xmlns') ? d.avatar : d.avatar.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"'))}`),
   ]);
+  // v1.0.5 layout (top → bottom, nothing overlaps): logo · title · rank shield · EXP · line · car
+  try {
+    await Promise.all([document.fonts?.load('72px "Rye"'), document.fonts?.load('112px "Alfa Slab One"')]);
+  } catch {
+    /* fonts are optional */
+  }
   if (logo) {
-    const lw = 560;
-    g.drawImage(logo, (W - lw) / 2, 40, lw, (lw * logo.height) / logo.width);
+    const lw = 430;
+    g.drawImage(logo, (W - lw) / 2, 24, lw, (lw * logo.height) / logo.width); // ends at y ≈ 392
   }
   g.textAlign = 'center';
-  g.fillStyle = '#ffffff';
-  g.font = '92px "Rye", Georgia, serif';
-  g.shadowColor = col;
-  g.shadowBlur = 30;
-  g.fillText(d.title, W / 2, 300);
-  g.shadowBlur = 0;
+  g.font = '68px "Rye", Georgia, serif';
+  g.lineJoin = 'round';
+  g.lineWidth = 10;
+  g.strokeStyle = '#2a1204';
+  g.strokeText(d.title, W / 2, 470);
+  g.fillStyle = '#ffe7b0';
+  g.fillText(d.title, W / 2, 470);
   // rank shield
-  shield(g, W / 2, 500, 150);
-  const sg = g.createLinearGradient(0, 350, 0, 650);
+  shield(g, W / 2, 625, 112);
+  const sg = g.createLinearGradient(0, 513, 0, 737);
   sg.addColorStop(0, col);
   sg.addColorStop(1, '#3a1a06');
   g.fillStyle = sg;
   g.shadowColor = col;
-  g.shadowBlur = 50;
+  g.shadowBlur = 40;
   g.fill();
   g.shadowBlur = 0;
-  g.lineWidth = 12;
-  g.strokeStyle = '#ffffff';
+  g.lineWidth = 10;
+  g.strokeStyle = '#f0d49a';
   g.stroke();
   g.fillStyle = '#ffffff';
-  g.font = `900 ${d.rank.length > 2 ? 110 : d.rank.length > 1 ? 140 : 170}px system-ui, -apple-system, Segoe UI, sans-serif`;
+  g.font = `${d.rank.length > 2 ? 84 : d.rank.length > 1 ? 104 : 128}px "Alfa Slab One", Georgia, serif`;
   g.textBaseline = 'middle';
-  g.fillText(d.rank, W / 2, 510);
+  g.fillText(d.rank, W / 2, 632);
   g.textBaseline = 'alphabetic';
-  g.font = '800 40px system-ui, -apple-system, Segoe UI, sans-serif';
-  g.fillStyle = col;
-  g.fillText(`RANK ${d.rank}`, W / 2, 712);
-  // EXP
+  g.font = '38px "Alfa Slab One", Georgia, serif';
+  g.fillStyle = '#ffd27a';
+  g.fillText(`RANK ${d.rank}`, W / 2, 800);
+  // EXP: big number + a brass EXP plate
   g.fillStyle = '#ffffff';
-  g.font = '128px "Alfa Slab One", Georgia, serif';
-  g.fillText(fmt(d.exp), W / 2, 850);
-  g.font = '800 44px system-ui, -apple-system, Segoe UI, sans-serif';
-  g.fillStyle = '#ffd94a';
-  g.fillText('EXP', W / 2, 910);
+  g.font = '112px "Alfa Slab One", Georgia, serif';
+  g.lineWidth = 10;
+  g.strokeStyle = '#2a1204';
+  g.strokeText(fmt(d.exp), W / 2, 912);
+  g.fillText(fmt(d.exp), W / 2, 912);
+  const pw = 120, ph = 46, px = (W - pw) / 2, py = 932;
+  const pg = g.createLinearGradient(0, py, 0, py + ph);
+  pg.addColorStop(0, '#ffe3a0');
+  pg.addColorStop(0.5, '#e2a446');
+  pg.addColorStop(1, '#a8641c');
+  g.fillStyle = pg;
+  g.beginPath();
+  g.roundRect(px, py, pw, ph, 10);
+  g.fill();
+  g.lineWidth = 4;
+  g.strokeStyle = '#3a1a06';
+  g.stroke();
+  g.fillStyle = '#3a1a04';
+  g.font = '30px "Alfa Slab One", Georgia, serif';
+  g.fillText('EXP', W / 2, py + 34);
   if (d.sub) {
-    g.fillStyle = 'rgba(220,225,255,.8)';
-    g.font = '600 36px system-ui, -apple-system, Segoe UI, sans-serif';
-    g.fillText(d.sub, W / 2, 964);
+    g.fillStyle = 'rgba(255,236,200,.88)';
+    g.font = '600 32px system-ui, -apple-system, Segoe UI, sans-serif';
+    g.fillText(d.sub, W / 2, 1022);
   }
   // car
   if (car) {
-    // fit inside 680×250, keep the aspect ratio, sit on a soft glow
-    const k = Math.min(680 / car.width, 250 / car.height);
+    // fit inside 600×190 above the pilot strip, keep the aspect ratio, sit on a soft glow
+    const k = Math.min(600 / car.width, 190 / car.height);
     const cw = car.width * k;
     const ch = car.height * k;
-    const halo = g.createRadialGradient(W / 2, 1110, 20, W / 2, 1110, 380);
+    const halo = g.createRadialGradient(W / 2, 1150, 20, W / 2, 1150, 360);
     halo.addColorStop(0, `${col}55`);
     halo.addColorStop(1, 'transparent');
     g.fillStyle = halo;
-    g.fillRect(0, 980, W, 260);
-    g.drawImage(car, (W - cw) / 2, 1235 - ch, cw, ch);
+    g.fillRect(0, 1040, W, 196);
+    g.drawImage(car, (W - cw) / 2, 1232 - ch, cw, ch);
   }
   // pilot strip
   g.fillStyle = 'rgba(42,22,8,.85)';
   g.fillRect(0, H - 110, W, 110);
-  g.fillStyle = '#c8924a';
+  g.fillStyle = '#ad8a58';
   g.fillRect(0, H - 114, W, 4);
   if (ava) g.drawImage(ava, 40, H - 98, 86, 86);
   g.textAlign = 'left';
@@ -171,7 +193,7 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   g.font = '800 44px system-ui, -apple-system, Segoe UI, sans-serif';
   g.fillText(d.name.slice(0, 18), 146, H - 42);
   g.textAlign = 'right';
-  g.fillStyle = 'rgba(220,225,255,.85)';
+  g.fillStyle = '#ffd27a';
   g.font = '700 34px system-ui, -apple-system, Segoe UI, sans-serif';
   g.fillText('Can you beat me?', W - 40, H - 44);
   return new Promise((res) => c.toBlob((b) => res(b), 'image/png'));

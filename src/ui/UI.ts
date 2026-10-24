@@ -595,7 +595,7 @@ export class UI {
         <p class="shpv-tip">Long-press the card to save or share it</p>
         <div class="td-row">
           <a class="btn gold" data-k="shpvdl" download="3d-car-run.png">${ICON.check} Save image</a>
-          <button class="btn ghost" data-a="shpvcopy">🔗 Copy text</button>
+          <button class="btn ghost" data-a="shpvcopy">${ICON.share} Copy text</button>
         </div>
       </div>
     </section>
@@ -1946,33 +1946,32 @@ export class UI {
     this.myClass = o.cls;
     this.setAll('proftitle', 'YOUR PROFILE');
     const strip = Array.from({ length: AVATAR_COUNT }, (_, i) => `<button class="avpick ${i === o.avatar ? 'on' : ''}" data-a="avpick" data-i="${i}" aria-label="Avatar ${i + 1}">${avatarSvg(i)}</button>`).join('');
+    // v1.0.5 (owner): one Western card — name, avatars, a leather rank card (rank · best EXP · races · car),
+    // Saddle Bag / Country as two wood tiles, then the two buttons. Fits 375 × 640 with room around every border.
+    const ladder = CLASSES.map((c) => `<span class="${c === o.cls ? 'cur' : CLASSES.indexOf(c) < CLASSES.indexOf(o.cls) ? 'done' : ''}">${c}</span>`).join('');
     $(this.root, '[data-k="profbody"]').innerHTML = `
-      <div class="ph">${avaHtml(o.avatar, o.cls, 'xl')}<div class="pn">
-        <div class="nameedit"><input data-k="pnameinput" maxlength="14" value="${esc(o.name)}" aria-label="Pilot name" /><button class="btn sm blue" data-a="savepname">Save</button></div>
+      <div class="pf-id">${avaHtml(o.avatar, o.cls, 'xl')}<div class="pf-name">
+        <div class="nameedit"><input data-k="pnameinput" maxlength="14" value="${esc(o.name)}" aria-label="Pilot name" /><button class="btn sm gold" data-a="savepname">Save</button></div>
         <small>Tap the name to change it</small></div></div>
       <div class="avrow2"><div class="avstrip" data-k="pavstrip">${strip}</div><button class="avdice" data-a="avrand" aria-label="Random avatar">${DICE_IMG}</button></div>
-      <button class="ctryrow bagrow" data-a="bag"><span class="fl">${BAG_ICON}</span><span><small>Saddle Bag</small><b>Specials · 1 per race</b></span><em>Open</em></button>
-      <button class="ctryrow" data-a="country"><span class="fl">${flagOf(o.country)}</span><span><small>Country</small><b>${esc(countryName(o.country || 'US'))}</b></span><em>Change</em></button>
-      ${this.classCard(o.cls, o.bolts, o.next, o.k, o.need)}
-      <div class="pstats two">
-        <div><span class="label">Races</span><b>${fmt(o.runs)}</b></div>
-        <div><span class="label">Car</span><b class="sm">${esc(o.car.replace('XWAVE ', ''))}</b></div>
+      <div class="pf-card" style="--cc:${CLASS_COLOR[o.cls]}">
+        <div class="pf-top">
+          <div class="rk-shield"><span>${o.cls}</span><small>RANK</small></div>
+          <div class="pf-best"><small>Best EXP</small><b>${fmt(o.bolts)}</b>${XPT}</div>
+          <div class="pf-mini"><div><small>Races</small><b>${fmt(o.runs)}</b></div><div><small>Car</small><b>${esc(o.car.replace('XWAVE ', ''))}</b></div></div>
+        </div>
+        <div class="pf-bar"><i style="width:${(o.k * 100).toFixed(1)}%"></i></div>
+        <div class="pf-next">${o.next ? `<b>${fmt(o.need)}</b> EXP to ${classBadge(o.next)}` : 'Top rank reached'}</div>
+        <div class="pf-ladder">${ladder}</div>
       </div>
-      <div class="sbtns two"><button class="btn sm ghost" data-a="rankguide">${ICON.info} EXP guide</button><button class="btn sm ghost" data-a="ranks">${ICON.podium} Leaderboard</button></div>`;
+      <div class="pf-links">
+        <button class="pf-link" data-a="bag"><span class="fl">${BAG_ICON}</span><span class="tx"><small>Saddle Bag</small><b>Specials</b></span></button>
+        <button class="pf-link" data-a="country"><span class="fl">${flagOf(o.country)}</span><span class="tx"><small>Country</small><b>${esc(countryName(o.country || 'US'))}</b></span></button>
+      </div>
+      <div class="sbtns two pf-btns"><button class="btn sm ghost" data-a="rankguide">${ICON.info} EXP guide</button><button class="btn sm ghost" data-a="ranks">${ICON.podium} Leaderboard</button></div>`;
     const on = this.root.querySelector<HTMLElement>('[data-k="pavstrip"] .avpick.on');
     const st = this.root.querySelector<HTMLElement>('[data-k="pavstrip"]');
     if (on && st) st.scrollLeft = on.offsetLeft - st.clientWidth / 2 + on.clientWidth / 2;
-  }
-
-  private classCard(cls: RankClass, bolts: number, next: RankClass | null, k: number, need: number) {
-    const ladder = CLASSES.map((c) => `<span class="lad ${c === cls ? 'cur' : CLASSES.indexOf(c) < CLASSES.indexOf(cls) ? 'done' : ''}" style="--cc:${CLASS_COLOR[c]}">${c}</span>`).join('');
-    // big rank shield + big EXP: the two numbers that matter
-    return `<div class="clscard rkhero rk-${cls}" style="--cc:${CLASS_COLOR[cls]}">
-      <div class="rk-top"><div class="rk-shield"><span>${cls}</span><small>RANK</small></div>
-        <div class="rk-exp"><small>BEST EXP</small><b>${fmt(bolts)}</b>${XPT}</div></div>
-      <div class="cc-bar"><i style="width:${(k * 100).toFixed(1)}%"></i></div>
-      <div class="rk-next">${next ? `<b>${fmt(need)}</b> EXP to ${classBadge(next)}` : 'Top rank reached'}</div>
-      <div class="ladder">${ladder}</div></div>`;
   }
 
   /** rows of the last rendered board, for tapping into a rival's profile */
@@ -2513,16 +2512,16 @@ export class UI {
         return head(shareNodes(46), 'SHARE REWARDS', 'art') +
           `<button class="pzshare" data-a="popa" data-v="share"><img src="${carImage(String(d.vehicle ?? 'zenith'))}" alt="" /><span class="pzhelm">${avatarSvg(av)}</span>${hand}${tapMarks('r')}<em>${ICON.share} Tap to share your card</em></button>
           <div class="pzcoins">${coinPile(150, 72)}${amount(`+${fmt(Number(d.shareReward))}`)}</div>` +
-          (done ? `<button class="btn big green" data-a="popa" data-v="share">${ICON.share} SHARE AGAIN</button><div class="label p3foot">✓ Reward taken today · new one tomorrow</div>` : `<button class="btn big green" data-a="popa" data-v="share">${ICON.share} SHARE</button>`) +
+          (done ? `<button class="btn big gold" data-a="popa" data-v="share">${ICON.share} SHARE AGAIN</button><div class="label p3foot">✓ Reward taken today · new one tomorrow</div>` : `<button class="btn big gold" data-a="popa" data-v="share">${ICON.share} SHARE</button>`) +
           `<button class="linkbtn center" data-a="popa" data-v="go:invite">Invite friends instead →</button>`;
       }
       case 'invite': {
         const done = !!d.inviteToday;
         const side = (who: string) => `<div class="pzinv"><span class="pzppl">${friends(70)}</span><span class="pzinvc">${coinFace(30)}</span><b>${who}</b>${amount(`x${fmt(Number(d.inviteReward))}`, 'sm')}</div>`;
-        return head(friends(42, '#4fc3ff'), 'INVITE FRIENDS', 'art') +
+        return head(friends(42, '#f0b448'), 'INVITE FRIENDS', 'art') +
           `<p class="p3t">Invite friends to play<br/>and get rewards!</p>
           <div class="pzinvrow">${side('YOU')}<span class="pzlink">🔗</span>${side('FRIEND')}</div>` +
-          (done ? `<button class="btn big ghost" disabled>${ICON.check} Invite sent today</button>` : `<button class="btn big green" data-a="popa" data-v="invite">🔗 INVITE</button>`) +
+          (done ? `<button class="btn big ghost" disabled>${ICON.check} Invite sent today</button>` : `<button class="btn big gold" data-a="popa" data-v="invite">${ICON.share} INVITE</button>`) +
           `<div class="label p3foot">${Number(d.invites)} friends invited</div>`;
       }
       case 'rate':

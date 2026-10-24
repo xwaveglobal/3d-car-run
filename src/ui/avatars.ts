@@ -3,16 +3,9 @@
  * A new pilot gets a random one; it can be changed or re-rolled in the profile.
  */
 import { CLASS_COLOR, type RankClass } from '../meta/Rank.ts';
-import avBolt from '../assets/images/kit/av-bolt.webp';
-import avFire from '../assets/images/kit/av-fire.webp';
-import avStar from '../assets/images/kit/av-star.webp';
-import avCrown from '../assets/images/kit/av-crown.webp';
-import avWings from '../assets/images/kit/av-wings.webp';
-import avPlanet from '../assets/images/kit/av-planet.webp';
 import avDice from '../assets/images/kit/av-dice.webp';
 
-/** v1.0.2: the owner's UI sheet medallions replace the first six emblems (same order, same indices) */
-const KIT_AVATARS = [avBolt, avFire, avStar, avCrown, avWings, avPlanet];
+import { westernAvatarSvg, WESTERN_AVATAR_COUNT } from './westernAvatars.ts';
 export const DICE_IMG = `<img class="kitico dice" src="${avDice}" alt="" draggable="false" />`;
 
 // v2.1 — owner: the helmet portraits looked bad. New set: clean racing emblems (badge style) —
@@ -64,7 +57,8 @@ export const AVATAR_COUNT = 32;
 let uid = 0;
 export function avatarSvg(i: number) {
   const k = ((i % AVATAR_COUNT) + AVATAR_COUNT) % AVATAR_COUNT;
-  if (k < KIT_AVATARS.length) return `<img class="avsvg kitav" src="${KIT_AVATARS[k]}" alt="" draggable="false" />`;
+  // v1.0.5: Western medallions (hat, sheriff star, horseshoe, cactus…) for every pilot — the old racing emblems below stay unused
+  if (WESTERN_AVATAR_COUNT === AVATAR_COUNT) return westernAvatarSvg(k);
   const emblem = EMBLEMS[k % EMBLEMS.length];
   const [c1, c2, hi] = PALETTES[(k * 3 + Math.floor(k / EMBLEMS.length) * 5) % PALETTES.length];
   const id = `av${k}_${(uid = (uid + 1) % 1e9).toString(36)}`;
@@ -87,5 +81,5 @@ export function avatarForName(name: string) {
 export function classCorner(c: RankClass) {
   const col = CLASS_COLOR[c];
   const fs = c.length >= 3 ? 7.2 : c.length === 2 ? 9 : 11;
-  return `<svg viewBox="0 0 24 24" class="tierb" aria-label="Class ${c}"><path d="M12 1.5l9.5 5.2v10.6L12 22.5l-9.5-5.2V6.7z" fill="#0b1020" stroke="${col}" stroke-width="2"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="${fs}" fill="${col}">${c}</text></svg>`;
+  return `<svg viewBox="0 0 24 24" class="tierb" aria-label="Class ${c}"><path d="M12 1.5l9.5 5.2v10.6L12 22.5l-9.5-5.2V6.7z" fill="#2a1406" stroke="${col}" stroke-width="2"/><text x="12" y="15.6" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="${fs}" fill="${col}">${c}</text></svg>`;
 }

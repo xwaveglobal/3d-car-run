@@ -1960,5 +1960,7 @@
     ]
    ]
   }
- ]
+ ],
+ "packedSha256": "63e9437e62f365f17590cab82e163b1966ad6e27f060a5530b63c10aac2390af",
+ "packedNote": "v1.0.5: shipped GLB = scripts/car/pack-x1.mjs of the approved master (int8 normals, zero UVs without data); same geometry"
 }

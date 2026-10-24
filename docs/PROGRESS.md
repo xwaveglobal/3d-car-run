@@ -4,6 +4,20 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.5: loading key art, smaller build, Western avatars, profile rebuild
+
+Owner: "Ảnh 1 nút bị móp, ảnh 2 hình launcher bị hoà vào nền, ảnh 3 chỗ detail bị sít, exp đổi màu, các avatar … loại khác
+cho hợp, làm lại profile … ảnh 5 nút share đổi màu, ảnh 6 chữ bị đè lên logo" + new loading art "đều cần tối ưu dung lượng".
+- See README v1.0.5. New: `src/ui/westernAvatars.ts` (32 medallions, same indices), `scripts/ui/make-wallet.py`
+  (`src/assets/images/ui/wallet.webp`), `scripts/car/pack-x1.mjs` (run it after `build-x1.mjs`; `tests/car.test.ts`
+  locks the packed hash + checks the geometry against `assets-src/x1/approved/…glb`), loading art source in
+  `assets-src/reference/loading-v2.webp`.
+- EXP plate (`XPT` in `src/meta/Rank.ts`) uses NO gradient ids: an svg `url(#id)` inside a hidden screen draws empty in Chrome.
+- Checks: typecheck, `npm test` 14 / 14, real-build regression 68 / 68, the owner's screens re-captured at 390×844; single file 5172 → 4421 KB.
+- Next: owner checks on the phone; GLB positions could also be quantized (needs node transforms) if more size is wanted.
+
+---
+
 ## 2026-10-24 — v1.0.4: panel polish (owner's 9 phone screenshots), Home car picker off
 
 - Checks: typecheck, `npm test` 14 / 14, real-build regression 68 / 68, the owner's 9 screens re-captured at 390×844.

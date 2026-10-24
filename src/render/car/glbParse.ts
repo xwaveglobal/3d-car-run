@@ -27,7 +27,7 @@ interface GltfJson {
     doubleSided?: boolean;
     extensions?: Record<string, Record<string, number>>;
   }[];
-  accessors: { bufferView?: number; byteOffset?: number; componentType: number; count: number; type: string }[];
+  accessors: { bufferView?: number; byteOffset?: number; componentType: number; count: number; type: string; normalized?: boolean }[];
   bufferViews: { byteOffset?: number; byteLength: number; byteStride?: number }[];
 }
 
@@ -59,20 +59,31 @@ export function parseGlb(data: ArrayBuffer): THREE.Group {
   const g = json;
   const buf = bin;
 
+  // v1.0.5: also reads packed accessors (scripts/car/pack-x1.mjs): int8 normals (normalized, stride 4) and
+  // accessors without a bufferView (all zeros, glTF spec) — the shipped model is ~30% smaller
+  const NORM: Record<number, number> = { 5120: 127, 5121: 255, 5122: 32767, 5123: 65535 };
   const accessor = (i: number) => {
     const a = g.accessors[i];
-    const bv = g.bufferViews[a.bufferView ?? 0];
-    const { ctor } = COMP[a.componentType];
     const n = SIZE[a.type];
+    const { ctor } = COMP[a.componentType];
+    if (a.bufferView === undefined) return { array: a.normalized || a.componentType === 5126 ? new Float32Array(a.count * n) : new (ctor as unknown as { new (n: number): Float32Array })(a.count * n), itemSize: n };
+    const bv = g.bufferViews[a.bufferView];
     const base = (bv.byteOffset ?? 0) + (a.byteOffset ?? 0);
     const el = ctor.BYTES_PER_ELEMENT;
-    if (bv.byteStride && bv.byteStride !== n * el) {
-      // interleaved → copy out
-      const out = new (ctor as unknown as { new (n: number): Float32Array })(a.count * n);
+    const norm = a.normalized ? NORM[a.componentType] : 0;
+    if ((bv.byteStride && bv.byteStride !== n * el) || norm) {
+      // interleaved / normalized → copy out (normalized ints become floats)
+      const out = norm ? new Float32Array(a.count * n) : new (ctor as unknown as { new (n: number): Float32Array })(a.count * n);
       const view = new DataView(buf);
+      const stride = bv.byteStride ?? n * el;
+      const t = a.componentType;
       const get = (o: number) =>
-        a.componentType === 5126 ? view.getFloat32(o, true) : a.componentType === 5125 ? view.getUint32(o, true) : a.componentType === 5123 ? view.getUint16(o, true) : view.getUint8(o);
-      for (let k = 0; k < a.count; k++) for (let c = 0; c < n; c++) out[k * n + c] = get(base + k * bv.byteStride + c * el);
+        t === 5126 ? view.getFloat32(o, true) : t === 5125 ? view.getUint32(o, true) : t === 5123 ? view.getUint16(o, true) : t === 5122 ? view.getInt16(o, true) : t === 5120 ? view.getInt8(o) : view.getUint8(o);
+      for (let k = 0; k < a.count; k++)
+        for (let c = 0; c < n; c++) {
+          const v = get(base + k * stride + c * el);
+          out[k * n + c] = norm ? Math.max(-1, v / norm) : v;
+        }
       return { array: out, itemSize: n };
     }
     // copy so the array is aligned and owns its memory

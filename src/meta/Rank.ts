@@ -52,7 +52,8 @@ export function classProgress(bolts: number, rank?: RankClass) {
 export const classForScore = (exp: number) => classFor(exp);
 
 /** the EXP badge: a small pill that literally reads "EXP" (owner: the shield icon was unclear) */
-export const XPT = `<svg viewBox="0 0 36 20" class="xpt" aria-label="EXP"><defs><linearGradient id="xpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ee6ff"/><stop offset="1" stop-color="#8a4dff"/></linearGradient></defs><rect x="1" y="1" width="34" height="18" rx="6" fill="url(#xpg)" stroke="#1b1450" stroke-width="1.4"/><text x="18" y="14.6" text-anchor="middle" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="12.5" fill="#fff" letter-spacing=".3">EXP</text></svg>`;
+// v1.0.5: a brass plate (was cyan → purple) to match the Western wood / bronze UI
+export const XPT = `<svg viewBox="0 0 36 20" class="xpt" aria-label="EXP"><rect x="1" y="1" width="34" height="18" rx="5" fill="#d99a3c" stroke="#3a1a06" stroke-width="1.4"/><path d="M2.4 9.5V6a3.6 3.6 0 0 1 3.6-3.6h24a3.6 3.6 0 0 1 3.6 3.6v3.5z" fill="#ffe3a0" opacity=".75"/><path d="M2.4 13.5h31.2V14a3.6 3.6 0 0 1-3.6 3.6H6A3.6 3.6 0 0 1 2.4 14z" fill="#a8641c" opacity=".7"/><text x="18" y="14.4" text-anchor="middle" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="12" fill="#3a1a04" letter-spacing=".3">EXP</text></svg>`;
 
 /** small class badge (hex plate with the letters) */
 export function classBadge(c: RankClass, size = 'sm') {

@@ -76,17 +76,17 @@ export function megaphone(size = 64) {
 
 export function shareNodes(size = 64) {
   return `<svg class="art-share" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M20 32 44 18M20 32l24 14" stroke="#7fd0ff" stroke-width="5" stroke-linecap="round"/>
-    <circle cx="18" cy="32" r="9" fill="#4fc3ff" stroke="#fff" stroke-width="2"/><circle cx="46" cy="16" r="9" fill="#a77bff" stroke="#fff" stroke-width="2"/><circle cx="46" cy="48" r="9" fill="#4f7bff" stroke="#fff" stroke-width="2"/></svg>`;
+    <path d="M20 32 44 18M20 32l24 14" stroke="#3a1a06" stroke-width="8" stroke-linecap="round"/><path d="M20 32 44 18M20 32l24 14" stroke="#e8c890" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="18" cy="32" r="9.5" fill="#f0b448" stroke="#3a1a06" stroke-width="2.5"/><circle cx="46" cy="16" r="9.5" fill="#d9822e" stroke="#3a1a06" stroke-width="2.5"/><circle cx="46" cy="48" r="9.5" fill="#c86a2a" stroke="#3a1a06" stroke-width="2.5"/></svg>`;
 }
 
 export function phonePlus(size = 64) {
   return `<svg class="art-phone" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
-    <rect x="16" y="4" width="32" height="56" rx="7" fill="#1d6dff" stroke="#9fd6ff" stroke-width="2.5"/><rect x="20" y="10" width="24" height="42" rx="3" fill="#0b1a4a"/>
-    <circle cx="48" cy="46" r="11" fill="#4fc3ff" stroke="#fff" stroke-width="2.5"/><path d="M48 40v12M42 46h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;
+    <rect x="16" y="4" width="32" height="56" rx="7" fill="#8a5a2e" stroke="#e8c890" stroke-width="2.5"/><rect x="20" y="10" width="24" height="42" rx="3" fill="#2a1406"/>
+    <circle cx="48" cy="46" r="11" fill="#e0952e" stroke="#3a1a06" stroke-width="2.5"/><path d="M48 40v12M42 46h12" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;
 }
 
-export function friends(size = 64, color = '#a77bff') {
+export function friends(size = 64, color = '#e0952e') {
   return `<svg class="art-friends" width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
     <circle cx="22" cy="22" r="10" fill="${color}" opacity=".75"/><path d="M4 56c1-13 8-20 18-20s17 7 18 20z" fill="${color}" opacity=".75"/>
     <circle cx="40" cy="20" r="11" fill="${color}"/><path d="M20 58c1-14 9-22 20-22s19 8 20 22z" fill="${color}"/></svg>`;
@@ -115,7 +115,7 @@ export function wifiRobot(w = 180, h = 120) {
 /** calendar with a gift (daily reward header) */
 export function calendarGift(size = 56) {
   return `<svg class="art-cal" width="${size}" height="${size}" viewBox="0 0 56 56" aria-hidden="true">
-    <rect x="6" y="10" width="44" height="40" rx="8" fill="#1d6dff" stroke="#9fd6ff" stroke-width="2"/><rect x="6" y="10" width="44" height="12" rx="6" fill="#4fc3ff"/>
+    <rect x="6" y="10" width="44" height="40" rx="8" fill="#8a5a2e" stroke="#e8c890" stroke-width="2"/><rect x="6" y="10" width="44" height="12" rx="6" fill="#c8642a"/>
     <rect x="15" y="5" width="5" height="11" rx="2.5" fill="#fff"/><rect x="36" y="5" width="5" height="11" rx="2.5" fill="#fff"/>
     <rect x="18" y="28" width="20" height="15" rx="2.5" fill="#fff"/><rect x="26" y="28" width="4" height="15" fill="#ff7ad9"/><path d="M28 28c-3-6-9-5-8-2s6 2 8 2zm0 0c3-6 9-5 8-2s-6 2-8 2z" fill="#ff7ad9"/></svg>`;
 }

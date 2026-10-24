@@ -159,11 +159,25 @@ check(!scene.getObjectByName('Diffuser_Rail') && !scene.getObjectByName('NitroSo
 const gameW = size.x * RENDER.carScale;
 check(gameW < CAR_HALF.x * 2 * 1.35, `in-game width ${gameW.toFixed(2)} m vs hitbox ${(CAR_HALF.x * 2).toFixed(2)} m (≤ +35 %)`);
 
-// Step 07 FINAL: the approved car is a locked master asset — the game GLB must stay byte-identical to it
+// Step 07 FINAL: the approved car is a locked master asset. v1.0.5: the game ships the PACKED master
+// (scripts/car/pack-x1.mjs: int8 normals, zero UVs without data) — byte-locked to that, and the same geometry
 {
   const ref = JSON.parse(readFileSync(new URL('../assets-src/x1/approved/xwave-x1-approved-v4.2.0.fingerprint.json', import.meta.url), 'utf8'));
   const sha: string = createHash('sha256').update(bytes).digest('hex');
-  check(sha === ref.fileSha256, `approved GLB locked: sha256 ${sha.slice(0, 12)}… ${sha === ref.fileSha256 ? '=' : '≠'} approved ${ref.fileSha256.slice(0, 12)}…`);
+  const okSha = sha === ref.fileSha256 || sha === ref.packedSha256;
+  check(okSha, `approved GLB locked: sha256 ${sha.slice(0, 12)}… ${okSha ? '=' : '≠'} approved ${String(ref.packedSha256 ?? ref.fileSha256).slice(0, 12)}…`);
+  const mb: Uint8Array = readFileSync(new URL('../assets-src/x1/approved/xwave-x1-approved-v4.2.0.glb', import.meta.url));
+  const master = parseGlb(mb.buffer.slice(mb.byteOffset, mb.byteOffset + mb.byteLength) as ArrayBuffer);
+  const shipped = parseGlb(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
+  const geos = (g: THREE.Object3D) => { const out: THREE.BufferGeometry[] = []; g.traverse((o) => { if ((o as THREE.Mesh).isMesh) out.push((o as THREE.Mesh).geometry); }); return out; };
+  const a = geos(master), b = geos(shipped);
+  let posErr = 0, nrmErr = 0, uvErr = 0;
+  a.forEach((ga, i) => {
+    const gb = b[i];
+    const d = (x: string) => { const p = ga.getAttribute(x), q = gb?.getAttribute(x); let e = 0; if (!p || !q || p.count !== q.count) return 9; for (let k = 0; k < p.array.length; k++) e = Math.max(e, Math.abs(p.array[k] - q.array[k])); return e; };
+    posErr = Math.max(posErr, d('position')); nrmErr = Math.max(nrmErr, d('normal')); uvErr = Math.max(uvErr, d('uv'));
+  });
+  check(a.length === b.length && posErr === 0 && uvErr === 0 && nrmErr < 0.012, `packed GLB = master geometry (${b.length} meshes, positions exact, uv exact, normals ±${nrmErr.toFixed(4)})`);
 }
 
 console.log(fails ? `${fails} FAILED` : 'ALL PASSED');
