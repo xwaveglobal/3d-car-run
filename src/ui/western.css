@@ -323,3 +323,11 @@ html, body { background: var(--bg); }
   background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important; border: 2px solid #c8924a !important; color: #fff1d0 !important; }
 #ui #garage .carsel .btn.gold, #ui #runrank .rr-btns .btn:last-child { background: linear-gradient(180deg, rgba(255,215,122,.92), rgba(224,149,30,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border-color: #7a4a14 !important; }
 #ui .lbrow.me, #ui .lbrow.you { border: 2px solid #ffc848 !important; }
+
+/* last blue bits (v1.0.0 QA): ghost / dark buttons inside screens (Settings row) and the garage Select button */
+#ui .screen .btn.ghost, #ui .screen .btn.dark { --c1: #6a4020; --c2: #3a2210; --edge: #160a03; color: #fff1d0; border-color: #c8924a; }
+#ui [data-a="carbtn"] { --c1: #f2b648; --c2: #b8701e; --edge: #5a3408; background: linear-gradient(180deg, rgba(255,215,122,.92), rgba(224,149,30,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border: 2px solid #7a4a14 !important; }
+#ui .sbtns .btn.ghost, #ui .sbtns .btn.dark, #ui .modal .btn.ghost, #ui .modal .btn.dark {
+  --c1: #6a4020; --c2: #3a2210; --edge: #160a03;
+  background: linear-gradient(180deg, rgba(154,100,54,.8), rgba(94,54,25,.9)), var(--wood) center / 260px auto, #5e3619 !important;
+  color: #fff1d0 !important; border: 2px solid #c8924a !important; }

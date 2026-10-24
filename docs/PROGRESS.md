@@ -16,7 +16,9 @@ transformation, `assets-src/reference/`); the result is **v1** on `main`; the or
 - 16 desert places on the unchanged world ids (`src/render/western/`, `src/western/themes.ts`), new road, Western obstacles (same hitboxes), star coins, Western pickups, item / special names (`src/western/items.ts`).
 - GOLD RUSH — 3 MIN BONUS RUN (`src/meta/GoldRush.ts`, `tests/goldrush.test.ts`).
 - Western VFX (tyre dust, Nitro, rings), procedural Western soundtrack + wind, share card, i18n of the new labels.
-- `npm test` 13 / 13; real-build QA: see the report (Step 06.5 suite re-run on the new build, Gold Rush QA, per-place screenshots).
+- `npm test` 13 / 13; real-build regression (Step 06.5 suite) 68 / 68 after updating 4 renamed-text expectations; Gold Rush QA in the real build (pause, countdown, pay-once, pay at time's up, restart mid-run banks coins); per-place + per-screen screenshots in `docs/carrun-v1/shots/`.
+- Review fixes: Gold Rush restart / time's-up payout, tall mine tunnel (HYPER / SKY ESCAPE fit), tunnel texture scroll, stagecoach wheels, far-prop fade bucket, last blue buttons (Garage select, Settings, Profile).
+- Draw calls (MEDIUM, real build): 85–109 per frame vs 128–277 in v4.6.1.
 
 **Build note (cloud)**: npm registry is blocked here → three + @types/three r169 were vendored into `node_modules/` from GitHub (git sparse clone), esbuild linked from /opt/npm-tools; build with `node scripts/build-esbuild.mjs`. On the owner's PC `npm install` works as usual.
 

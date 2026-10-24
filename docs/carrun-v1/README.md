@@ -188,13 +188,24 @@ English as before.
 
 ## 9. Regression results
 
-See section 11 for the run log. Summary filled at the end of the session in `docs/PROGRESS.md`.
+- `npm run typecheck` clean; `npm test` 13/13 suites (incl. `tests/goldrush.test.ts`, 25 checks).
+- Real-build regression (`scripts/qa/step065.mjs`, Chromium + SwiftShader): **68 checks, all passing**.
+  The first full run had 64 ✓ / 4 ✗; the 4 were the test still expecting old names (ROADSTER AUTO, MAGIC BAG,
+  XWAVE Inferno / Nexus). After updating the expectations, the affected sections (special, pause, bag,
+  congrats) were re-run on the final build: 31 / 31 ✓. No page errors.
+- Gold Rush in the real build (`?manual`, deterministic): pause and a hidden tab hold the clock; the 30 s warning
+  and 10…1 countdown show; time's up pays coins + speed bonus + completion reward **at the banner** (saved
+  before the result card); a repeated finish pays 0; **Restart from the pause menu mid-run banks the coins
+  collected** (+63 for 50 coins on NORMAL) and starts the next play with a new run id.
+- An independent code review found 6 issues (restart lost Gold Rush coins, completion paid 1.9 s late, tunnel
+  ceiling under the HYPER / SKY ESCAPE heights, two tunnel textures scrolling backwards, stagecoach wheels
+  turned 90° outside the hitbox, far props popping in) — all fixed and re-checked.
 
 ## 10. Screenshots
 
-`docs/carrun-v1/shots/` — real build (Chromium + SwiftShader, 360 × 640 @2): Home, More menu, Race Start,
-every place, Gold Rush entry / HUD / countdown / result, Garage, Shop, Missions, Top Pilots, Daily, Saddle Bag,
-Settings, Profile, game over, rank board.
+`docs/carrun-v1/shots/` — real build (Chromium + SwiftShader, 360 × 640 @2): `worlds.jpg` (every place),
+`screens.jpg` (Garage, Shop, Missions, Top Pilots, Saddle Bag, Daily, Profile, Settings, Pause, rank board,
+result), `gr*.jpg` (Gold Rush entry / HUD / countdown / result), `tunnel-normal-vs-sky-escape.jpg`.
 
 ## 11. Remaining issues & risks
 
@@ -204,6 +215,7 @@ Settings, Profile, game over, rank board.
   Chromium (no listening test). Audio start-up behaviour (first tap) is unchanged and re-tested.
 - **Concept-art crops** are used as place thumbnails on the Race Start cards; replace with in-game renders if
   wanted.
-- **Guide images** of the launcher guide were re-captured from the new build (see shots); the copy changed.
+- **Guide images** of the Canyon Launcher guide (`src/assets/images/guide/`) were re-captured from the new build.
+- **Draw calls** are measured in SwiftShader (counts are exact; timings are not meaningful there).
 - **Item names in other languages**: the main labels are translated; long item descriptions are English.
 - Not done in this phase (by the prompt's own scope): native / TikTok port.
