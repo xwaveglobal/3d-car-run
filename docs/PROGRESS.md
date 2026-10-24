@@ -4,6 +4,13 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-24 — v1.0.9: Entry button stays on Home
+
+- Owner: "vẫn thiếu 1 nút Entry (để dưới Share)" — the claimed Entry was hidden. All three small buttons always show,
+  order Launch · Share · Entry (`perkBadges` in UI.ts). Checks: typecheck, `npm test` 14 / 14.
+
+---
+
 ## 2026-10-24 — v1.0.8: Outlaw Arsenal, more missions / dailies, Home perk buttons
 
 - Owner asks (late session, many small messages): 20 more specials unlocked by high coin prices, shown dimmed; ~20

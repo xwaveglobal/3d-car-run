@@ -2593,25 +2593,21 @@ export class UI {
   }
 
   perkBadges(o: Record<'entry' | 'launch' | 'share', 'todo' | 'ready' | 'done'>) {
-    // v1.0.8 (owner): Entry / Launch / Share are small buttons under the menu; Entry and Launch leave once done,
-    // Share stays (a reward every day). A red dot = reward ready.
+    // v1.0.8 (owner): Entry / Launch / Share are small buttons under the menu. A red dot = reward ready.
     for (const [k, st] of Object.entries(o)) {
       const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
       if (!b) continue;
-      b.hidden = k !== 'share' && st === 'done';
+      b.hidden = false; // v1.0.9 (owner): all three stay on Home, even when claimed (Entry sits under Share)
       b.classList.toggle('done', st === 'done');
       const e = b.querySelector<HTMLElement>('.badge');
       if (e) e.hidden = st !== 'ready';
     }
-    // keep the column tight: the visible ones take the top slots
+    // column order: Launch, Share, Entry
     const slots = ['pkEntry', 'pkLaunch', 'pkShare'] as const;
-    let i = 0;
-    for (const k of ['entry', 'launch', 'share']) {
+    ['launch', 'share', 'entry'].forEach((k, i) => {
       const b = this.root.querySelector<HTMLElement>(`[data-k="pk-${k}"]`);
-      if (!b || b.hidden) continue;
-      const [, y] = HOME_LAYOUT[slots[i++]];
-      b.style.setProperty('--y', String(y));
-    }
+      if (b) b.style.setProperty('--y', String(HOME_LAYOUT[slots[i]][1]));
+    });
   }
 
   /** country picker: search + list (auto-detected by IP until the player picks) */
