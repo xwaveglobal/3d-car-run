@@ -45,8 +45,8 @@ for d, _, files in os.walk(SRC):
         print(f'{os.path.relpath(p, ROOT)}  {im.size[0]}×{im.size[1]}  {os.path.getsize(p) // 1024} KB')
 print(f'total {total / 1024:.0f} KB')
 
-# v4.0.2 (owner): hand-tuned native files win over the automatic conversion (loading.jpg: 540×960, < 45 KB,
-# baseline JPEG — encoded from assets-src/loading/loading-master-600x1066.webp, see docs/PROGRESS.md)
+# v4.0.2: hand-tuned native files (assets-src/native-tuned/, if any) win over the automatic conversion.
+# (owner: the loading art stays at its normal quality — no tuned loading.jpg any more)
 TUNED = os.path.join(ROOT, 'assets-src', 'native-tuned')
 if os.path.isdir(TUNED):
     import shutil

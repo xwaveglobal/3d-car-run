@@ -381,6 +381,14 @@ export class Audio {
 
   /** @param opt.delay seconds after now on the AUDIO clock (sample-accurate; never a timer) */
   play(name: Sfx, opt: { pan?: number; delay?: number } = {}) {
+    // v4.0.2: a sound that fails (partial mini-game Web Audio) must never break the frame that asked for it
+    try {
+      this.playSfx(name, opt);
+    } catch (e) {
+      console.warn('[audio] play', name, e);
+    }
+  }
+  private playSfx(name: Sfx, opt: { pan?: number; delay?: number }) {
     this.lastPlayed[name] = performance.now();
     if (!this.ctx || !this.sfxOn) return;
     const c = this.ctx;

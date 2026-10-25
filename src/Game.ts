@@ -641,9 +641,14 @@ export class Game {
     this.obstacleViews.prewarm();
     this.pickupViews.prewarm();
     bootMark('pools');
-    await this.assets.loadAll(this.audio, (k) => this.ui.setLoading(0.15 + k * 0.5));
-    const car = this.assets.model('vehicle.xwave');
-    if (car) this.vehicle.useModel(car);
+    // v4.0.2 (TikTok review): a failing asset never keeps the player on the loading screen
+    try {
+      await this.assets.loadAll(this.audio, (k) => this.ui.setLoading(0.15 + k * 0.5));
+      const car = this.assets.model('vehicle.xwave');
+      if (car) this.vehicle.useModel(car);
+    } catch (e) {
+      console.error('[boot] assets', e);
+    }
     bootMark('assets + car');
     this.ui.setLoading(0.75);
     this.world.reset(1234);
@@ -2639,16 +2644,56 @@ export class Game {
   /** When true the loop only renders; tests drive time with advance(). */
   manual = /[?&]manual/.test(location.search);
 
+  /** v4.0.2 (TikTok review: "froze / black screen"): last time a frame ran — the watchdog restarts the loop */
+  lastFrameAt = 0;
+  private frameErrors = 0;
+  private lastFrameError = '';
   private frame() {
+    this.lastFrameAt = performance.now();
     const rawDt = this.clock.getDelta();
     const t0 = PERF ? performance.now() : 0;
-    if (!this.manual) this.tick(Math.min(rawDt, 1 / 20), rawDt);
+    // v4.0.2: an error inside a frame must never stop the game. three.js asks for the next frame only AFTER
+    // this callback returns, so one uncaught error used to end the loop for good (frozen picture, FPS 0).
+    try {
+      if (!this.manual) this.tick(Math.min(rawDt, 1 / 20), rawDt);
+    } catch (e) {
+      this.frameError('tick', e);
+    }
     const t1 = PERF ? performance.now() : 0;
-    this.syncHome();
-    this.renderer.render();
+    try {
+      this.syncHome();
+      this.renderer.render();
+    } catch (e) {
+      this.frameError('render', e);
+    }
     bootFrame(rawDt * 1000, this.state);
     if (PERF) this.perfFrame(rawDt * 1000, t1 - t0, performance.now() - t1);
     if (DEBUG) this.updateDebug();
+  }
+  private frameError(where: string, e: unknown) {
+    this.frameErrors++;
+    const msg = `${where}: ${String((e as Error)?.message ?? e).slice(0, 120)}`;
+    if (msg !== this.lastFrameError || this.frameErrors % 300 === 1) console.error('[frame]', msg, (e as Error)?.stack ?? e);
+    this.lastFrameError = msg;
+    // a race start that keeps failing must never hang on the countdown: let the race begin
+    if (this.state === 'countdown' && this.stateT > 3) {
+      try {
+        this.setState('run');
+        this.ui.show('hud');
+      } catch {
+        /* keep going */
+      }
+    }
+  }
+  /** v4.0.2: restart the frame loop if it stopped (called by the watchdog while the app is visible) */
+  restartLoop() {
+    try {
+      this.renderer.renderer.setAnimationLoop(null);
+      this.renderer.renderer.setAnimationLoop(() => this.frame());
+      this.lastFrameAt = performance.now();
+    } catch (e) {
+      console.warn('[watchdog] restart', e);
+    }
   }
 
   // ---- v4.2.1 ?perf=1: frame-time recorder + readout (profiling on real phones)

@@ -63,7 +63,9 @@ function tick() {
   const t = now();
   if (t < pausedUntil) return kick(pausedUntil - t + 4);
   const t0 = t;
-  while (queue.length) {
+  let n = 0;
+  // (a step cap too: a clock that does not move — some runtimes — can never spin this loop forever)
+  while (queue.length && n++ < 64) {
     const ready = queue.findIndex((j) => j.at <= now());
     if (ready < 0) break;
     const j = queue[ready];

@@ -24,6 +24,11 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
   pictures decoding). Measured without a JIT: long tasks in the 7 s after the first tap 10 (50–290 ms) → 3 (≤ 64 ms).
 - **Weak network:** offline → no interstitial; an interstitial silent for 2.5 s no longer blocks the way to a menu
   (`AD_LATE_MS`; before a race it still waits, with the "ad loading" note). Rewarded ads keep the kit's 8 s cap.
+- **TikTok review (stability: freeze / blank screen):** `Game.frame` catches errors (three.js only asks for the
+  next frame after the callback returns — one uncaught error ended the loop: picture frozen, FPS 0, seen on the
+  first training countdown at "2"); a countdown that keeps failing starts the race; `Audio.play` never throws;
+  boot continues past a failing asset, a failed boot still opens Home; native watchdog restarts a stopped loop
+  (3 s without a frame while visible); bgWork caps 64 steps per tick. Loading art back to the normal files.
 - `NOMIN=1 node scripts/build-tiktok.mjs` = readable game.js for profiling (never ship it).
 - Next: owner's iPhone `[go]` log for the GO hitch; optional logo downsizes (owner comparing zips).
 

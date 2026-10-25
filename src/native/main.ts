@@ -442,7 +442,30 @@ for (const k of ['coins', 'super', 'hyper', 'escape', 'no_ads'])
 // ---------------------------------------------------------------- go
 if (game) {
   T.setKeepScreenOn?.({ keepScreenOn: true });
-  game.boot().catch((e: unknown) => console.error('[sky-roadster] boot failed', e));
+  const gm = game;
+  let booted = false;
+  gm.boot()
+    .then(() => (booted = true))
+    .catch((e: unknown) => {
+      console.error('[sky-roadster] boot failed', e);
+      // v4.0.2 (TikTok review: blank screen): never stay on the loading screen — open Home anyway
+      try {
+        (gm as any).goHome();
+        gm.restartLoop();
+        booted = true;
+      } catch (e2) {
+        bootError(e2);
+      }
+    });
+  // v4.0.2 watchdog: if the frame loop ever stops while the app is on screen, start it again
+  setInterval(() => {
+    const doc: any = G.document;
+    if (!booted || (doc && doc.hidden)) return;
+    if (performance.now() - gm.lastFrameAt > 3000) {
+      console.warn('[watchdog] no frame for 3 s — restarting the loop');
+      gm.restartLoop();
+    }
+  }, 1500);
 }
 void NATIVE;
 void logErrors;
