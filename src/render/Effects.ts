@@ -186,7 +186,7 @@ export class DustStreaks {
   private mat: THREE.MeshBasicMaterial;
 
   constructor() {
-    this.mat = new THREE.MeshBasicMaterial({ map: streakTexture(), color: 0xe8c890, transparent: true, opacity: 0.55, depthWrite: false });
+    this.mat = new THREE.MeshBasicMaterial({ map: streakTexture(), color: 0xf2e0b8, transparent: true, opacity: 0.72, depthWrite: false });
     this.mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), this.mat, this.n);
     this.mesh.frustumCulled = false;
     this.mesh.count = this.n;
