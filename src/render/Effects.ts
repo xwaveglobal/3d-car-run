@@ -161,7 +161,7 @@ export class DustStreaks {
   private mat: THREE.MeshBasicMaterial;
 
   constructor() {
-    this.mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xe8c890, transparent: true, opacity: 0.32, depthWrite: false });
+    this.mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xe8c890, transparent: true, opacity: 0.4, depthWrite: false });
     this.mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), this.mat, this.n);
     this.mesh.frustumCulled = false;
     this.mesh.count = this.n;
@@ -191,8 +191,9 @@ export class DustStreaks {
         continue;
       }
       this.life[i] -= dt;
-      // the dust stays where it was kicked up (the road scrolls past), drifting back a little slower
-      this.z[i] += worldSpeed * 0.85 * dt;
+      // the dust hangs in the car's slipstream: it trails just behind the tyres and drifts back slowly
+      // (fixed to the road it would pass the camera in a tenth of a second at top speed)
+      this.z[i] += Math.min(worldSpeed, 60) * 0.14 * dt;
       const k = Math.max(0, this.life[i] / this.max[i]);
       // fade in fast, then thin out and grow a little longer
       const a = Math.min(1, (1 - k) * 6) * k;
