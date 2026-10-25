@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { Spring, clamp, clamp01, lerp } from '../core/math.ts';
-import { CAR_HALF, HEIGHT, RENDER, TYRE } from '../config.ts';
+import { CAR_HALF, HEIGHT, RENDER, SHOWCASE_RIDE, TYRE } from '../config.ts';
 import { MeshCar } from './car/MeshCar.ts';
 import { carHeight, isAirborne } from './car/carMotion.ts';
 import { CrashFx } from './car/CarFx.ts';
@@ -1340,7 +1340,9 @@ export class Vehicle {
 
   /** Snap animation springs (after respawn / menu). */
   /** v2 Bonus showcase special in effect (null = none); e = 0..1 envelope */
-  showcase: { kind: 'ghost' | 'wall' | 'rail' | 'tunnel'; e: number } | null = null;
+  showcase: { kind: 'ghost' | 'wall' | 'rail' | 'tunnel'; e: number; side?: number; roof?: boolean } | null = null;
+  /** v4.0.2: how far the showcase moved the car off its lane spot (the race camera follows it) */
+  scOffset = new THREE.Vector2();
   private ghostHid = false;
 
   /**
@@ -1456,20 +1458,48 @@ export class Vehicle {
       this.root.visible = true;
       this.ghostHid = false;
     }
+    const base0x = this.root.position.x,
+      base0y = this.root.position.y;
+    let scShadow = 1;
     if (sc && sc.e > 0) {
       const e = sc.e;
-      const side = p.x >= 0 ? 1 : -1;
+      const side = sc.side ?? (p.x >= 0 ? 1 : -1);
+      const W = SHOWCASE_RIDE;
       if (sc.kind === 'wall') {
-        this.root.position.x = lerp(p.x, side * 3.1, e);
-        this.root.position.y += 0.75 * e;
-        scRoll = -side * 0.85 * e;
+        // v4.0.2 (owner): a banked wall ride — the car leans ~38° against the wall at the road edge, its
+        // outer wheels on the wall and its inner wheels on the asphalt (never fully sideways on the wall)
+        const a = W.wallLean * e;
+        const tx = side * (W.wallX - W.halfW * Math.cos(W.wallLean) - W.wheelDrop * Math.sin(W.wallLean));
+        const ty = W.halfW * Math.sin(a) + W.wheelDrop * Math.cos(a);
+        this.root.position.x = lerp(p.x, tx, e);
+        this.root.position.y = base0y + (ty - W.wheelDrop) * e + Math.sin(this.time * 9) * 0.015 * e;
+        scRoll = side * a;
+        scShadow = 1 - e * 0.6;
       } else if (sc.kind === 'rail') {
         this.root.position.y += 2.3 * e + Math.sin(this.time * 2.4) * 0.15 * e;
+      } else if (sc.kind === 'tunnel' && sc.roof !== false) {
+        // v4.0.2 (owner): Mine Run — the car drives up the tunnel wall and along the CROWN, wheels on the
+        // timber (upside down), then back down the wall onto the road at the exit
+        const D = W.tunnelR - W.wheelDrop; // tunnel axis → car centre
+        const phi0 = Math.acos(Math.min(1, (W.wheelDrop - W.tunnelY0) / D)); // wall foot: car centre at road height
+        const u = e;
+        const phi = phi0 * (1 - u); // φ = angle from the crown
+        const ax = side * D * Math.sin(phi);
+        const ay = W.tunnelY0 + D * Math.cos(phi);
+        const w = u < W.tunnelBlend ? (() => {
+          const k = u / W.tunnelBlend;
+          return k * k * (3 - 2 * k);
+        })() : 1;
+        this.root.position.x = lerp(p.x, ax, w);
+        this.root.position.y = lerp(base0y, ay, w);
+        scRoll = side * (Math.PI - phi) * w;
+        scShadow = 1 - w;
       } else if (sc.kind === 'tunnel') {
         this.root.position.y += 1.9 * e;
         scRoll = Math.PI * e;
       }
     }
+    this.scOffset.set(this.root.position.x - base0x, this.root.position.y - base0y);
 
     // ---- bank / yaw from lateral velocity (springs give natural overshoot on recovery)
     const laneSpeed = 2.6 / 0.19;
@@ -1739,8 +1769,10 @@ export class Vehicle {
       this.jetG.position.set(0, ground + 0.3, 0.75);
       this.contactShadow.position.y = -vy + 0.025;
       const sm = this.contactShadow.material as THREE.MeshBasicMaterial;
-      sm.opacity = clamp(0.6 - Math.max(0, vy - 0.51) * 0.18, 0.12, 0.6);
+      sm.opacity = clamp(0.6 - Math.max(0, vy - 0.51) * 0.18, 0.12, 0.6) * scShadow;
       this.contactShadow.scale.set(0.85, 1, 1.05);
+      // showcase rides: the shadow stays on the road under the car (not carried up the wall / to the roof)
+      this.contactShadow.position.y -= this.scOffset.y;
     }
     this.root.visible = this.visibleBlink;
   }

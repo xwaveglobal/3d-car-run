@@ -1,6 +1,7 @@
 // v2.2 Bonus roads: tunnel sections placed along the road (v1.0.0: mine / log / barn / sea cave).
 // Pure visuals — the spawner decides where they are (Spawner.tunnels()); Tunnel Rider uses them.
 import * as THREE from 'three';
+import { SHOWCASE_RIDE } from '../config.ts';
 
 type Theme = 'desert' | 'forest' | 'country' | 'sea';
 
@@ -17,6 +18,56 @@ const R = 9.5;
 export class BonusTunnels {
   group = new THREE.Group();
   private items: { g: THREE.Group; from: number; len: number }[] = [];
+  private look: (typeof LOOK)[Theme] = LOOK.desert;
+  /** v4.0.2 Wall Ride: a timber mine wall along one road edge, only for the ride */
+  private wall: { g: THREE.Group; from: number; len: number } | null = null;
+
+  /** a tunnel covers this road distance (Mine Run climbs onto the roof only inside one) */
+  inside(dist: number) {
+    return this.items.some((it) => dist >= it.from && dist <= it.from + it.len);
+  }
+
+  setWall(from: number, to: number, side: number) {
+    this.clearWall();
+    const L = this.look;
+    const len = Math.max(10, to - from);
+    const g = new THREE.Group();
+    const x = side * (SHOWCASE_RIDE.wallX + 0.2);
+    // plank face (the wheels touch it) + heavier posts every 4 m + a top beam
+    const face = new THREE.Mesh(new THREE.BoxGeometry(0.4, 3.4, len), new THREE.MeshBasicMaterial({ color: L.shell, fog: true }));
+    face.position.set(x, 1.3, -len / 2);
+    g.add(face);
+    const postMat = new THREE.MeshBasicMaterial({ color: L.rib, fog: true });
+    const postGeo = new THREE.BoxGeometry(0.5, 3.6, 0.45);
+    for (let z = 0; z <= len; z += 4) {
+      const post = new THREE.Mesh(postGeo, postMat);
+      post.position.set(x - side * 0.08, 1.4, -z);
+      g.add(post);
+    }
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, len), postMat);
+    beam.position.set(x - side * 0.05, 3.1, -len / 2);
+    g.add(beam);
+    // lantern strip along the plank face (reads as a mine gallery)
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.12, len), new THREE.MeshBasicMaterial({ color: L.glow, toneMapped: false, fog: true }));
+    strip.position.set(x - side * 0.22, 2.75, -len / 2);
+    g.add(strip);
+    g.visible = false;
+    this.group.add(g);
+    this.wall = { g, from, len };
+  }
+
+  private clearWall() {
+    if (!this.wall) return;
+    this.group.remove(this.wall.g);
+    this.wall.g.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (m.isMesh) {
+        m.geometry.dispose();
+        (m.material as THREE.Material).dispose();
+      }
+    });
+    this.wall = null;
+  }
 
   set(sections: { from: number; to: number }[], theme: string | null) {
     for (const it of this.items) {
@@ -30,8 +81,10 @@ export class BonusTunnels {
       });
     }
     this.items = [];
+    this.clearWall();
     if (!theme || !(theme in LOOK)) return;
     const L = LOOK[theme as Theme];
+    this.look = L;
     for (const s of sections) {
       const len = s.to - s.from;
       const g = new THREE.Group();
@@ -65,6 +118,13 @@ export class BonusTunnels {
       it.g.position.z = z;
       // visible from ~260 m ahead until the exit is behind the camera
       it.g.visible = z > -260 && z - it.len < 20;
+    }
+    const wl = this.wall;
+    if (wl) {
+      const z = -(wl.from - dist);
+      wl.g.position.z = z;
+      wl.g.visible = z > -260 && z - wl.len < 20;
+      if (z - wl.len > 40) this.clearWall();
     }
   }
 }

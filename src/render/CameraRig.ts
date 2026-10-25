@@ -94,6 +94,9 @@ export class CameraRig {
     this.update(1, null, 0, 0, true);
   }
 
+  /** v4.0.2 Bonus rides (Wall Ride / Mine Run): how far the 3D car is off its lane spot — the camera follows */
+  rideX = 0;
+  rideY = 0;
   update(dt: number, p: Player | null, speedFactor: number, turbo: number, snap = false) {
     this.time += dt;
     const t = this.time;
@@ -172,8 +175,11 @@ export class CameraRig {
         const base = dyn ? Math.min(py, 3.05) - 1 : 0; // fixed view: no lift on a hop, no drop on a dive
         const extra = Math.max(0, py - (dyn ? 3.05 : F.hopTop));
         const fx = dyn ? px : 0; // fixed view: never follows the lane
-        wantPos.set(fx * C.followX + sway, C.height + (dyn ? 0 : F.height) + base * C.lift + extra * 0.95 + sk * 0.9, back - sk * 0.8);
-        wantLook.set(fx * C.lookX, C.lookY + (dyn ? 0 : F.lookY) + base * C.lookLift + extra * 0.8, C.lookZ);
+        // Wall Ride / Mine Run: rise with the car, step back a little and look up at it (it stays framed on the roof)
+        const rx = this.rideX,
+          ry = Math.max(0, this.rideY);
+        wantPos.set(fx * C.followX + sway + rx * 0.55, C.height + (dyn ? 0 : F.height) + base * C.lift + extra * 0.95 + sk * 0.9 + ry * 0.42, back - sk * 0.8 + ry * 0.3);
+        wantLook.set(fx * C.lookX + rx * 0.8, C.lookY + (dyn ? 0 : F.lookY) + base * C.lookLift + extra * 0.8 + ry * 0.92, C.lookZ);
         fov = this.baseFov + C.fov + speedFactor * (C.fovSpeed ?? 7) + turbo * (C.fovTurbo ?? 9) + this.fovKick;
         break;
       }

@@ -6,7 +6,7 @@ import { DUST } from './render/western/looks.ts';
 import { GOLD_RUSH, GoldRushTimer, creditOnce, fmtClock, goldRushPayout, goldRushRoadLength } from './meta/GoldRush.ts';
 import { ROAD_STYLE } from './render/western/looks.ts';
 import * as THREE from 'three';
-import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, RENDER, type SpeedLevel } from './config.ts';
+import { AUTOPILOT, DEBUG, PERF, HEIGHT, LANES, LEVELS, LEFTOVER_POINTS, SPEED, TIMING, TRACK_ITEM_BONUS, RENDER, SHOWCASE_RIDE, type SpeedLevel } from './config.ts';
 import { clamp, damp } from './core/math.ts';
 import { Input, type Action } from './core/Input.ts';
 import { loadSave, writeSave, type SaveData } from './core/Save.ts';
@@ -1959,8 +1959,16 @@ export class Game {
     }
   }
 
-  private startShowcase(k: 'ghost' | 'wall' | 'rail' | 'tunnel', dur: number) {
+  /** v4.0.2: the side of the wall / tunnel the ride climbs (locked for the whole ride) */
+  private showcaseSide = 1;
+  /** v4.0.2: Mine Run climbs onto the roof only inside a real tunnel */
+  private showcaseRoof = false;
+  private startShowcase(k: 'ghost' | 'wall' | 'rail' | 'tunnel', dur: number, span?: { from: number; to: number }) {
     {
+      const px = this.world.player.x;
+      this.showcaseSide = px > 0.2 ? 1 : px < -0.2 ? -1 : Math.random() < 0.5 ? -1 : 1;
+      this.showcaseRoof = k === 'tunnel' && this.bonusTunnels.inside(this.world.dist + 40);
+      if (k === 'wall') this.bonusTunnels.setWall(span?.from ?? this.world.dist + 6, span?.to ?? this.world.dist + dur * this.world.speed, this.showcaseSide);
       this.showcaseK = k;
       this.showcaseDur = this.showcaseT = dur;
       this.run.invulnT = Math.max(this.run.invulnT, this.showcaseT + 0.6);
@@ -1985,7 +1993,9 @@ export class Game {
     } else if (k === 'escape') {
       this.useEscape();
     } else if (k === 'ghost' || k === 'wall' || k === 'rail' || k === 'tunnel') {
-      this.startShowcase(k, (sp.to - w.dist) / Math.max(1, w.speed) + 0.5);
+      // v4.0.2: Mine Run / Wall Ride come back down right at the exit (no climbing outside the tunnel)
+      const tail = k === 'tunnel' ? 0.25 : k === 'wall' ? 0.3 : 0.5;
+      this.startShowcase(k, (sp.to - w.dist) / Math.max(1, w.speed) + tail, { from: sp.from - 12, to: sp.to + 14 });
     }
     this.run.invulnT = Math.max(this.run.invulnT, (sp.to - w.dist) / Math.max(1, w.speed) + 0.6);
   }
@@ -2816,7 +2826,8 @@ export class Game {
       invulnerable: this.state !== 'run' || run.invulnerable || dashSafe || (this.tutorialMode && !this.tut.vulnerable),
       // Bonus showcase specials ride the wall / the sky / the roof: obstacles they pass break apart,
       // and coins on the road fly up to the car (it is not down in the lane any more)
-      smash: run.turboT > 0 || (!!this.showcaseK && this.showcaseK !== 'ghost'),
+      // v4.0.2: Wall Ride / Mine Run ride PAST the obstacles (up on the wall / roof) — nothing breaks
+      smash: run.turboT > 0 || this.showcaseK === 'rail',
       magnet: run.magnetActive || (!!this.showcaseK && this.showcaseK !== 'ghost'),
       magnetRadius: run.magnetRadius,
       speedMul: this.turboMulNow(run, dt) * this.speedScale,
@@ -2948,9 +2959,9 @@ export class Game {
 
     // ---- track mode: gates, sections, finish line
     const c = this.course;
+    this.bonusTunnels.update(w.dist); // (Wall Ride's wall can also stand on a normal road)
     if (c) {
       if (this.state === 'run' || this.state === 'respawn') this.runTime += dt;
-      this.bonusTunnels.update(w.dist);
       this.startArch.position.z = -(14 - w.dist);
       this.startArch.visible = w.dist < 40;
       this.finishArch.position.z = -(c.length - w.dist);
@@ -3793,8 +3804,9 @@ export class Game {
     }
     {
       const el = this.showcaseDur - this.showcaseT;
-      const e = this.showcaseK ? Math.min(1, el / 0.45, this.showcaseT / 0.45) : 0;
-      this.vehicle.showcase = this.showcaseK ? { kind: this.showcaseK, e: e * e * (3 - 2 * e) } : null;
+      const ramp = this.showcaseK === 'tunnel' && this.showcaseRoof ? SHOWCASE_RIDE.rampTunnel : this.showcaseK === 'wall' ? SHOWCASE_RIDE.rampWall : 0.45;
+      const e = this.showcaseK ? Math.min(1, el / ramp, this.showcaseT / ramp) : 0;
+      this.vehicle.showcase = this.showcaseK ? { kind: this.showcaseK, e: e * e * (3 - 2 * e), side: this.showcaseSide, roof: this.showcaseRoof } : null;
     }
     // (countdown: updateCountdown already stepped the car at rest — a second step here with road speed
     // made speed jump 0 ↔ v every frame and the suspension shook the car before the start, v4.1.3 fix)
@@ -3854,6 +3866,8 @@ export class Game {
     this.renderer.setBloom(rp.bloom * COMFORT.bloomMul); // constant: boosts never brighten the screen
 
     if (this.state !== 'dying' && this.state !== 'gameover') this.updateTrails(dt, w.speed, turbo);
+    this.rig.rideX = this.state === 'run' || this.state === 'respawn' ? this.vehicle.scOffset.x : 0;
+    this.rig.rideY = this.state === 'run' || this.state === 'respawn' ? this.vehicle.scOffset.y : 0;
     if (this.state !== 'countdown') this.rig.update(dt, p, speedFactor, turbo); // countdown steps the rig itself
   }
 

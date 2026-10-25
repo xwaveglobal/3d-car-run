@@ -21,6 +21,27 @@ export const HEIGHT = {
 /** Car hitbox half-extents (already slightly forgiving vs. the visual model). */
 export const CAR_HALF = { x: 0.7, y: 0.36, z: 1.0 } as const;
 /** In the LOW state the car is compressed, so its hitbox is shorter. */
+/**
+ * v4.0.2 (owner) Bonus showcase rides (render only — gameplay keeps the car in its lane, invulnerable):
+ * Wall Ride = banked lean against a side wall at the road edge; Mine Run = up the tunnel wall and along
+ * the crown. Geometry must match BonusTunnels (R 9.5, axis at y −0.4, ribs 0.43 thick) and the wall slab.
+ */
+export const SHOWCASE_RIDE = {
+  /** car centre above its wheel contact (the hitbox centre height on the road) */
+  wheelDrop: 0.51,
+  /** half track of the 3D car (wheel contact from the centre line) */
+  halfW: 0.95,
+  /** Wall Ride: the wall face (|x|) and the lean against it (rad) */
+  wallX: 4.75,
+  wallLean: 0.66,
+  /** Mine Run: inner radius of the tunnel (ribs included), its axis height, share of the envelope spent leaving the lane */
+  tunnelR: 9.3,
+  tunnelY0: -0.4,
+  tunnelBlend: 0.32,
+  /** seconds to climb in / come down (the envelope ramps) */
+  rampWall: 0.6,
+  rampTunnel: 1.1,
+} as const;
 export const CAR_HALF_Y_LOW = 0.28;
 
 export const TIMING = {
