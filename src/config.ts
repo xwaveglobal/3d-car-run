@@ -31,9 +31,14 @@ export const SHOWCASE_RIDE = {
   wheelDrop: 0.51,
   /** half track of the 3D car (wheel contact from the centre line) */
   halfW: 0.95,
-  /** Wall Ride: the wall face (|x|) and the lean against it (rad) */
+  /** Wall Ride (owner v4.0.2): the car turns 90° — all four wheels on the wall face (|x|), lifted over the guardrail */
   wallX: 4.75,
-  wallLean: 0.66,
+  wallLean: Math.PI / 2,
+  wallLift: 0.72,
+  /** the slot in the Wall Ride gates: width from the wall, bottom / top (the 90° car + margin) */
+  slotW: 1.45,
+  slotY0: 0.66,
+  slotY1: 2.95,
   /** Mine Run: inner radius of the tunnel (ribs included), its axis height, share of the envelope spent leaving the lane */
   tunnelR: 9.3,
   tunnelY0: -0.4,
@@ -150,7 +155,9 @@ export const BONUS_SET = {
   /** set-piece lengths (m) */
   len: { super: 26, hyper: 48, escape: 26, wall: 42, rail: 70, ghost: 54 } as Record<string, number>,
   /** seconds before the set piece when the special fires by itself */
-  fire: { super: 0.55, hyper: 0.6, escape: 0.45, wall: 0.35, rail: 0.35, ghost: 0.35, tunnel: 0.3 } as Record<string, number>,
+  /** v4.0.2: Wall Ride gates every N metres along the set piece */
+  wallGateGap: 20,
+  fire: { super: 0.55, hyper: 0.6, escape: 0.45, wall: 0.8, rail: 0.35, ghost: 0.35, tunnel: 0.3 } as Record<string, number>,
   /** tunnel sections on every Bonus road: centres as a fraction of the road + length (m) */
   tunnels: [0.24, 0.55, 0.83],
   tunnelLen: 150,

@@ -1994,8 +1994,14 @@ export class Game {
       this.useEscape();
     } else if (k === 'ghost' || k === 'wall' || k === 'rail' || k === 'tunnel') {
       // v4.0.2: Mine Run / Wall Ride come back down right at the exit (no climbing outside the tunnel)
-      const tail = k === 'tunnel' ? 0.25 : k === 'wall' ? 0.3 : 0.5;
-      this.startShowcase(k, (sp.to - w.dist) / Math.max(1, w.speed) + tail, { from: sp.from - 12, to: sp.to + 14 });
+      const tail = k === 'tunnel' ? 0.25 : k === 'wall' ? 0.8 : 0.5; // Wall Ride: up before the first gate, down after the last
+      this.startShowcase(k, (sp.to - w.dist) / Math.max(1, w.speed) + tail, { from: sp.from - 34, to: sp.to + 34 });
+      // v4.0.2 (owner): Wall Ride's set piece = three joined barriers with one narrow upright slot by the wall
+      if (k === 'wall') {
+        const gates: number[] = [];
+        for (let d = sp.from; d <= sp.to + 1; d += BONUS_SET.wallGateGap) gates.push(d);
+        this.bonusTunnels.setSlotGates(gates, this.showcaseSide);
+      }
     }
     this.run.invulnT = Math.max(this.run.invulnT, (sp.to - w.dist) / Math.max(1, w.speed) + 0.6);
   }

@@ -56,6 +56,82 @@ export class BonusTunnels {
     this.wall = { g, from, len };
   }
 
+  /**
+   * v4.0.2 (owner) Wall Ride gate: three timber barriers joined across the road, with ONE narrow slanted slot
+   * at the wall edge — shaped like the leaning car, so only the Wall Ride gets through (on the right side).
+   */
+  setSlotGates(dists: number[], side: number) {
+    const wl = this.wall;
+    if (!wl) return;
+    const L = this.look;
+    const wood = new THREE.MeshBasicMaterial({ color: 0x8a5a30, fog: true });
+    const frame = new THREE.MeshBasicMaterial({ color: L.rib, fog: true });
+    const glow = new THREE.MeshBasicMaterial({ color: L.glow, toneMapped: false, fog: true });
+    const stripe = new THREE.MeshBasicMaterial({ color: 0xc23a22, fog: true });
+    const X = SHOWCASE_RIDE.wallX;
+    const H = 3.6;
+    const D = 0.5;
+    // the slot (x from the road centre toward the wall, y up): the leaning car's cross-section + margin
+    const S = SHOWCASE_RIDE;
+    const sx = X - S.slotW;
+    // a narrow upright slot against the wall, above the guardrail: only a car riding the wall fits
+    const slot: [number, number][] = [
+      [sx, S.slotY0],
+      [X, S.slotY0],
+      [X, S.slotY1],
+      [sx, S.slotY1],
+    ];
+    const extrude = (pts: [number, number][]) => {
+      const sh = new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x * side, y)));
+      const geo = new THREE.ExtrudeGeometry(sh, { depth: D, bevelEnabled: false });
+      geo.translate(0, 0, -D / 2);
+      return geo;
+    };
+    for (const d of dists) {
+      const g = new THREE.Group();
+      g.position.z = -(d - wl.from);
+      // left + middle barriers (plain), the wall-side barrier with the slot cut out
+      const panels: [number, number][][] = [
+        [[-X, 0], [-1.35, 0], [-1.35, H], [-X, H]],
+        [[-1.3, 0], [1.3, 0], [1.3, H], [-1.3, H]],
+        [[1.35, 0], [X, 0], [X, S.slotY0], [sx, S.slotY0], [sx, S.slotY1], [X, S.slotY1], [X, H], [1.35, H]],
+      ];
+      for (const pts of panels) g.add(new THREE.Mesh(extrude(pts), wood));
+      // posts between the barriers and a top beam: one joined wall
+      for (const x of [-X, -1.33, 1.33]) {
+        const post = new THREE.Mesh(new THREE.BoxGeometry(0.3, H + 0.3, D + 0.15), frame);
+        post.position.set(x * side, (H + 0.3) / 2, 0);
+        g.add(post);
+      }
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(2 * X, 0.3, D + 0.2), frame);
+      beam.position.set(0, H + 0.15, 0);
+      g.add(beam);
+      // red hazard bands on the solid barriers
+      for (const [x0, x1] of [[-X, -1.35], [-1.3, 1.3]]) {
+        const b = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, 0.35, D + 0.04), stripe);
+        b.position.set(((x0 + x1) / 2) * side, 1.9, 0);
+        g.add(b);
+      }
+      // lantern outline around the slot: shows the way through
+      for (let i = 0; i < slot.length; i++) {
+        const [ax, ay] = slot[i];
+        const [bx, by] = slot[(i + 1) % slot.length];
+        if (ax === X && bx === X) continue; // not along the side wall
+        const len = Math.hypot(bx - ax, by - ay);
+        const bar = new THREE.Mesh(new THREE.BoxGeometry(len, 0.18, D + 0.06), glow);
+        bar.position.set(((ax + bx) / 2) * side, (ay + by) / 2, 0);
+        bar.rotation.z = Math.atan2(by - ay, (bx - ax) * side);
+        g.add(bar);
+      }
+      // a gold arrow on the beam, pointing down into the slot
+      const arrow = new THREE.Mesh(new THREE.CircleGeometry(0.55, 3), glow);
+      arrow.rotation.z = -Math.PI / 2;
+      arrow.position.set((X - S.slotW / 2) * side, H - 0.32, D / 2 + 0.05);
+      g.add(arrow);
+      wl.g.add(g);
+    }
+  }
+
   private clearWall() {
     if (!this.wall) return;
     this.group.remove(this.wall.g);

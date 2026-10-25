@@ -366,7 +366,8 @@ export class Spawner {
         for (let d = from, i = 0; d <= to; d += 12, i++) out.push(cars(d, i));
         break;
       case 'wall':
-        for (let d = from, i = 0; d <= to; d += 14, i++) out.push(mk(d, [{ type: 'laser', lane: 0, laser: ['block', 'block', 'block'], variant: i % 2 }]));
+        // v4.0.2 (owner): the Wall Ride's gates are drawn by the renderer (BonusTunnels.setSlotGates) — three joined
+        // barriers with a slot only the car on the wall fits through; the ride is invulnerable, no rows here
         break;
       case 'ghost':
         for (let d = from, i = 0; d <= to; d += 9, i++) {

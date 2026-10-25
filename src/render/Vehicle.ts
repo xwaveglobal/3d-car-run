@@ -1466,13 +1466,13 @@ export class Vehicle {
       const side = sc.side ?? (p.x >= 0 ? 1 : -1);
       const W = SHOWCASE_RIDE;
       if (sc.kind === 'wall') {
-        // v4.0.2 (owner): a banked wall ride — the car leans ~38° against the wall at the road edge, its
-        // outer wheels on the wall and its inner wheels on the asphalt (never fully sideways on the wall)
+        // v4.0.2 (owner): the car turns 90° onto the wall — all four wheels on the wall face, lifted over the
+        // guardrail — and slips through the gates' narrow slot
         const a = W.wallLean * e;
         const tx = side * (W.wallX - W.halfW * Math.cos(W.wallLean) - W.wheelDrop * Math.sin(W.wallLean));
         const ty = W.halfW * Math.sin(a) + W.wheelDrop * Math.cos(a);
         this.root.position.x = lerp(p.x, tx, e);
-        this.root.position.y = base0y + (ty - W.wheelDrop) * e + Math.sin(this.time * 9) * 0.015 * e;
+        this.root.position.y = base0y + (ty - W.wheelDrop + W.wallLift) * e + Math.sin(this.time * 9) * 0.015 * e;
         scRoll = side * a;
         scShadow = 1 - e * 0.6;
       } else if (sc.kind === 'rail') {
