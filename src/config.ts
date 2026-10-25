@@ -565,3 +565,19 @@ export const ROAD = {
   trackX: 0.78,
   trackW: 0.42,
 };
+
+/**
+ * v4.0.2 (owner: "sửa mấy đồng coin đỡ bị lóe sáng hơn, cho dịu mắt"): softer coins — less mirror-like
+ * metal (no specular flashes while they spin), a slower spin, a faint halo that never blooms.
+ */
+export const COIN_LOOK = {
+  spin: 2.2,
+  sideMetal: 0.6,
+  sideRough: 0.5,
+  sideGlow: 0.16,
+  capMetal: 0.45,
+  capRough: 0.45,
+  capGlow: 0.28,
+  haloSize: 1.15,
+  haloOpacity: 0.16,
+};

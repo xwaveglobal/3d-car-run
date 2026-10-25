@@ -55,7 +55,7 @@ import { classBadge, classFor, classProgress, CLASSES, BASE_CLASSES, CLASS_COLOR
 import type { RunRankData, RunRewards } from './ui/UI.ts';
 import { crashTip, type CrashTip } from './gameplay/CrashTip.ts';
 import { createStore, weekBoard, type PlayerStore } from './net/PlayerStore.ts';
-import { hashStr } from './meta/Leaderboard.ts';
+import { aroundYou, hashStr } from './meta/Leaderboard.ts';
 import { classForScore } from './meta/Rank.ts';
 import { avatarForName, avatarSvg } from './ui/avatars.ts';
 import { productBySku, DemoStore, type Store } from './meta/Shop.ts';
@@ -1437,7 +1437,7 @@ export class Game {
       this.doContinue();
     } else {
       this.stateT = t; // the countdown resumes where it was
-      if (performance.now() - t0 < 1500) this.ui.toast(`${ICON.info} No ad available right now — try again in a moment`, '#4fc3ff');
+      if (performance.now() - t0 < 1500) this.ui.toast(`${ICON.info} No ad available right now — try again in a moment${this.ads.lastError ? ` (${this.ads.lastError})` : ''}`, '#4fc3ff');
     }
   }
 
@@ -1492,7 +1492,7 @@ export class Game {
   private async adFreeCoins() {
     if (this.freeCoinsLeft() <= 0) return;
     const ok = await this.ads.rewarded('free_coins');
-    if (!ok) return;
+    if (!ok) return this.noAdToast();
     this.save.adFreeCount = (this.save.adFreeCount ?? 0) + 1;
     this.save.wallet += ADS.freeCoinsAmount;
     this.persist();
@@ -3074,7 +3074,7 @@ export class Game {
       switch (f.t) {
         case 'coin': {
           this.audio.play('coin');
-          this.particles.burst(f.x, f.y, 0, 6, 0xffd23d, 4, 0.25, 0.3, { drag: 4 });
+          this.particles.burst(f.x, f.y, 0, 4, 0xc89a3a, 3.5, 0.2, 0.26, { drag: 4 }); // v4.0.2: a soft sparkle (no flash on coin lines)
           const s = this.toScreen(f.x, f.y, f.z);
           if (s) this.ui.flyTo(s.x, s.y, ICON.coin, 'coins', 70);
           break;
@@ -3604,6 +3604,7 @@ export class Game {
         clsHi: clsNext ? CLASS_MIN[clsNext] : CLASS_MIN[cls],
         clsUp: rewards.clsAfter !== rewards.clsBefore ? rewards.clsAfter : null,
         ad,
+        rows: aroundYou(board, 3),
       });
       this.audio.play(up ? 'mission' : 'click');
       if (up && after && before && after < before) window.setTimeout(() => this.audio.play('combo'), 1400);
@@ -3636,7 +3637,7 @@ export class Game {
     }
     if (this.lastResult.doubled) return;
     const ok = await this.ads.rewarded('double_coins');
-    if (!ok) return;
+    if (!ok) return this.noAdToast();
     const run = this.run;
     const extra = Math.max(1, run ? run.coins + Math.round(run.coins * (LEVELS[this.runLevel].reward - 1)) : this.lastResult.coins);
     this.lastResult.doubled = true;
@@ -3647,6 +3648,12 @@ export class Game {
     this.ui.refreshProfile(this.save);
     this.ui.toast(`${ICON.coin} ×2 · +${fmtInt(extra)} coins`, 'var(--gold)');
     this.audio.play('mission');
+  }
+
+  /** v4.0.2: an ad that did not play says so (with HSGame's reason on the phone) */
+  private noAdToast() {
+    const why = this.ads.lastError;
+    this.ui.toast(`${ICON.info} No ad right now${why ? ` (${why})` : ''} — try again in a moment`, '#4fc3ff');
   }
 
   /** mid-race (racing, paused, reviving): Restart / Home end the race first */

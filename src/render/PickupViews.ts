@@ -1,3 +1,4 @@
+import { COIN_LOOK } from '../config.ts';
 import * as THREE from 'three';
 import { Pool } from '../core/Pool.ts';
 import type { LivePickup } from '../gameplay/World.ts';
@@ -323,17 +324,17 @@ export class PickupViews {
     const geo = new THREE.CylinderGeometry(0.42, 0.42, 0.1, 28);
     geo.rotateX(Math.PI / 2);
     const face = coinFaceTexture();
-    const side = new THREE.MeshStandardMaterial({ color: 0xe8a028, metalness: 1, roughness: 0.3, emissive: 0xc87010, emissiveIntensity: 0.3 });
-    const cap = new THREE.MeshStandardMaterial({ map: face, metalness: 0.7, roughness: 0.3, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: 0.45 });
+    const side = new THREE.MeshStandardMaterial({ color: 0xe0a030, metalness: COIN_LOOK.sideMetal, roughness: COIN_LOOK.sideRough, emissive: 0xc87010, emissiveIntensity: COIN_LOOK.sideGlow });
+    const cap = new THREE.MeshStandardMaterial({ map: face, metalness: COIN_LOOK.capMetal, roughness: COIN_LOOK.capRough, emissive: 0xffffff, emissiveMap: face, emissiveIntensity: COIN_LOOK.capGlow });
     this.coins = new THREE.InstancedMesh(geo, [side, cap, cap], MAX_COINS);
     this.coins.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.coins.count = 0;
     this.coins.frustumCulled = false;
     parent.add(this.coins);
-    const glowGeo = new THREE.PlaneGeometry(1.5, 1.5);
+    const glowGeo = new THREE.PlaneGeometry(COIN_LOOK.haloSize, COIN_LOOK.haloSize);
     this.coinGlow = new THREE.InstancedMesh(
       glowGeo,
-      new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xffb020, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+      new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xffb020, transparent: true, opacity: COIN_LOOK.haloOpacity, blending: THREE.AdditiveBlending, depthWrite: false }),
       MAX_COINS,
     );
     this.coinGlow.count = 0;
@@ -374,7 +375,7 @@ export class PickupViews {
     for (const p of pickups) {
       if (p.spec.kind === 'coin') {
         if (n >= MAX_COINS) continue;
-        this.e.set(0, t * 4 + p.spec.dist * 0.3, 0);
+        this.e.set(0, t * COIN_LOOK.spin + p.spec.dist * 0.3, 0);
         this.q.setFromEuler(this.e);
         this.p.set(p.x, p.y + Math.sin(t * 4 + p.spec.dist) * 0.06, p.z);
         this.s.setScalar(p.attracted ? 0.8 : 1);

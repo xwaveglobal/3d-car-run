@@ -92,6 +92,13 @@ export const hs = {
   hasShare: () => !!HSGame.has('share'),
   hasAds: () => !!HSGame.has('ads'),
   hasMissions: () => !!HSGame.has('tiktok_missions'),
+  /** v4.0.2: why the last ad did not play (HSGame.lastAdError: 'not configured', 'unavailable', 'busy', …) */
+  adError: (): string => String((HSGame as unknown as { lastAdError?: string }).lastAdError ?? ''),
+  /** one line for the hidden test info: is each ad place ready right now */
+  adLine(): string {
+    const p = (k: string) => (HSGame.canShowAd(k) ? '✓' : '✗');
+    return `ads ${HSGame.has('ads') ? 'on' : 'OFF'} · revive ${p('rw_revive')} end ${p('rw_end_bonus')} free ${p('rw_free_coins')} int ${p('int_race_end')} · last: ${hs.adError() || '-'}`;
+  },
 
   // ---- ad places (no reward entry: watching lets the game go on / pays the game's own amount)
   canShowAd(place: string): boolean {
@@ -124,7 +131,9 @@ export const hs = {
       default:
         r = null; // (head_start: removed in v4.0.2)
     }
-    return r !== null && r !== undefined;
+    const ok = r !== null && r !== undefined;
+    if (!ok) console.warn(`[ads] ${place}: no ad (${hs.adError() || 'no reason'})`);
+    return ok;
   },
   async interstitial(): Promise<void> {
     await HSGame.showAd('int_race_end');

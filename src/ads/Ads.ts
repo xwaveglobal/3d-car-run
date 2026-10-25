@@ -39,6 +39,8 @@ export interface AdProvider {
   readonly name: string;
   rewarded(placement: RewardPlacement): Promise<boolean>;
   interstitial(placement: InterPlacement): Promise<void>;
+  /** v4.0.2: why the last ad did not play (native HS: HSGame.lastAdError) */
+  lastError?: () => string;
 }
 
 type AdBreakFn = (o: Record<string, unknown>) => void;
@@ -177,6 +179,10 @@ export interface AdHooks {
 
 export class Ads {
   private provider: AdProvider;
+  /** why the last ad did not play ('' = unknown / none) */
+  get lastError() {
+    return this.provider.lastError?.() ?? '';
+  }
   private lastInterstitial = 0;
   private lastRewarded = -1e9;
   private runsSinceInterstitial = 0;

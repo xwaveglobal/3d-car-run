@@ -1,13 +1,13 @@
 /** v3 native UI — overlays: results, pause, revive, settings, profile, Magic Bag, popups… */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { LOG, logErrors } from '../log.ts';
-import { C, Gfx, bar, button, card, fmt, iconBtn, panel, rankBadge, rankBadgeW, toggle, type BtnStyle } from './gfx.ts';
+import { C, Gfx, bar, button, card, fmt, iconBtn, panel, rankBadge, toggle, type BtnStyle } from './gfx.ts';
 import type { UI } from './NativeUI.ts';
 import { BAG_ICON, BOLT, BONUS_COLOR, BONUS_EMOJI, ICON, ITEM_ICON, ITEM_NAME, LOCKED_ICON, SPECIAL_COLOR, SPECIAL_HOW, SPECIAL_LINE, SPECIAL_SHORT, TUT_ICON, WIFI, BOOST_WHAT } from './consts.ts';
 import { safeBottom, safeTop } from './layout.ts';
 import { avatar } from './screens.ts';
 import { AVATAR_COUNT, avatarSvg, avatarForName } from '../../ui/avatars.ts';
-import { CLASSES, CLASS_COLOR, CLASS_MIN, type RankClass } from '../../meta/Rank.ts';
+import { CLASSES, CLASS_COLOR, CLASS_MIN, classFor, type RankClass } from '../../meta/Rank.ts';
 import { CHECKIN, ITEM_PRICE, LOCKED_SPECIALS, SPECIALS, type ItemKey, type SpecialKey } from '../../meta/Daily.ts';
 import { COUNTRIES, countryName } from '../../meta/Country.ts';
 import { codeOfFlag, flagSvg, svgFlags } from '../../meta/Flags.ts';
@@ -272,106 +272,121 @@ function bigHex(g: Gfx, cls: RankClass, cx: number, cy: number, r: number) {
 }
 
 /**
- * v4.0.2 (owner mock-up): after a death — NEW BEST! (position climbs) or RACE OVER (position drops). The
- * board position is the average of the last races (it really moves both ways); the Class never drops.
- * One ad (×2 coins / free coins), then Details (the Finish card) · Restart · Home. × = Home.
+ * v4.0.2 (owner mock-up, approved): after a death — RANK UP! / RACE OVER with the weekly board around the
+ * player. The player's row slides from its old place (dashed "from #N") into the new one with a green /
+ * red trail while its number counts. Board position = average of the last 5 races (moves both ways);
+ * the Class never drops. One ad, then Details (the Finish card) · Restart · Home. × = Home.
  */
 function runrankOv(ui: UI, g: Gfx) {
   const o = ui.rr;
   if (!o) return;
-  const k = Math.min(1, Math.max(0, (g.time - o.t0 - 300) / 1500));
+  const k = Math.min(1, Math.max(0, (g.time - o.t0 - 350) / 1600));
   const e = 1 - Math.pow(1 - k, 3);
-  modal(ui, g, 'runrank', { close: 'none', w: 350 }, (x, y, w) => {
+  const moved = o.before > 0 && o.after > 0 && o.before !== o.after;
+  const up = o.up;
+  modal(ui, g, 'runrank', { close: 'none', w: 360 }, (x, y, w) => {
     iconBtn(g, 'rr-x', x - 4, y - 4, 36, ICON.close, () => ui.h.home());
-    g.text(o.up ? 'NEW BEST!' : 'RACE OVER', x + w / 2 + 14, y + 20, { size: 30, align: 'center', font: 't', color: o.up ? '#ffd36a' : '#e9d2a6', stroke: '#5a2c08', strokeW: 4, shadow: null, maxW: w - 70 });
-    y += 46;
-    const sub = o.clsUp ? `You climbed to Class ${o.clsUp}` : o.up ? 'Your best race yet — keep climbing!' : (o.bestNow <= 0 ? 'Go further next time to get ranked' : 'Close one — beat your best to rank up');
-    g.text(sub, x + w / 2, y + 6, { size: 12.5, align: 'center', font: 'b', color: '#e3c999', maxW: w });
+    g.text(up ? 'RANK UP!' : 'RACE OVER', x + w / 2 + 12, y + 20, { size: 29, align: 'center', font: 't', color: up ? '#ffd36a' : '#e9d2a6', stroke: '#5a2c08', strokeW: 4, shadow: null, maxW: w - 70 });
+    y += 44;
+    const d = o.before && o.after ? o.before - o.after : 0;
+    const sub = o.clsUp ? `You climbed to Class ${o.clsUp}!` : d > 0 ? `You passed ${fmt(d)} pilots this week` : d < 0 ? `You slipped ${fmt(-d)} places — beat your best to climb back` : o.bestNow <= 0 ? 'Go further next time to get ranked' : up ? 'Your best race yet — keep climbing!' : 'Beat your best to climb the board';
+    g.text(sub, x + w / 2, y + 6, { size: 12, align: 'center', font: 'b', color: '#e3c999', maxW: w });
     y += 22;
-    // big class plate + arrow
-    const cx = x + w / 2,
-      cy = y + 50;
-    if (!g.dry && o.up) {
-      const t = g.time / 2000;
+    // ---- summary: class plate · weekly rank (counting) · this race / best
+    card(g, x, y, w, 60, 14, 'rgba(217,168,90,.35)', 'rgba(0,0,0,.32)');
+    bigHex(g, o.cls, x + 30, y + 30, 22);
+    g.text('WEEKLY RANK', x + 62, y + 18, { size: 9.5, font: 'b', color: '#c9ad80' });
+    const shown = moved ? Math.round(o.before + (o.after - o.before) * e) : o.after;
+    g.text(o.after ? `#${fmt(shown)}` : '—', x + 62, y + 40, { size: 20, noTr: true });
+    if (d) g.text(d > 0 ? `▲ ${fmt(d)}` : `▼ ${fmt(-d)}`, x + 62 + g.measure(o.after ? `#${fmt(o.after)}` : '—', { size: 20 }) + 8, y + 41, { size: 13, font: 'b', color: d > 0 ? '#5fe08a' : '#ff7a6a', noTr: true });
+    g.rich(`<small>THIS RACE</small> <b style="color:${up ? '#ffd36a' : '#ffb0a4'}">${fmt(o.exp)}</b>`, x + w / 2, y + 12, w / 2 - 12, { size: 13, align: 'right' });
+    g.rich(`<small>YOUR BEST</small> <b>${fmt(o.bestNow)}</b>`, x + w / 2, y + 34, w / 2 - 12, { size: 13, align: 'right' });
+    y += 70;
+    // ---- the board: 4 rows + the old place (dashed)
+    const rows = o.rows;
+    const mi = rows.findIndex((r) => r.you);
+    const RH = 52,
+      GAP = 6;
+    const from = up ? Math.max(0, mi - 2) : Math.max(0, mi - 3);
+    const vis = mi >= 0 ? rows.slice(from, from + 4) : [];
+    const boardTop = up ? y : y + RH + GAP; // the old place sits below (up) / above (down)
+    const slotOf = (i: number) => boardTop + i * (RH + GAP);
+    const meSlot = slotOf(vis.findIndex((r) => r.you));
+    const ghostY = up ? slotOf(vis.length) : y;
+    const meY = moved ? ghostY + (meSlot - ghostY) * e : meSlot;
+    if (moved && !g.dry) {
+      // dashed outline of the old place
       g.ctx.save();
-      g.ctx.translate(cx, cy);
-      for (let i = 0; i < 12; i++) {
-        g.ctx.rotate(Math.PI / 6);
-        g.ctx.beginPath();
-        g.ctx.moveTo(0, 0);
-        g.ctx.arc(0, 0, 78, t, t + 0.16);
-        g.ctx.fillStyle = 'rgba(255,211,106,.10)';
-        g.ctx.fill();
-      }
+      g.ctx.globalAlpha *= 1 - 0.5 * e;
+      g.ctx.setLineDash([6, 5]);
+      g.rr(x, ghostY, w, RH, 12, null, 'rgba(255,230,180,.4)', 1.6);
+      g.ctx.setLineDash([]);
       g.ctx.restore();
+      g.text(`from #${fmt(o.before)}`, x + 16, ghostY + RH / 2, { size: 11.5, font: 'b', color: 'rgba(255,230,180,.6)', noTr: true });
+      // the trail from the old place to the row
+      const t0 = Math.min(ghostY, meY) + RH / 2,
+        t1 = Math.max(ghostY, meY) + RH / 2;
+      if (t1 - t0 > 2) g.rr(x + 14, t0, 20, t1 - t0, 10, g.lin(0, up ? t0 : t1, 0, up ? t1 : t0, [[0, up ? 'rgba(95,224,138,.8)' : 'rgba(255,122,106,.8)'], [1, 'rgba(0,0,0,0)']]));
     }
-    bigHex(g, o.cls, cx, cy, 44);
-    g.text(o.up ? '▲' : '▼', cx + 62, cy - 14, { size: 22, align: 'center', color: o.up ? '#5fe08a' : '#ff7a6a', noTr: true, shadow: null });
-    y += 108;
-    // weekly position: before → after (counts while the panel opens)
-    if (o.after > 0) {
-      const shown = o.before > 0 ? Math.round(o.before + (o.after - o.before) * e) : o.after;
-      const d = o.before > 0 ? o.before - o.after : 0;
-      const delta = d > 0 ? `<b class="green">▲ ${fmt(d)}</b>` : d < 0 ? `<b class="red">▼ ${fmt(-d)}</b>` : '';
-      g.rich(`${ICON.podium} WEEKLY RANK <b>#${fmt(shown)}</b> ${delta}`, x, y, w, { size: 13.5, align: 'center' });
-      y += 24;
-    }
-    // this race vs best
-    const sw = (w - 10) / 2;
-    card(g, x, y, sw, 52, 12, 'rgba(217,168,90,.35)', 'rgba(0,0,0,.32)');
-    card(g, x + sw + 10, y, sw, 52, 12, 'rgba(217,168,90,.35)', 'rgba(0,0,0,.32)');
-    g.text('THIS RACE', x + sw / 2, y + 13, { size: 9.5, align: 'center', font: 'b', color: '#c9ad80' });
-    g.text(`${fmt(o.exp)} EXP`, x + sw / 2, y + 35, { size: 17, align: 'center', color: o.up ? '#ffd36a' : '#ffb0a4', noTr: true, maxW: sw - 10 });
-    g.text('YOUR BEST', x + sw * 1.5 + 10, y + 13, { size: 9.5, align: 'center', font: 'b', color: '#c9ad80' });
-    g.text(fmt(o.bestNow), x + sw * 1.5 + 10, y + 35, { size: 17, align: 'center', noTr: true, maxW: sw - 10 });
-    y += 62;
-    // class bar: gold = the best; green = what this race added / red = how far it was from the best
-    {
-      const bx = x + 40,
-        bw = w - 80;
-      rankBadge(g, o.cls, x, y - 2, 24);
-      if (o.clsNext) rankBadge(g, o.clsNext, x + w - rankBadgeW(g, o.clsNext, 24), y - 2, 24);
-      const span = Math.max(1, o.clsHi - o.clsLo);
-      const kBest = o.clsNext ? Math.max(0, Math.min(1, (o.bestNow - o.clsLo) / span)) : 1;
-      const kFrom = o.clsNext ? Math.max(0, Math.min(1, (o.best - o.clsLo) / span)) : 1;
-      const kRun = o.clsNext ? Math.max(0, Math.min(1, (o.exp - o.clsLo) / span)) : 1;
-      if (!g.dry) {
-        g.rr(bx, y + 6, bw, 12, 6, 'rgba(0,0,0,.5)', 'rgba(255,220,150,.15)', 1);
-        if (o.up) {
-          const k0 = o.clsUp ? 0 : kFrom;
-          g.rr(bx, y + 6, Math.max(12, bw * k0), 12, 6, g.lin(bx, 0, bx + bw, 0, [[0, '#c88a2c'], [1, '#ffd36a']]));
-          const k1 = k0 + (kBest - k0) * e;
-          if (k1 > k0) g.rr(bx + bw * k0, y + 6, Math.max(6, bw * (k1 - k0)), 12, 6, '#5fe08a');
-        } else {
-          g.rr(bx, y + 6, Math.max(12, bw * kBest), 12, 6, g.lin(bx, 0, bx + bw, 0, [[0, '#c88a2c'], [1, '#ffd36a']]));
-          const kr = kBest - (kBest - kRun) * e;
-          if (kr < kBest) g.rr(bx + bw * Math.max(0, kr), y + 6, Math.max(6, bw * (kBest - Math.max(0, kr))), 12, 6, 'rgba(255,122,106,.55)');
+    const drawRow = (r: (typeof rows)[number], yy: number, me: boolean) => {
+      const cls = r.you ? ui.myClass : classFor(r.score);
+      if (me) {
+        if (!g.dry) {
+          const glow = 0.6 + 0.4 * Math.sin(g.time / 260);
+          g.shadow(up ? `rgba(255,210,74,${glow})` : `rgba(255,122,106,${glow})`, 16);
+          g.rr(x - 4, yy - 2, w + 8, RH + 4, 13, g.lin(x, 0, x + w, 0, up ? [[0, 'rgba(255,194,26,.38)'], [1, 'rgba(255,194,26,.14)']] : [[0, 'rgba(255,122,106,.32)'], [1, 'rgba(255,122,106,.1)']]), up ? '#ffd24a' : '#ff8a6a', 2);
+          g.shadow(null);
         }
+      } else {
+        const passed = moved && ((up && r.rank > o.after && r.rank <= o.before) || (!up && r.rank < o.after && r.rank >= o.before));
+        g.alpha(passed ? 0.62 : 1);
+        g.rr(x, yy, w, RH, 12, 'rgba(20,12,6,.72)', 'rgba(190,150,100,.32)');
       }
-      y += 28;
-      const note = o.up ? (o.clsNext ? `+${fmt(o.bestNow - o.best)} EXP · ${fmt(Math.max(0, o.clsHi - o.bestNow))} EXP to ${o.clsNext}` : `+${fmt(o.bestNow - o.best)} EXP`) : (o.bestNow - o.exp > 0 ? `−${fmt(o.bestNow - o.exp)} EXP behind your best` : 'Beat your best to climb the board');
-      g.text(note, x + w / 2, y + 6, { size: 11.5, align: 'center', font: 'b', color: '#c9ad80', noTr: true });
-      y += 24;
-    }
-    // the one ad of the race end
+      const num = me && moved ? shown : r.rank;
+      g.text(`#${fmt(num)}`, x + 30, yy + (me && d ? 20 : RH / 2), { size: me ? 15 : 13.5, align: 'center', maxW: 56, noTr: true, color: me ? (up ? '#ffd36a' : '#ffb0a4') : '#e9d2a6' });
+      if (me && d) g.text(d > 0 ? `▲ ${fmt(d)}` : `▼ ${fmt(-d)}`, x + 30, yy + 37, { size: 10.5, align: 'center', font: 'b', color: d > 0 ? '#5fe08a' : '#ff7a6a', noTr: true });
+      g.icon(avatarSvg(r.av ?? avatarForName(r.name)), x + 62, yy + 8, 36);
+      g.text(r.name, x + 106, yy + 18, { size: 12.5, maxW: w - 200, color: me ? (up ? '#ffd36a' : '#ffd0c4') : '#fff', noTr: true });
+      if (me) {
+        const nw = Math.min(w - 200, g.measure(r.name, { size: 12.5 }));
+        g.rr(x + 110 + nw, yy + 10, 32, 16, 6, up ? '#ffd24a' : '#ff8a6a');
+        g.text('YOU', x + 126 + nw, yy + 18.5, { size: 9.5, align: 'center', font: 'b', color: '#3a1d06', shadow: null, noTr: true });
+      }
+      g.rich(`${r.flag} <span class="clsb" style="--cc:${CLASS_COLOR[cls]}">${cls}</span>`, x + 106, yy + 26, w - 200, { size: 11 });
+      g.text(fmt(r.score), x + w - 12, yy + RH / 2, { size: 14, align: 'right', noTr: true });
+      g.alpha(1);
+    };
+    vis.forEach((r, i) => {
+      if (!r.you) drawRow(r, slotOf(i), false);
+    });
+    const me = vis.find((r) => r.you);
+    if (me) drawRow(me, meY, true);
+    y = (moved ? Math.max(slotOf(vis.length - 1), ghostY) : slotOf(vis.length - 1)) + RH + 16;
+    // ---- foot: share of the field + what passes the next pilot
+    const above = mi > 0 ? rows[mi - 1] : null;
+    const pct = o.after && o.total ? Math.max(0.1, (o.after / o.total) * 100) : 0;
+    const foot = o.after ? `Top ${pct < 1 ? pct.toFixed(1) : Math.ceil(pct)}% of ${fmt(o.total)} pilots${above ? ` · ${fmt(Math.max(1, above.score - (me?.score ?? 0) + 1))} EXP more to pass #${fmt(above.rank)}` : ''}` : 'Rank = average of your last 5 races';
+    g.text(foot, x + w / 2, y + 6, { size: 11, align: 'center', font: 'b', color: '#c9ad80', maxW: w, noTr: true });
+    y += 22;
+    // ---- the one ad of the race end
     if (o.ad && hs.hasAds()) {
       const st = ui.adState.ad2x;
-      if (st?.used) button(g, 'rr-ad', x, y, w, 52, `${ICON.check} ${st.text}`, () => {}, { style: 'ghost', disabled: true, size: 14 });
+      if (st?.used) button(g, 'rr-ad', x, y, w, 50, `${ICON.check} ${st.text}`, () => {}, { style: 'ghost', disabled: true, size: 14 });
       else {
         const label = o.ad.kind === 'x2' ? `×2 COINS  +${fmt(o.ad.amount)}` : `FREE +${fmt(o.ad.amount)} COINS`;
-        button(g, 'rr-ad', x, y, w, 52, `${ICON.coin} ${label}`, () => ui.h.rrAd(), { style: 'green', size: 18 });
+        button(g, 'rr-ad', x, y, w, 50, `${ICON.coin} ${label}`, () => ui.h.rrAd(), { style: 'green', size: 18 });
         if (!g.dry) {
           g.rr(x + w - 62, y - 9, 50, 20, 10, '#3a1d06', '#ffd36a', 1.6);
           g.rich(`${ICON.play} AD`, x + w - 62, y - 6, 50, { size: 10.5, align: 'center', color: '#ffd36a', font: 'b', shadow: null });
         }
       }
-      y += 62;
+      y += 60;
     }
     const bw3 = (w - 16) / 3;
-    button(g, 'rr-details', x, y, bw3, 50, 'Details', () => ui.h.rrDetails(), { style: 'blue', size: 15, icon: ICON.info });
-    button(g, 'rr-retry', x + bw3 + 8, y, bw3, 50, 'Restart', () => ui.h.retry(), { style: 'gold', size: 15, icon: ICON.retry });
-    button(g, 'rr-home', x + (bw3 + 8) * 2, y, bw3, 50, 'Home', () => ui.h.home(), { style: 'blue', size: 15, icon: ICON.home });
-    return y + 54;
+    button(g, 'rr-details', x, y, bw3, 48, 'Details', () => ui.h.rrDetails(), { style: 'blue', size: 15, icon: ICON.info });
+    button(g, 'rr-retry', x + bw3 + 8, y, bw3, 48, 'Restart', () => ui.h.retry(), { style: 'gold', size: 15, icon: ICON.retry });
+    button(g, 'rr-home', x + (bw3 + 8) * 2, y, bw3, 48, 'Home', () => ui.h.home(), { style: 'blue', size: 15, icon: ICON.home });
+    return y + 52;
   });
 }
 
@@ -526,7 +541,7 @@ function continueOv(ui: UI, g: Gfx) {
         g.rr(x + w - tw - 12, y - 9, tw, 20, 10, '#2f7a2a', '#ffe08a', 1.6);
         g.rich(`${ICON.play} AD`, x + w - tw - 12, y - 6, tw, { size: 10.5, align: 'center', color: '#fff', font: 'b', shadow: null });
       }
-    } else button(g, 'contad', x, y, w, bh, hs.hasAds() ? `${ICON.clock} Ad loading…` : `${ICON.info} No ad available`, () => {}, { style: 'ghost', disabled: true, size: 16 });
+    } else button(g, 'contad', x, y, w, bh, hs.hasAds() ? `${ICON.clock} Ad loading…` : `${ICON.info} No ad available`, () => {}, { style: 'ghost', disabled: true, size: 16, sub: hs.adError() ? `(${hs.adError()})` : undefined });
     y += bh + 16;
     // countdown: a thin bar + seconds (the race ends by itself at 0)
     bar(g, x + 6, y, w - 12, 6, ui.cont.k, g.lin(x, 0, x + w, 0, [[0, '#ffd36a'], [1, '#f2a83a']]), 'rgba(0,0,0,.45)');
@@ -698,6 +713,7 @@ function settingsOv(ui: UI, g: Gfx) {
     });
     y += 16;
     if (ui.showDiag && ui.colorCtl) y += g.para(ui.colorCtl.line(), x, y, w, { size: 8.5, font: 'b', color: C.muted, align: 'center', noTr: true });
+    if (ui.showDiag) y += g.para(hs.adLine(), x, y + 2, w, { size: 8.5, font: 'b', color: C.muted, align: 'center', noTr: true }) + 2;
     if (ui.showDiag) {
       button(g, 's-logs', x + w / 2 - 70, y + 4, 140, 32, `Logs · ${logErrors()} errors`, () => ui.showOverlay('logs'), { style: 'ghost', size: 11 });
       y += 40;

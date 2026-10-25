@@ -192,14 +192,15 @@ Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder M
 ## v4.0.2 (native, branch `v4.0`) — new race end, moving board position, polish
 
 - **Revive panel** (owner mock-up): CRASHED! · CONTINUE (revive ad `rw_revive`, cooldown 0) · countdown bar · Restart · Home. Also in Gold Rush.
-- **Rank panel after a death**: NEW BEST! (position climbs) / RACE OVER (position drops), big Class plate, weekly position before → after, this race vs best, Class bar. One ad: ×2 this race's coins (`rw_end_bonus`, 100+ coins) or free coins (`rw_free_coins`). Details (the Finish card) · Restart · Home; × = Home.
+- **Rank panel after a death** (owner mock-up): RANK UP! / RACE OVER with the weekly board around the player — the player's row slides from its old place (dashed "from #N") into the new one with a green / red trail while its number counts; pilots passed (or who passed you) dim. One ad: ×2 this race's coins (`rw_end_bonus`, 100+ coins) or free coins (`rw_free_coins`). Details (the Finish card) · Restart · Home; × = Home.
 - **Board position = average EXP of the last 5 races** (`RANK_WINDOW`, `rankScore` in src/meta/Rank.ts and server/core.mjs, tested) — it moves up and down; the Class still comes from the best run and never drops. Rival curves scaled to averages.
 - **Restart anywhere** = straight into a new race (no card, no special picker): the last special picked, else the next one in the bag. **Home anywhere** = straight Home (a race quit half-way is still counted). Interstitial only on Restart / Home from the race-end panels.
 - **Finish card**: big race-rank plate, logo with room around it, corner buttons inside the frame, Restart · Home · Tracks · Garage, no ad. Share says when nothing was shared.
 - **Pause**: LO / MED / HI labels, Camera (Motion / Fixed) under the three toggles.
 - **Layout**: More badge inside its tile; Check-in Day 7 is a double-width prize (600 + Launcher); page titles next to Back; Launch / Share / Entry spaced out in the wood + brass style; HUD special buttons on a deep leather disc with a bigger glowing icon.
 - **XWAVE wordmark** (owner's white logo): the car's rear badge (bigger plate), roadside boards (every third on the right), "by XWAVE" on loading, the Settings footer, the share card.
-- Lighter, smoother tyre dust; LOW preset lighter for old phones (1× pixels); Head Start ad removed.
+- Softer coins (less mirror metal, slower spin, faint halo, soft pickup sparkle); lighter, smoother tyre dust; LOW preset lighter for old phones (1× pixels); Head Start ad removed.
+- Ads: a reward ad that does not play says why (HSGame.lastAdError) and the hidden test info (tap the version 5×) lists every ad place's state.
 - iPhone: `suspend()` / `resume()` guarded (TikTok iOS returns nothing); the save on leaving the app runs first.
 - Boot: the world's shaders are compiled for the target they are drawn into (110 → 70 programs at boot; Android "prewarm" was 4.6 s).
 

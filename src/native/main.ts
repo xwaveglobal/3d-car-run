@@ -50,6 +50,7 @@ setAdProvider({
   name: 'hs',
   rewarded: (p: RewardPlacement) => hs.rewarded(p),
   interstitial: () => hs.interstitial(),
+  lastError: () => hs.adError(),
 });
 
 // ---------------------------------------------------------------- safe area (status bar, TikTok capsule)

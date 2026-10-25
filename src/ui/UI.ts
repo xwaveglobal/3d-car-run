@@ -197,6 +197,8 @@ export interface RunRankData {
   clsUp: RankClass | null;
   /** the panel's one ad: ×2 this race's coins (rw_end_bonus) or free coins (rw_free_coins) */
   ad: { kind: 'x2' | 'free'; amount: number } | null;
+  /** v4.0.2 (owner mock-up): the weekly rows around the player (3 above, the player, 3 below) */
+  rows: LbRow[];
 }
 
 export interface RunRewards {
@@ -768,13 +770,11 @@ export class UI {
     <section id="runrank" class="screen overlay">
       <div class="panel rp">
         <button class="icon-btn sm rp-x" data-a="home" aria-label="Close">${ICON.close}</button>
-        <div class="rp-title" data-k="rktitle">NEW BEST!</div>
+        <div class="rp-title" data-k="rktitle">RANK UP!</div>
         <div class="rp-sub" data-k="rksub"></div>
-        <div class="rp-hex"><span class="rp-plate" data-k="rkplate">D</span><i class="rp-arrow" data-k="rkarrow">▲</i></div>
-        <div class="rp-pos" data-k="rkpos"></div>
-        <div class="rp-exp"><div><small>THIS RACE</small><b data-k="rkexp">0 EXP</b></div><div><small>YOUR BEST</small><b data-k="rkbest">0</b></div></div>
-        <div class="rp-track"><span class="rp-c" data-k="rkc0">D</span><div class="rp-bar"><i data-k="rkbar"></i><em data-k="rkdelta"></em></div><span class="rp-c" data-k="rkc1">C</span></div>
-        <div class="rp-note" data-k="rknote"></div>
+        <div class="rp-sum"><span class="rp-hex" data-k="rkplate">D</span><span class="rp-pos"><small>WEEKLY RANK</small><b data-k="rkpos">#0</b><i data-k="rkd"></i></span><span class="rp-ex">THIS RACE <b class="run" data-k="rkexp">0</b><br>YOUR BEST <b data-k="rkbest">0</b></span></div>
+        <div class="rp-board" data-k="rkboard"></div>
+        <div class="rp-foot" data-k="rkfoot"></div>
         <button class="btn green rp-ad" data-a="rrad" data-k="ad2x"></button>
         <div class="rp-btns">
           <button class="btn" data-a="rrdetails">${ICON.info} Details</button>
@@ -2050,57 +2050,81 @@ export class UI {
    * moved the player up, the player's row climbs from the old position to the new one with a glowing
    * frame and a congratulation (class promotion included).
    */
-  /** v4.0.2 (owner mock-up): the panel after a death — position up / down, one ad, Details · Restart · Home */
+  /** v4.0.2 (owner mock-up, approved): after a death — the weekly board, the player's row slides up / down */
   runRank(o: RunRankData) {
     const sc = this.screens.runrank;
-    sc.classList.toggle('up', o.up);
-    sc.classList.toggle('down', !o.up);
-    sc.style.setProperty('--cc', CLASS_COLOR[o.cls]);
-    this.setAll('rktitle', o.up ? 'NEW BEST!' : 'RACE OVER');
-    this.setAll('rksub', o.clsUp ? `You climbed to Class ${o.clsUp}` : o.up ? 'Your best race yet — keep climbing!' : (o.bestNow <= 0 ? 'Go further next time to get ranked' : 'Close one — beat your best to rank up'));
-    this.setAll('rkplate', o.cls);
-    this.setAll('rkarrow', o.up ? '▲' : '▼');
-    this.setAll('rkexp', `${fmt(o.exp)} EXP`);
+    const up = o.up;
+    sc.classList.toggle('up', up);
+    sc.classList.toggle('down', !up);
+    const d = o.before && o.after ? o.before - o.after : 0;
+    const moved = d !== 0;
+    this.setAll('rktitle', up ? 'RANK UP!' : 'RACE OVER');
+    this.setAll('rksub', o.clsUp ? `You climbed to Class ${o.clsUp}!` : d > 0 ? `You passed ${fmt(d)} pilots this week` : d < 0 ? `You slipped ${fmt(-d)} places — beat your best to climb back` : o.bestNow <= 0 ? 'Go further next time to get ranked' : up ? 'Your best race yet — keep climbing!' : 'Beat your best to climb the board');
+    const plate = $(this.root, '[data-k="rkplate"]');
+    plate.textContent = o.cls;
+    plate.style.background = CLASS_COLOR[o.cls];
+    $(this.root, '[data-k="rkd"]').innerHTML = d > 0 ? `<i class="g">▲ ${fmt(d)}</i>` : d < 0 ? `<i class="r">▼ ${fmt(-d)}</i>` : '';
+    this.setAll('rkexp', fmt(o.exp));
     this.setAll('rkbest', fmt(o.bestNow));
-    const c0 = $(this.root, '[data-k="rkc0"]');
-    c0.textContent = o.cls;
-    c0.style.setProperty('--c', CLASS_COLOR[o.cls]);
-    const c1 = $(this.root, '[data-k="rkc1"]');
-    c1.hidden = !o.clsNext;
-    if (o.clsNext) {
-      c1.textContent = o.clsNext;
-      c1.style.setProperty('--c', CLASS_COLOR[o.clsNext]);
-    }
-    const span = Math.max(1, o.clsHi - o.clsLo);
-    const kk = (v: number) => (o.clsNext ? Math.max(0, Math.min(1, (v - o.clsLo) / span)) : 1);
-    const bar = $(this.root, '[data-k="rkbar"]');
-    const dl = $(this.root, '[data-k="rkdelta"]');
-    const base = o.up ? (o.clsUp ? 0 : kk(o.best)) : kk(o.bestNow);
-    const other = o.up ? kk(o.bestNow) : kk(o.exp);
-    bar.style.width = `${base * 100}%`;
-    dl.style.left = `${Math.min(base, other) * 100}%`;
-    dl.style.width = '0%';
-    requestAnimationFrame(() => requestAnimationFrame(() => (dl.style.width = `${Math.abs(other - base) * 100}%`)));
-    this.setAll('rknote', o.up ? (o.clsNext ? `+${fmt(o.bestNow - o.best)} EXP · ${fmt(Math.max(0, o.clsHi - o.bestNow))} EXP to ${o.clsNext}` : `+${fmt(o.bestNow - o.best)} EXP`) : (o.bestNow - o.exp > 0 ? `−${fmt(o.bestNow - o.exp)} EXP behind your best` : 'Beat your best to climb the board'));
-    // weekly position before → after (counts up / down)
+    // ---- the board: 4 rows (+ the old place, dashed)
+    const rows = o.rows;
+    const mi = rows.findIndex((r) => r.you);
+    const from = up ? Math.max(0, mi - 2) : Math.max(0, mi - 3);
+    const vis = mi >= 0 ? rows.slice(from, from + 4) : [];
+    const RH = 52;
+    const GAP = 6;
+    const top0 = up || !moved ? 0 : RH + GAP;
+    const slot = (i: number) => top0 + i * (RH + GAP);
+    const meI = vis.findIndex((r) => r.you);
+    const ghostY = up ? slot(vis.length) : 0;
+    const rowHtml = (r: LbRow, y: number, me: boolean) => {
+      const cls = r.you ? this.myClass : classForScore(r.score);
+      const passed = moved && !me && ((up && r.rank > o.after && r.rank <= o.before) || (!up && r.rank < o.after && r.rank >= o.before));
+      return `<div class="rp-row ${me ? 'me' : ''} ${passed ? 'passed' : ''}" style="top:${y}px"><span class="rk"><b data-k="${me ? 'rkmenum' : ''}">#${fmt(me && moved ? o.before : r.rank)}</b>${me && d ? `<em>${d > 0 ? `▲ ${fmt(d)}` : `▼ ${fmt(-d)}`}</em>` : ''}</span><span class="ava img sm">${avatarSvg(r.av ?? avatarForName(r.name))}</span><span class="nm">${r.name}${me ? ' <b class="you">YOU</b>' : ''}<small>${r.flag} ${classBadge(cls)}</small></span><span class="sc">${fmt(r.score)}</span></div>`;
+    };
+    const board = $(this.root, '[data-k="rkboard"]');
+    const meY = meI >= 0 ? slot(meI) : 0;
+    board.style.height = `${(moved ? Math.max(slot(vis.length - 1), ghostY) : slot(vis.length - 1)) + RH}px`;
+    board.innerHTML =
+      (moved ? `<div class="rp-ghost" style="top:${ghostY}px">from #${fmt(o.before)}</div><div class="rp-trail" style="top:${Math.min(ghostY, meY) + RH / 2}px;height:${Math.abs(ghostY - meY)}px"></div>` : '') +
+      vis.map((r, i) => (r.you ? '' : rowHtml(r, slot(i), false))).join('') +
+      (meI >= 0 ? rowHtml(vis[meI], meY, true) : '');
+    const meEl = board.querySelector<HTMLElement>('.rp-row.me');
+    const num = board.querySelector<HTMLElement>('[data-k="rkmenum"]');
     const pos = $(this.root, '[data-k="rkpos"]');
-    pos.hidden = !o.after;
-    if (o.after) {
-      const d = o.before ? o.before - o.after : 0;
-      const delta = d > 0 ? `<i class="g">▲ ${fmt(d)}</i>` : d < 0 ? `<i class="r">▼ ${fmt(-d)}</i>` : '';
-      const draw = (n: number) => (pos.innerHTML = `${ICON.podium} WEEKLY RANK <b>#${fmt(n)}</b> ${delta}`);
-      if (o.before && o.before !== o.after) {
-        const t0 = performance.now();
-        const tick = (now: number) => {
-          const k = Math.min(1, Math.max(0, (now - t0 - 300) / 1500));
-          const e = 1 - Math.pow(1 - k, 3);
-          draw(Math.round(o.before + (o.after - o.before) * e));
-          if (k < 1) requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
-      } else draw(o.after);
+    pos.textContent = o.after ? `#${fmt(moved ? o.before : o.after)}` : '—';
+    if (meEl && moved) {
+      // the slide: from the old place into the new slot, the number counting on the way
+      meEl.style.transition = 'none';
+      meEl.style.transform = `translateY(${ghostY - meY}px)`;
+      const trail = board.querySelector<HTMLElement>('.rp-trail');
+      if (trail) trail.style.opacity = '0';
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          meEl.style.transition = 'transform 1.6s .35s cubic-bezier(.2,.8,.2,1)';
+          meEl.style.transform = 'translateY(0)';
+          if (trail) {
+            trail.style.transition = 'opacity .6s .35s';
+            trail.style.opacity = '1';
+          }
+        }),
+      );
+      const t0 = performance.now();
+      const tick = (now: number) => {
+        const k = Math.min(1, Math.max(0, (now - t0 - 350) / 1600));
+        const e = 1 - Math.pow(1 - k, 3);
+        const n = Math.round(o.before + (o.after - o.before) * e);
+        if (num) num.textContent = `#${fmt(n)}`;
+        pos.textContent = `#${fmt(n)}`;
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
     }
-    // the one ad of the race end
+    // ---- foot
+    const above = mi > 0 ? rows[mi - 1] : null;
+    const pct = o.after && o.total ? Math.max(0.1, (o.after / o.total) * 100) : 0;
+    this.setAll('rkfoot', o.after ? `Top ${pct < 1 ? pct.toFixed(1) : Math.ceil(pct)}% of ${fmt(o.total)} pilots${above ? ` · ${fmt(Math.max(1, above.score - rows[mi].score + 1))} EXP more to pass #${fmt(above.rank)}` : ''}` : 'Rank = average of your last 5 races');
+    // ---- the one ad of the race end
     const ad = $(this.root, '[data-k="ad2x"]');
     ad.hidden = !o.ad;
     ad.removeAttribute('disabled');
