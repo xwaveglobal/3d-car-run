@@ -17,6 +17,9 @@ import { setAdProvider, type RewardPlacement } from '../ads/Ads.ts';
 import { platform } from '../platform.ts';
 import { Game } from '../Game.ts';
 import { setPackageReader } from '../render/car/glbParse.ts';
+import { bgConfig, bgPause } from '../core/bgWork.ts';
+// v4.0.2: phones get small background slices with a frame's rest between them
+bgConfig({ budget: 3, rest: 16 });
 import type { UI } from './ui/NativeUI.ts';
 import { Gfx, setFonts } from './ui/gfx.ts';
 import alfaTtf from './fonts/alfa-slab-one.ttf';
@@ -144,6 +147,8 @@ try {
   game = new Game(container);
   bootMark('game constructed');
   ui = (game as any).ui as UI;
+  // v4.0.2: pre-draw the screens reachable from Home (icons / pictures ready before the first tap)
+  ui.warm(['settings', 'tracks', 'specialpick', 'bag', 'garage', 'shop', 'missions', 'daily', 'ranks', 'profile', 'more', 'bonus', 'hud', 'pause', 'continue', 'runrank']);
 } catch (e) {
   console.error('[sky-roadster] could not start the 3D view', e);
   bootError(e);
@@ -313,6 +318,7 @@ function takeFocus() {
   }
 }
 function onStart(e: any) {
+  bgPause(500); // v4.0.2: background work (music / sounds / road) waits while the player taps
   takeFocus();
   const p = pt(e);
   if (!p) return;
@@ -364,6 +370,7 @@ function onMove(e: any) {
   }
 }
 function onEnd(e: any) {
+  bgPause(600);
   // v4.0.2 (owner, iPhone: "no sound on the first play until Settings is tapped"): WebKit only accepts
   // touchEND as the user activation that starts audio — touchstart created the context suspended, and only
   // the Settings switches (they run on touch end) resumed it. Unlock / resume on every touch end too.

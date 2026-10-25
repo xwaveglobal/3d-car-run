@@ -9,6 +9,7 @@
  * `loadOverride(name, url)` (assets/manifest.ts).
  */
 import { platform } from '../platform.ts';
+import { bgAdd } from '../core/bgWork.ts';
 
 /**
  * v4.0.2: AudioContext.suspend() / resume() return a Promise in browsers but nothing on TikTok iOS
@@ -223,30 +224,52 @@ export class Audio {
     this.musicBus.connect(this.master);
     // canyon reverb on the music (generated impulse: 1.8 s of decaying, darkening noise)
     this.reverb = c.createConvolver();
-    const makeIr = () => {
-      const ir = c.createBuffer(2, Math.round(c.sampleRate * 1.8), c.sampleRate);
-      for (let ch = 0; ch < 2; ch++) {
-        const d = ir.getChannelData(ch);
-        let lp = 0;
-        for (let i = 0; i < d.length; i++) {
-          const k = i / d.length;
+    // v4.0.2: the reverb tail (1.8 s of decaying noise) is built in slices of 4096 samples (it was one
+    // 100+ ms block on a phone without a JIT, right after the first tap)
+    const irStep = (() => {
+      const len = Math.round(c.sampleRate * 1.8);
+      const chans = [new Float32Array(len), new Float32Array(len)];
+      let ch = 0,
+        i = 0,
+        lp = 0;
+      return () => {
+        const d = chans[ch];
+        const end = Math.min(len, i + 4096);
+        for (; i < end; i++) {
+          const k = i / len;
           lp += (Math.random() * 2 - 1 - lp) * (0.5 - k * 0.42);
           d[i] = lp * Math.pow(1 - k, 2.6) * (i < c.sampleRate * 0.012 ? 0 : 1);
         }
-      }
-      if (this.reverb) this.reverb.buffer = ir;
-    };
-    // v4.0.1 native (iPhone runs JS without a JIT): the reverb tail and the sound bank are built a little
-    // later, one piece per timer tick, never inside the first tap
-    if (this.baked) setTimeout(makeIr, 2500);
-    else makeIr();
+        if (i < len) return false;
+        if (ch === 0) {
+          ch = 1;
+          i = 0;
+          lp = 0;
+          return false;
+        }
+        const ir = c.createBuffer(2, len, c.sampleRate);
+        if (ir.copyToChannel) {
+          ir.copyToChannel(chans[0], 0);
+          ir.copyToChannel(chans[1], 1);
+        } else {
+          ir.getChannelData(0).set(chans[0]);
+          ir.getChannelData(1).set(chans[1]);
+        }
+        if (this.reverb) this.reverb.buffer = ir;
+        return true;
+      };
+    })();
+    if (this.baked) bgAdd('reverb', irStep, { delay: 1500, prio: 6 });
+    else while (!irStep()) {
+      /* web: at once */
+    }
     const wet = c.createGain();
     wet.gain.value = 0.22;
     this.reverb.connect(wet).connect(this.musicBus);
     this.noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
     const d = this.noiseBuf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    if (this.baked) setTimeout(() => this.buildSfx(true), 900);
+    if (this.baked) this.buildSfx(true);
     else this.buildSfx();
     this.prebake();
     for (const [n, u] of this.pendingOverrides) void this.loadOverride(n, u);
@@ -434,19 +457,24 @@ export class Audio {
   /** v4.0 native: bake every SFX a little at a time after start (the first play never waits) */
   private prebake() {
     if (!this.baked) return;
-    const all: [Sfx, number][] = (['crash', 'coin', 'lane', 'land', 'up', 'down', 'near', 'power', 'click', 'go', 'beep', 'bump', 'shield', 'shieldBreak', 'explode', 'ring', 'fanfare', 'mission', 'combo', 'turbo', 'respawn', 'warp', 'expire'] as Sfx[]).map((n) => [n, 0]);
+    const all: [Sfx, number][] = (['click', 'coin', 'go', 'beep', 'lane', 'crash', 'land', 'up', 'down', 'near', 'power', 'bump', 'shield', 'shieldBreak', 'explode', 'ring', 'fanfare', 'mission', 'combo', 'turbo', 'respawn', 'warp', 'expire'] as Sfx[]).map((n) => [n, 0]);
     for (let i = 1; i <= 12; i++) all.push(['coin', i]);
-    const next = () => {
-      const j = all.shift();
-      if (!j) return;
-      try {
-        this.bakedBuf(j[0], j[1]);
-      } catch (e) {
-        console.warn('[audio] bake', e);
-      }
-      setTimeout(next, 120); // v4.0.1: a wider gap (no-JIT phones)
-    };
-    setTimeout(next, 1800); // after the first frames of Home
+    // v4.0.2: one SFX per step through the shared background queue (held while the player touches the screen);
+    // the common ones (click, coin, go…) come first so a tap never waits for them
+    bgAdd(
+      'sfx',
+      () => {
+        const j = all.shift();
+        if (!j) return true;
+        try {
+          this.bakedBuf(j[0], j[1]);
+        } catch (e) {
+          console.warn('[audio] bake', e);
+        }
+        return !all.length;
+      },
+      { delay: 600, prio: 3 },
+    );
   }
 
   /** the SFX recipes (live Web Audio nodes on the web, written into a buffer while baking) */
@@ -593,14 +621,16 @@ export class Audio {
       for (const [k, f] of make) this.sfxBufs[k] = this.buf(f());
       return;
     }
-    // native: one buffer per tick (a missing one just stays silent until it is ready)
-    const next = () => {
-      const j = make.shift();
-      if (!j) return;
-      if (!this.sfxBufs[j[0]]) this.sfxBufs[j[0]] = this.buf(j[1]());
-      setTimeout(next, 60);
-    };
-    next();
+    // native: one buffer per step of the background queue (a missing one just stays silent until it is ready)
+    bgAdd(
+      'sfx:bank',
+      () => {
+        const j = make.shift();
+        if (j && !this.sfxBufs[j[0]]) this.sfxBufs[j[0]] = this.buf(j[1]());
+        return !make.length;
+      },
+      { prio: 3 },
+    );
   }
   private playBuf(k: string, t: number, vol: number, pan = 0, rate = 1) {
     const c = this.ctx!;
@@ -640,31 +670,31 @@ export class Audio {
   private async renderSongs() {
     if (this.rendering || this.songs.camp) return;
     this.rendering = true;
-    const run = async <T,>(p: Plan<T>) => {
-      let t0 = performance.now();
-      // native phones: smaller slices with a frame's rest between them (the music renders in the background
-      // without making Home stutter)
-      const budget = this.baked ? 3 : 6;
-      const rest = this.baked ? 20 : 0;
-      for (const j of p.jobs) {
-        // v4.0.1: long notes are resumable (false = more to do): yield inside them too, never a long frame
-        while (j() === false) {
-          if (performance.now() - t0 > budget) {
-            await new Promise((r) => setTimeout(r, rest));
-            t0 = performance.now();
-          }
-        }
-        if (performance.now() - t0 > budget) {
-          await new Promise((r) => setTimeout(r, rest));
-          t0 = performance.now();
-        }
-      }
-      return p.done();
-    };
+    // v4.0.2: the loops render through the shared background queue (core/bgWork.ts) — small slices, one job at
+    // a time, held while the player is touching the screen — instead of their own timers
+    const run = <T,>(p: Plan<T>, name: string, prio: number) =>
+      new Promise<T>((resolve, reject) => {
+        let i = 0;
+        bgAdd(
+          name,
+          () => {
+            const j = p.jobs[i];
+            if (j && j() !== false) i++; // false = a resumable note with more to do
+            if (i < p.jobs.length) return false;
+            try {
+              resolve(p.done());
+            } catch (e) {
+              reject(e);
+            }
+            return true;
+          },
+          { prio },
+        );
+      });
     try {
-      this.songs.camp = this.buf(await run(campPlan(this.sr)));
+      this.songs.camp = this.buf(await run(campPlan(this.sr), 'music:camp', 2));
       this.applyIntensity(-1);
-      const ride = await run(ridePlan(this.sr));
+      const ride = await run(ridePlan(this.sr), 'music:ride', 4);
       this.songs.base = this.buf(ride.base);
       this.songs.drums = this.buf(ride.drums);
       this.songs.nitro = this.buf(ride.nitro);

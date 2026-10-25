@@ -1,4 +1,5 @@
 import { bootFrame, bootMark, watchStart } from './core/bootMark.ts';
+import { bgPause } from './core/bgWork.ts';
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
 import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
@@ -100,6 +101,8 @@ const WELCOME_AFTER_H = 12;
 const WELCOME_GIFT = { coins: 200, shield: 1 };
 /** coin rewards of the perk popups (one-off: entry, launch · daily: share, invite) */
 const PERK = { entry: 300, launch: 300, share: 300, invite: 100 };
+/** v4.0.2: an interstitial still silent after this long no longer holds the way back to a menu */
+const AD_LATE_MS = 2500;
 type PerkKind = 'entry' | 'launch' | 'share' | 'invite' | 'rate' | 'addscreen' | 'offline';
 
 type State = 'loading' | 'menu' | 'garage' | 'missions' | 'tracks' | 'countdown' | 'run' | 'paused' | 'dying' | 'continue' | 'respawn' | 'finish' | 'gameover';
@@ -364,7 +367,7 @@ export class Game {
         this.ui.showOverlay('bag');
       },
       setSpeed: (lv) => this.setSpeed(lv),
-      nextTrack: () => this.afterResults(() => this.nextTrack()),
+      nextTrack: () => this.afterResults(() => this.nextTrack(), true),
       garage: () => this.openGarage(),
       carSwipe: (dir) => this.carSwipe(dir),
       missions: () => this.openMissions(), // v2.2: Missions are their own screen again (career chains)
@@ -503,7 +506,7 @@ export class Game {
           }
           return this.quickRestart();
         }
-        this.afterResults(() => this.quickRestart());
+        this.afterResults(() => this.quickRestart(), true);
       },
       continueAd: () => void this.continueByAd(),
       continueCoins: () => this.continueByCoins(),
@@ -603,6 +606,7 @@ export class Game {
     // the first valid interaction — Play, any menu button, the canvas — starts sound; music starts as
     // soon as the context actually runs. Settings is only configuration.
     const unlock = () => {
+      bgPause(500); // v4.0.2: background work waits while the player taps
       if (!this.audio.running) this.audio.unlock();
     };
     for (const ev of ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown']) window.addEventListener(ev, unlock, { capture: true, passive: true });
@@ -1425,10 +1429,25 @@ export class Game {
 
   // =============================================================== ads
   /** Leaving a results screen is a natural break: maybe show an interstitial first. */
-  private afterResults(next: () => void) {
+  private afterResults(next: () => void, toRace = false) {
     // never an ad after training / practice
     if (!this.save.noAds && !this.tutorialMode && (this.state === 'gameover' || (this.state === 'finish' && this.finishShown))) {
-      void this.ads.maybeInterstitial('between_runs', this.save.totalRuns).then(next);
+      // v4.0.2 (owner: a weak network must not hold the game): offline → no interstitial at all; an ad that has
+      // not answered after AD_LATE_MS no longer blocks the way to a menu (the kit drops it after 8 s, or it just
+      // shows over the menu). Before a race we keep waiting (never a race under an ad), with a note.
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return next();
+      let went = false;
+      const go = () => {
+        if (went) return;
+        went = true;
+        next();
+      };
+      void this.ads.maybeInterstitial('between_runs', this.save.totalRuns).then(go);
+      window.setTimeout(() => {
+        if (went) return;
+        if (toRace) this.adLoadingToast();
+        else go();
+      }, AD_LATE_MS);
     } else next();
   }
 
@@ -2114,6 +2133,7 @@ export class Game {
 
   startRun() {
     watchStart('run');
+    bgPause(2500); // v4.0.2: no background work while the race starts
     this.returnTo = null;
     this.runStartT = this.time;
     this.audio.unlock();

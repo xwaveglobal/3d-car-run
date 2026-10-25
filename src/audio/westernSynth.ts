@@ -36,7 +36,7 @@ export function pluck(out: Float32Array, sr: number, at: number, hz: number, vol
 }
 
 /** v4.0.1: samples written per call of a resumable voice (the native build yields between calls) */
-export const STEP_SAMPLES = 4096;
+export const STEP_SAMPLES = 2048; // v4.0.2: finer slices (phones without a JIT)
 
 /** pluck as a resumable job: each call writes up to STEP_SAMPLES samples, returns true when done (same output) */
 export function pluckSteps(out: Float32Array, sr: number, at: number, hz: number, vol: number, dur: number, bright = 0.5, decay = 1.6, seed = 7) {

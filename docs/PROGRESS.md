@@ -17,6 +17,14 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 - Rides: Mine Run drives the tunnel crown; Wall Ride = car at 90° on a timber wall through slotted gates
   (`BonusTunnels.setSlotGates`, `SHOWCASE_RIDE` in config.ts). Level picker on Tracks + Settings, Saddle Bag,
   white Zenith, boards (all time = best EXP, weekly = average), iPhone audio unlock on touch end, `[go]` log.
+- **First taps on Home (owner: still stutters):** all background work now goes through ONE queue,
+  `src/core/bgWork.ts` (music loops, SFX bank/bake, reverb tail in 4096-sample slices, road tile rows, screen
+  warm-up): one job at a time, 3 ms slices with a frame's rest on phones, held 500–600 ms after every touch and
+  2.5 s at race start. `NativeUI.warm()` pre-draws the screens reachable from Home while idle (icons rasterised,
+  pictures decoding). Measured without a JIT: long tasks in the 7 s after the first tap 10 (50–290 ms) → 3 (≤ 64 ms).
+- **Weak network:** offline → no interstitial; an interstitial silent for 2.5 s no longer blocks the way to a menu
+  (`AD_LATE_MS`; before a race it still waits, with the "ad loading" note). Rewarded ads keep the kit's 8 s cap.
+- `NOMIN=1 node scripts/build-tiktok.mjs` = readable game.js for profiling (never ship it).
 - Next: owner's iPhone `[go]` log for the GO hitch; optional logo downsizes (owner comparing zips).
 
 ## 2026-10-25 — v4.0.2 (branch `v4.0`): race end rebuilt, board position moves, 21-item owner list

@@ -22,6 +22,7 @@ import { Gfx } from './gfx.ts';
 import { drawScreens } from './screens.ts';
 import { drawHud, drawNotices } from './hud.ts';
 import { hs } from '../hs.ts';
+import { bgAdd } from '../../core/bgWork.ts';
 
 export { carImage, carRear, logoImg, UPGRADE_MAX, upgradeCost, SAMPLE_BOARD_NOTE, MEGA_ICON } from '../../ui/shared.ts';
 export type { UIHandlers, RunRewards, UpgradeKey } from '../../ui/UI.ts';
@@ -195,6 +196,49 @@ export class UI {
     g.guard('notices', () => drawNotices(this, g));
     if (this.debugText) g.para(this.debugText, 8, g.H - 120, g.W - 16, { size: 10, font: 'b', color: '#9fffa0' });
     return true;
+  }
+
+  /**
+   * v4.0.2 (owner: "the first taps on Home stutter"): draw each screen once, off-screen, while the player is
+   * idle on Home — its icons are rasterised and its pictures start decoding now, not on the first tap.
+   * One screen per background step (core/bgWork.ts: held while the player touches); errors stay silent.
+   */
+  warm(ids: string[]) {
+    for (const id of ids) {
+      bgAdd(
+        `warm:${id}`,
+        () => {
+          const g = this.g;
+          if (!g || !this.save || this.shown.has('loading')) return 1000; // not ready yet: try again later
+          if (this.shown.has(id)) return true;
+          const shown = this.shown;
+          const hits = g.hits.slice(),
+            scrolls = g.scrolls.slice(),
+            errs = g.errors.length,
+            onErr = g.onError;
+          g.onError = () => {};
+          try {
+            this.shown = new Set([id]);
+            g.begin(performance.now());
+            drawScreens(this, g, [id], BASE.includes(id) ? 'base' : 'overlay');
+            if (id === 'hud') g.guard('hud', () => drawHud(this, g));
+          } catch {
+            /* a screen without its data yet: fine, the cache work is done */
+          } finally {
+            this.shown = shown;
+            g.hits.length = 0;
+            g.hits.push(...hits);
+            g.scrolls.length = 0;
+            g.scrolls.push(...scrolls);
+            g.errors.length = errs;
+            g.onError = onErr;
+            this.dirty = true; // the real frame redraws over it before the next upload
+          }
+          return true;
+        },
+        { delay: 1800, prio: 3 },
+      );
+    }
   }
 
   // ---------------------------------------------------------------- touch

@@ -147,7 +147,7 @@ else await buildEsbuild();
     console.log(`game.js downlevelled to ES2017 in ${Date.now() - t1} ms`);
     // v4.0.2: TypeScript re-prints the bundle (indentation, long names): minify it again — whitespace,
     // syntax AND local names — at ES2017 (≈ −30 % game.js: less to download and parse on the phone)
-    try {
+    if (!process.env.NOMIN) try {
       const { transformSync } = await import('esbuild');
       const kb = code.length;
       code = transformSync(code, { minify: true, target: 'es2017', legalComments: 'none' }).code;

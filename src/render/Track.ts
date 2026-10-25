@@ -9,6 +9,7 @@ import { fadeMaterial } from './western/PropField.ts';
 import { GRAPHICS, ROAD, type GraphicsPreset } from '../config.ts';
 import { emptyRoadPixels, roadPixels, roadRows, type RoadPixels } from './roadSurface.ts';
 import { platform } from '../platform.ts';
+import { bgAdd } from '../core/bgWork.ts';
 import { addFarFade, wrapZ } from './envFx.ts';
 
 const ROAD_LEN = 300;
@@ -42,20 +43,21 @@ function roadDataLater(w: number, done: (px: RoadPixels) => void) {
   pendingRoad.set(w, [done]);
   const px = emptyRoadPixels(w, w * 2);
   let row = 0;
-  const slice = () => {
-    const t0 = performance.now();
-    // one row at a time (512 samples, a few ms even without a JIT), ~4 ms of work then a frame's rest
-    while (row < px.h && performance.now() - t0 < 4) {
+  // v4.0.2: one row per step of the shared background queue (core/bgWork.ts: held while the player touches)
+  bgAdd(
+    'road',
+    () => {
       roadRows(px, row, row + 1);
       row++;
-    }
-    if (row < px.h) return void setTimeout(slice, 30);
-    roadPx.set(w, px);
-    const cbs = pendingRoad.get(w) ?? [];
-    pendingRoad.delete(w);
-    for (const cb of cbs) cb(px);
-  };
-  setTimeout(slice, 4000); // after the first Home frames and the first tap's audio setup
+      if (row < px.h) return false;
+      roadPx.set(w, px);
+      const cbs = pendingRoad.get(w) ?? [];
+      pendingRoad.delete(w);
+      for (const cb of cbs) cb(px);
+      return true;
+    },
+    { delay: 2500, prio: 5 },
+  );
 }
 function dataTex(data: Uint8Array, w: number, h: number, srgb: boolean) {
   const t = new THREE.DataTexture(data as Uint8Array<ArrayBuffer>, w, h, THREE.RGBAFormat);
