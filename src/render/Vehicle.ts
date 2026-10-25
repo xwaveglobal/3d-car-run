@@ -74,6 +74,8 @@ export interface VehicleSkin {
   bonus?: number;
   /** how strongly the X1 render's body paint is recoloured (0 = original pearl) */
   tintAmt?: number;
+  /** v4.0.2: clean white paint (no pearl / sky-blue cast) */
+  pureWhite?: boolean;
   /** speed / acceleration / handling / energy, out of 10 (display) */
   stats?: [number, number, number, number];
   skills?: { name: string; desc: string }[];
@@ -89,8 +91,9 @@ export interface VehicleSkin {
  */
 export const SKINS: VehicleSkin[] = [
   { id: 'zenith', name: 'Zenith', shape: 'gt', cls: 'Common · Balanced for every run', rarity: 'Common', need: 'D', price: 0, bonus: 0, tintAmt: 1,
-    // v4.6.1: ice-blue paint (owner choice) so Zenith no longer looks like Vega's white
-    body: 0x7cc0ec, trim: 0x9fb6cc, glass: 0x0a0d16, glow: 0x39b6ff, accent: 0x1c64ff, stats: [7, 7, 8, 7],
+    // v4.0.2 (owner: "xe cho màu trắng hẳn cho nổi, màu bị hơi xanh"): clean white paint, neutral trim
+    // (a hint of warmth so the blue sky reflection never reads as ice-blue)
+    pureWhite: true, body: 0xf6f3ec, trim: 0xb9b6ae, glass: 0x0a0d16, glow: 0x39b6ff, accent: 0x1c64ff, stats: [7, 7, 8, 7],
     skills: [{ name: 'Turbo Boost', desc: 'Short burst of high speed.' }, { name: 'Stable Flight', desc: 'Easier to control.' }] },
   { id: 'inferno', name: 'Inferno', shape: 'gt', cls: 'Rare · Burn through everything', rarity: 'Rare', need: 'AA', price: 0, bonus: 0, tintAmt: 0.92,
     body: 0xc4121f, trim: 0x1a1a1a, glass: 0x0a0202, glow: 0xff3b2a, accent: 0xff6a2a, stats: [10, 9, 8, 8],

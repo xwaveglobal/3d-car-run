@@ -165,8 +165,8 @@ export interface UIHandlers {
   carSwipe(dir: 1 | -1): void;
 }
 
-/** Magic Bag: drawstring pouch with a star */
-const BAG_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="bgp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98bff"/><stop offset="1" stop-color="#6a2ee0"/></linearGradient></defs><path d="M8.3 7.4C5 9.6 3.6 13 4.3 16.4c.7 3.2 3.6 4.8 7.7 4.8s7-1.6 7.7-4.8c.7-3.4-.7-6.8-4-9z" fill="url(#bgp)" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><path d="M8.6 7.4c-.9-1.6-.3-3.4 1.3-3.4 1 0 1.3.7 2.1.7s1.1-.7 2.1-.7c1.6 0 2.2 1.8 1.3 3.4z" fill="#8a52f0" stroke="#2a1060" stroke-width="1.1" stroke-linejoin="round"/><rect x="7.6" y="6.8" width="8.8" height="1.9" rx=".9" fill="#ffd23d" stroke="#7a4a00" stroke-width=".6"/><path d="M12 11.2l1.05 2.15 2.35.33-1.7 1.66.4 2.34L12 16.6l-2.1 1.08.4-2.34-1.7-1.66 2.35-.33z" fill="#ffe680"/><circle cx="17.6" cy="11" r=".8" fill="#fff"/><circle cx="6.6" cy="13.4" r=".55" fill="#fff" opacity=".8"/></svg>`;
+/** Saddle Bag (v4.0.2): leather saddlebag, sheriff star on the flap, brass buckle */
+const BAG_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sbL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c98a4a"/><stop offset="1" stop-color="#7a4520"/></linearGradient><linearGradient id="sbF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8743a"/><stop offset="1" stop-color="#8a4e22"/></linearGradient></defs><path d="M8.6 7.4V4.6c0-.8.6-1.3 1.3-1.3h4.2c.7 0 1.3.5 1.3 1.3v2.8" fill="none" stroke="#3a1c06" stroke-width="1.6"/><rect x="3.3" y="7" width="17.4" height="13.8" rx="3" fill="url(#sbL)" stroke="#3a1c06" stroke-width="1.1"/><rect x="5" y="15.2" width="14" height="4" rx="1.6" fill="none" stroke="#f3d29a" stroke-width=".55" stroke-dasharray="1 .9" opacity=".8"/><path d="M3.3 10c0-1.7 1.3-3 3-3h11.4c1.7 0 3 1.3 3 3v2.6c-2.6 1.6-5.4 2.4-8.7 2.4s-6.1-.8-8.7-2.4z" fill="url(#sbF)" stroke="#3a1c06" stroke-width="1.1" stroke-linejoin="round"/><path d="M12 8.1l.75 1.5 1.65.24-1.2 1.17.28 1.64L12 11.9l-1.48.77.28-1.64-1.2-1.17 1.65-.24z" fill="#ffd23d" stroke="#7a4a00" stroke-width=".35"/><rect x="10.1" y="13.1" width="3.8" height="3.4" rx=".7" fill="none" stroke="#ffd23d" stroke-width="1.1"/><path d="M12 13.1v3.4" stroke="#ffd23d" stroke-width=".8"/></svg>`;
 
 /** tutorial (book + ?) and launch (megaphone) icons */
 /** v1.0.2 Home: an element's place on the key art (art px → CSS vars, see western.css .home2 .hs) */
@@ -1896,7 +1896,7 @@ export class UI {
     $(this.root, '[data-k="ava"]').innerHTML = o.avatarPicked ? `<span class="ava img rk-${this.myClass} ${o.pass ? 'pass' : ''}">${avatarSvg(o.avatar)}</span>` : '';
     $(this.root, '[data-k="pline"]').innerHTML = `${classBadge(this.myClass)}<span class="pbolt">${fmt(o.bolts)}${BOLT}</span>`;
     // all-time position on the avatar (tap → profile)
-    $(this.root, '[data-k="ava"]').insertAdjacentHTML('beforeend', `<em class="avrank">${o.allRank ? `#${o.allRank >= 10000 ? `${Math.round(o.allRank / 1000)}K` : fmt(o.allRank)}` : '#—'}</em>`);
+    $(this.root, '[data-k="ava"]').insertAdjacentHTML('beforeend', o.allRank && o.allRank <= 100 ? `<em class="avrank">#${o.allRank}</em>` : '');
     $(this.root, '[data-k="hdailydot"]').hidden = o.dailyBadge <= 0;
     for (const k of ['dailybadge', 'dailybadge2']) {
       const b = $(this.root, `[data-k="${k}"]`);

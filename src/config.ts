@@ -325,6 +325,8 @@ export const RENDER = {
   carHeightScale: 1.15,
   /** v4.3 (Step 06 PBR): paint metallic-flake normal map strength and tiles per metre (MeshCar) */
   paintFlake: 0.12,
+  /** v4.0.2 (owner: "xe trắng hẳn, bị hơi xanh"): white paint = no pearl shimmer, a little metal, softer sky reflection */
+  whitePaint: { metalness: 0.04, env: 0.55 },
   paintFlakeRepeat: 7,
   /** wheels: max visible spin per frame (rad) — more would strobe (10 spokes); speed above it reads via the blur disc */
   wheelMaxStep: 0.3,

@@ -210,8 +210,9 @@ function start(ui: UI, g: Gfx) {
       g.circle(av.x + av.s / 2, av.y + av.s / 2, av.s / 2, '#2a1406');
       g.icon(avatarSvg(o.avatar), av.x, av.y, av.s);
     }
-    const rk = o?.allRank ? `#${o.allRank >= 10000 ? `${Math.round(o.allRank / 1000)}K` : fmt(o.allRank)}` : '#—';
-    g.text(rk, av.x + av.s * 0.48, av.y + av.s * 0.945, { size: 30 * st.s, align: 'center', color: '#2a1404', shadow: null, noTr: true });
+    // v4.0.2 (owner): the board position under the avatar only for a top-100 pilot
+    const rk = o?.allRank && o.allRank <= 100 ? `#${o.allRank}` : '';
+    if (rk) g.text(rk, av.x + av.s * 0.48, av.y + av.s * 0.945, { size: 30 * st.s, align: 'center', color: '#2a1404', shadow: null, noTr: true });
     if (o) {
       g.text(o.name, r.x + r.w * 0.328, r.y + ph * 0.34, { size: 40 * st.s, color: '#fff1cf', maxW: r.w * 0.58, noTr: true, stroke: '#2a1204', strokeW: 2 });
       const bw = rankBadgeW(g, ui.myClass, 34 * st.s);
@@ -749,7 +750,7 @@ function shop(ui: UI, g: Gfx) {
     }
     g.para('Earn coins by racing, the daily check-in and missions.', x + 10, y + 4, w - 20, { size: 11.5, font: 'b', color: C.muted, align: 'center' });
     y += 34;
-    button(g, 'shop-bag', x, y, w, 46, `${BAG_ICON} Open the Magic Bag`, () => ui.h.bag(), { style: 'purple' });
+    button(g, 'shop-bag', x, y, w, 46, `${BAG_ICON} Open the Saddle Bag`, () => ui.h.bag(), { style: 'gold' });
     return y + 56;
   });
 }

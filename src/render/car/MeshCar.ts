@@ -16,6 +16,8 @@ export interface MeshSkin {
   glow: number;
   accent: number;
   tintAmt?: number;
+  /** v4.0.2: a pure-white colourway — no pearl shimmer (iridescence) and less mirror (no blue sky cast) */
+  pureWhite?: boolean;
 }
 
 interface WheelRig {
@@ -312,6 +314,7 @@ export class MeshCar {
   }
 
   /** colourway + locked (dark silhouette) preview */
+  private paint0: { iri: number; metal: number; env: number } | null = null;
   applySkin(skin: MeshSkin, locked: boolean) {
     if (!this.ready) return;
     for (const [m, o] of this.orig) {
@@ -321,6 +324,14 @@ export class MeshCar {
     }
     const paint = this.mats.get('X1_Paint');
     if (paint && (skin.tintAmt ?? 0) > 0) paint.color.setHex(skin.body);
+    if (paint) {
+      const pm = paint as THREE.MeshPhysicalMaterial;
+      if (this.paint0 === null) this.paint0 = { iri: pm.iridescence ?? 0, metal: pm.metalness, env: pm.envMapIntensity ?? 1 };
+      const w = !!skin.pureWhite;
+      if ('iridescence' in pm) pm.iridescence = w ? 0 : this.paint0.iri;
+      pm.metalness = w ? RENDER.whitePaint.metalness : this.paint0.metal;
+      pm.envMapIntensity = w ? RENDER.whitePaint.env : this.paint0.env;
+    }
     for (const n of ['X1_Headlight']) {
       const m = this.mats.get(n);
       if (m) {

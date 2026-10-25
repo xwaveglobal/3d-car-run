@@ -11,7 +11,7 @@ import { CLASSES, CLASS_COLOR, CLASS_MIN, classFor, type RankClass } from '../..
 import { CHECKIN, ITEM_PRICE, LOCKED_SPECIALS, SPECIALS, type ItemKey, type SpecialKey } from '../../meta/Daily.ts';
 import { COUNTRIES, countryName } from '../../meta/Country.ts';
 import { codeOfFlag, flagSvg, svgFlags } from '../../meta/Flags.ts';
-import { LANGS } from '../../ui/i18n.ts';
+import { LANGS, tr } from '../../ui/i18n.ts';
 import { SKINS } from '../../render/Vehicle.ts';
 import { carImage, logoImg } from '../../ui/shared.ts';
 import { calendarGift, coinPile, giftBox, megaphone, shareNodes, starBig, wifiRobot, phonePlus } from '../../ui/art.ts';
@@ -535,7 +535,26 @@ function continueOv(ui: UI, g: Gfx) {
     const ready = hs.canShowAd('continue');
     const bh = 76;
     if (ready) {
-      button(g, 'contad', x, y, w, bh, 'CONTINUE', () => ui.h.continueAd(), { style: 'gold', size: 26, sub: 'Revive · short ad' });
+      // v4.0.2 (owner: "nút continue lệch"): the approved layout — ▶ disc + two lines, measured and centred
+      // as ONE group in the button (both ways), the AD tag sits outside the text area
+      button(g, 'contad', x, y, w, bh, '', () => ui.h.continueAd(), { style: 'gold', size: 26 });
+      if (!g.dry) {
+        const big = 27,
+          small = 13;
+        const t1 = tr('CONTINUE'),
+          t2 = tr('Revive · short ad');
+        const w1 = g.measure(t1, { size: big, font: 't' }),
+          w2 = g.measure(t2, { size: small, font: 'b' });
+        const disc = 44,
+          gap = 12;
+        const tw = Math.min(w - 40 - disc - gap, Math.max(w1, w2));
+        const gx = x + (w - (disc + gap + tw)) / 2;
+        const cy = y + bh / 2;
+        g.circle(gx + disc / 2, cy, disc / 2, '#3a1d06');
+        g.icon(ICON.play, gx + disc / 2 - 9, cy - 10, 20, '#ffd36a');
+        g.text(t1, gx + disc + gap, cy - 9, { size: big, font: 't', color: '#3a1d06', shadow: null, maxW: tw, noTr: true });
+        g.text(t2, gx + disc + gap, cy + 15, { size: small, font: 'b', color: '#5a3010', shadow: null, maxW: tw, noTr: true });
+      }
       // the ▶ AD tag on the button's top-right corner
       if (!g.dry) {
         const tw = 50;
@@ -592,7 +611,7 @@ function tutdoneOv(ui: UI, g: Gfx) {
     y += 70;
     g.text(p ? `${SPECIAL_SHORT[p].toUpperCase()} PRACTICE DONE` : 'TRAINING COMPLETE', x + w / 2, y, { size: 20, align: 'center', italic: true, maxW: w });
     y += 18;
-    y += g.rich(p ? 'Nice! In a race, carry it in from your <b>Magic Bag</b> — 1 special per race.' : "You're ready! <b>Distance = EXP</b>, and EXP is your rank. Every new rank is guarded by a hard <b>rank gate</b>.", x, y, w, { size: 12.5, align: 'center', font: 'b', color: '#f0dcb4' }) + 8;
+    y += g.rich(p ? 'Nice! In a race, carry it in from your <b>Saddle Bag</b> — 1 special per race.' : "You're ready! <b>Distance = EXP</b>, and EXP is your rank. Every new rank is guarded by a hard <b>rank gate</b>.", x, y, w, { size: 12.5, align: 'center', font: 'b', color: '#f0dcb4' }) + 8;
     if (!p) {
       y += g.rich(`${badge('D')} → ${badge('C')} <small>≈ 3 min on Hard</small>`, x, y, w, { size: 14, align: 'center' }) + 8;
     }
@@ -851,7 +870,7 @@ function profileOv(ui: UI, g: Gfx) {
       g.hit(x, y, w, 50, key, fn);
       y += 58;
     };
-    rowBtn('p-bag', BAG_ICON, 'Magic Bag', 'Specials · 1 per race', 'Open', () => ui.h.bag());
+    rowBtn('p-bag', BAG_ICON, 'Saddle Bag', 'Specials · 1 per race', 'Open', () => ui.h.bag());
     rowBtn('p-ctry', flagSvg(o.country || 'US'), 'Country', countryName(o.country || 'US'), 'Change', () => ui.countryPicker());
     // rank hero
     const cc = CLASS_COLOR[o.cls];
@@ -986,7 +1005,7 @@ function bagOv(ui: UI, g: Gfx) {
   const s = ui.save;
   if (!s) return;
   const pick = ui.bagPick;
-  modal(ui, g, 'bag', { title: 'MAGIC BAG', icon: BAG_ICON }, (x, y, w) => {
+  modal(ui, g, 'bag', { title: 'SADDLE BAG', icon: BAG_ICON }, (x, y, w) => {
     card(g, x, y, w, 38, 10);
     g.icon(ICON.coin, x + 8, y + 8, 22);
     g.text(fmt(s.wallet), x + 36, y + 19, { size: 15, noTr: true });

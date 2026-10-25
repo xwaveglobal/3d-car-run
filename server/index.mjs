@@ -303,12 +303,12 @@ http
           if (run.variant === 'track2') a.verified.exp2Best = Math.max(a.verified.exp2Best, v.exp);
           else a.verified.expBest = Math.max(a.verified.expBest, v.exp);
           a.verified.expWeek = Math.max(a.verified.expWeek, v.exp);
-          // v4.0.2: the board position is the average of the last races — it moves up and down
+          // v4.0.2: Weekly = the average of the last races (moves up and down); All time = the best run
           a.verified.recent = pushRecent(a.verified.recent, v.exp);
           a.verified.recentWeek = pushRecent(a.verified.recentWeek, v.exp);
           // boards use the verified numbers
           const pid = run.playerId ? String(run.playerId) : a.id;
-          for (const [board, score] of [['all', rankScore(a.verified.recent)], [`week:${wk}`, rankScore(a.verified.recentWeek)]]) {
+          for (const [board, score] of [['all', a.verified.expBest], [`week:${wk}`, rankScore(a.verified.recentWeek)]]) {
             const k = `${board}|${pid}`;
             db.scores[k] = { board, playerId: pid, score, at: Date.now() };
           }

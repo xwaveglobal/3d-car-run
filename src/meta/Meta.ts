@@ -215,9 +215,9 @@ export class Meta {
   }
 
   // ------------------------------------------------------------- boards
-  /** v4.0.2: board scores = rank score (average EXP of the last races), not the best run */
+  /** v4.0.2 (owner): All time = best EXP; Weekly = rank score (average EXP of the last races this week) */
   get rankScoreAll() {
-    return rankScore(this.s.expRecent);
+    return this.s.expBest;
   }
   get rankScoreWeek() {
     return rankScore(this.s.expRecentWeek);

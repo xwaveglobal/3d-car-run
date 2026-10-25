@@ -206,6 +206,7 @@ const T: [string, string, string, string, string, string][] = [
   ['PILOT TRAINING', 'ENTRAÎNEMENT', 'パイロット訓練', 'TREINO DE PILOTO', 'PILOTENTRAINING', 'ENTRENAMIENTO'],
   // v1.0.3 text review: static labels that were missing
   ['SADDLE BAG', 'SACOCHE', 'サドルバッグ', 'ALFORJE', 'SATTELTASCHE', 'ALFORJA'],
+  ['Open the Saddle Bag', 'Ouvrir la sacoche', 'サドルバッグを開く', 'Abrir o alforje', 'Satteltasche öffnen', 'Abrir la alforja'],
   ['BUY ITEMS', 'ACHETER', 'アイテム購入', 'COMPRAR ITENS', 'ITEMS KAUFEN', 'COMPRAR OBJETOS'],
   ['Check-in', 'Présence', 'チェックイン', 'Check-in', 'Check-in', 'Registro diario'],
   ['Claim today', 'Récupérer', '今日の分を受け取る', 'Coletar hoje', 'Heute abholen', 'Cobrar hoy'],

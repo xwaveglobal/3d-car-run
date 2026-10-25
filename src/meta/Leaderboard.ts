@@ -122,9 +122,8 @@ export function weekProgress(now = new Date()) {
 }
 
 export function allTimeBoard(you: { name: string; score: number; color: string; pass?: boolean; av?: number; flag?: string }): Board {
-  // v2: boards rank EXP. v4.0.2: a pilot's board score is the average of their last 5 races (≈ 80 % of a
-  // best run), so the rival field sits 20 % lower than the old best-run curve.
-  const curve: Curve = { top: 46400, k: 0.985, total: 248_316 };
+  // v2: boards rank EXP. v4.0.2 (owner): All time = the BEST run (Weekly = the average of the last 5 races)
+  const curve: Curve = { top: 58000, k: 0.985, total: 248_316 };
   return rankBoard(sampleBoard('xwave-all-time-v2', curve), curve, you);
 }
 
