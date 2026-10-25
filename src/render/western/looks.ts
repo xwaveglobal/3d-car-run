@@ -157,13 +157,13 @@ export const DUST = {
   // v4.0.2 (owner, plan 1 + 2): thin streaks that only appear at speed (≈ 120 km/h and up) and thicken
   // towards top speed / Nitro; a short puff on lane changes and landings
   from: 33,
-  rate: 9,
+  rate: 12,
   size: 0.42,
-  life: 0.5,
+  life: 0.45,
   /** streak length (m) at the start of the range and at top speed, width (m) */
-  lenMin: 0.8,
-  lenMax: 3.2,
-  width: 0.34,
+  lenMin: 0.5,
+  lenMax: 1.8,
+  width: 0.24,
   landColor: 0xd8b88a,
   color: {
     city: 0xdcc090, cloud: 0xd0a078, mega: 0xd8b890, harbor: 0xc8b8a0, solar: 0xe0c898, tunnel: 0x8a6a4a,

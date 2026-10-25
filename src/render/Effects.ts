@@ -138,6 +138,31 @@ export class Particles {
 const tmpC = new THREE.Color();
 const tmpC2 = new THREE.Color();
 
+/** a dust streak: soft across, dense at the tyre end (top, v = 1) fading out toward the tail */
+function streakTexture() {
+  const c = document.createElement('canvas');
+  c.width = 32;
+  c.height = 128;
+  const g = c.getContext('2d')!;
+  const along = g.createLinearGradient(0, 0, 0, 128);
+  along.addColorStop(0, 'rgba(255,255,255,0.95)');
+  along.addColorStop(0.35, 'rgba(255,255,255,0.55)');
+  along.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = along;
+  g.fillRect(0, 0, 32, 128);
+  // soft sides
+  g.globalCompositeOperation = 'destination-in';
+  const across = g.createLinearGradient(0, 0, 32, 0);
+  across.addColorStop(0, 'rgba(0,0,0,0)');
+  across.addColorStop(0.5, 'rgba(0,0,0,1)');
+  across.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = across;
+  g.fillRect(0, 0, 32, 128);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
 /**
  * v4.0.2 (owner: "khói nhanh, giống thật" → plan 1 + 2): thin dust streaks behind the rear tyres, lying on
  * the road and stretched along the direction of travel — longer with speed. One instanced draw call; each
@@ -161,7 +186,7 @@ export class DustStreaks {
   private mat: THREE.MeshBasicMaterial;
 
   constructor() {
-    this.mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xe8c890, transparent: true, opacity: 0.4, depthWrite: false });
+    this.mat = new THREE.MeshBasicMaterial({ map: streakTexture(), color: 0xe8c890, transparent: true, opacity: 0.55, depthWrite: false });
     this.mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), this.mat, this.n);
     this.mesh.frustumCulled = false;
     this.mesh.count = this.n;
@@ -193,12 +218,12 @@ export class DustStreaks {
       this.life[i] -= dt;
       // the dust hangs in the car's slipstream: it trails just behind the tyres and drifts back slowly
       // (fixed to the road it would pass the camera in a tenth of a second at top speed)
-      this.z[i] += Math.min(worldSpeed, 60) * 0.14 * dt;
+      this.z[i] += Math.min(worldSpeed, 60) * 0.05 * dt;
       const k = Math.max(0, this.life[i] / this.max[i]);
       // fade in fast, then thin out and grow a little longer
       const a = Math.min(1, (1 - k) * 6) * k;
       this.p.set(this.x[i], this.y[i], this.z[i] + this.len[i] / 2);
-      this.sc.set(this.wid[i] * (0.4 + a * 0.9), this.len[i] * (1 + (1 - k) * 0.5), 1);
+      this.sc.set(this.wid[i] * (0.5 + a * 0.7), this.len[i] * (1 + (1 - k) * 0.3), 1);
       this.m.compose(this.p, this.q, this.sc);
       this.mesh.setMatrixAt(i, this.m);
     }
