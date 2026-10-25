@@ -96,23 +96,23 @@ export const hs = {
   adError: (): string => String((HSGame as unknown as { lastAdError?: string }).lastAdError ?? ''),
   /** one line for the hidden test info: is each ad place ready right now */
   adLine(): string {
-    const p = (k: string) => (HSGame.canShowAd(k) ? '✓' : '✗');
-    return `ads ${HSGame.has('ads') ? 'on' : 'OFF'} · revive ${p('rw_revive')} end ${p('rw_end_bonus')} free ${p('rw_free_coins')} int ${p('int_race_end')} · last: ${hs.adError() || '-'}`;
+    const m = (ok: unknown) => (ok ? '✓' : '✗');
+    return `ads ${HSGame.has('ads') ? 'on' : 'OFF'} · life ${m(HSGame.canShowAd('car_run-life'))} end ${m(HSGame.canShowAd('car_run-end'))} free ${m(HSGame.canShowAd('car_run-free-coin'))} int ${m(HSGame.canShowAd('car-run-int'))} · last: ${hs.adError() || '-'}`;
   },
 
   // ---- ad places (no reward entry: watching lets the game go on / pays the game's own amount)
   canShowAd(place: string): boolean {
     switch (place) {
       case 'continue':
-        return !!HSGame.canShowAd('rw_revive');
+        return !!HSGame.canShowAd('car_run-life');
       case 'double_coins':
-        return !!HSGame.canShowAd('rw_end_bonus');
+        return !!HSGame.canShowAd('car_run-end');
       case 'free_coins':
-        return !!HSGame.canShowAd('rw_free_coins');
+        return !!HSGame.canShowAd('car_run-free-coin');
       case 'head_start':
         return false; // v4.0.2 (owner): the Head Start ad is gone
       default:
-        return !!HSGame.canShowAd('int_race_end');
+        return !!HSGame.canShowAd('car-run-int');
     }
   },
   /** resolves true when the ad was watched to the end */
@@ -120,13 +120,13 @@ export const hs = {
     let r: unknown = null;
     switch (place) {
       case 'continue':
-        r = await HSGame.showAd('rw_revive');
+        r = await HSGame.showAd('car_run-life');
         break;
       case 'double_coins':
-        r = await HSGame.showAd('rw_end_bonus');
+        r = await HSGame.showAd('car_run-end');
         break;
       case 'free_coins':
-        r = await HSGame.showAd('rw_free_coins');
+        r = await HSGame.showAd('car_run-free-coin');
         break;
       default:
         r = null; // (head_start: removed in v4.0.2)
@@ -136,7 +136,7 @@ export const hs = {
     return ok;
   },
   async interstitial(): Promise<void> {
-    await HSGame.showAd('int_race_end');
+    await HSGame.showAd('car-run-int');
   },
 
   // ---- share (reward of key "share", once a day, added to the profile by HSGame)

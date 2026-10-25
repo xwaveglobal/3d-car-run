@@ -138,6 +138,76 @@ export class Particles {
 const tmpC = new THREE.Color();
 const tmpC2 = new THREE.Color();
 
+/**
+ * v4.0.2 (owner: "khói nhanh, giống thật" → plan 1 + 2): thin dust streaks behind the rear tyres, lying on
+ * the road and stretched along the direction of travel — longer with speed. One instanced draw call; each
+ * streak thins out over its short life (no per-instance alpha needed).
+ */
+export class DustStreaks {
+  mesh: THREE.InstancedMesh;
+  private n = 64;
+  private x = new Float32Array(this.n);
+  private y = new Float32Array(this.n);
+  private z = new Float32Array(this.n);
+  private life = new Float32Array(this.n);
+  private max = new Float32Array(this.n);
+  private len = new Float32Array(this.n);
+  private wid = new Float32Array(this.n);
+  private head = 0;
+  private m = new THREE.Matrix4();
+  private q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0));
+  private p = new THREE.Vector3();
+  private sc = new THREE.Vector3();
+  private mat: THREE.MeshBasicMaterial;
+
+  constructor() {
+    this.mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color: 0xe8c890, transparent: true, opacity: 0.32, depthWrite: false });
+    this.mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), this.mat, this.n);
+    this.mesh.frustumCulled = false;
+    this.mesh.count = this.n;
+    this.m.makeScale(0, 0, 0);
+    for (let i = 0; i < this.n; i++) this.mesh.setMatrixAt(i, this.m);
+  }
+  setColor(c: number) {
+    this.mat.color.setHex(c);
+  }
+  /** a streak at (x, y, z), `len` metres long (along the road), `w` wide, living `life` seconds */
+  emit(x: number, y: number, z: number, len: number, w: number, life: number) {
+    const i = this.head;
+    this.head = (this.head + 1) % this.n;
+    this.x[i] = x;
+    this.y[i] = y;
+    this.z[i] = z;
+    this.len[i] = len;
+    this.wid[i] = w;
+    this.life[i] = life;
+    this.max[i] = life;
+  }
+  update(dt: number, worldSpeed: number) {
+    for (let i = 0; i < this.n; i++) {
+      if (this.life[i] <= 0) {
+        this.m.makeScale(0, 0, 0);
+        this.mesh.setMatrixAt(i, this.m);
+        continue;
+      }
+      this.life[i] -= dt;
+      // the dust stays where it was kicked up (the road scrolls past), drifting back a little slower
+      this.z[i] += worldSpeed * 0.85 * dt;
+      const k = Math.max(0, this.life[i] / this.max[i]);
+      // fade in fast, then thin out and grow a little longer
+      const a = Math.min(1, (1 - k) * 6) * k;
+      this.p.set(this.x[i], this.y[i], this.z[i] + this.len[i] / 2);
+      this.sc.set(this.wid[i] * (0.4 + a * 0.9), this.len[i] * (1 + (1 - k) * 0.5), 1);
+      this.m.compose(this.p, this.q, this.sc);
+      this.mesh.setMatrixAt(i, this.m);
+    }
+    this.mesh.instanceMatrix.needsUpdate = true;
+  }
+  clear() {
+    this.life.fill(0);
+  }
+}
+
 /** Streaking speed lines around the camera; intensity follows speed/turbo. */
 /**
  * Speed streaks: long light trails rushing past along BOTH SIDES of the road (rails, building

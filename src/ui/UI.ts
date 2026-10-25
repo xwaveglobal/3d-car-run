@@ -195,7 +195,7 @@ export interface RunRankData {
   clsLo: number;
   clsHi: number;
   clsUp: RankClass | null;
-  /** the panel's one ad: ×2 this race's coins (rw_end_bonus) or free coins (rw_free_coins) */
+  /** the panel's one ad: ×2 this race's coins (car_run-end) or free coins (car_run-free-coin) */
   ad: { kind: 'x2' | 'free'; amount: number } | null;
   /** v4.0.2 (owner mock-up): the weekly rows around the player (3 above, the player, 3 below) */
   rows: LbRow[];

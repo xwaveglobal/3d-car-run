@@ -9,6 +9,7 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 - Done: see README v4.0.2 (revive panel, rank panel + one ad, 5-race average board position on client + server, instant Restart / Home, Finish card, Pause camera, More / Check-in / header / perk buttons, HUD specials, XWAVE wordmark, dust, LOW preset, Head Start ad removed, iOS audio guard, 110 → 70 boot shader programs).
 - Owner rules settled: Class never drops; board position = average of last 5 EXP races; Restart = last special else next in bag; interstitial only from the race-end panels; revive ad cooldown 0; free coins also in Shop.
 - Next: the HS dashboard must mirror tiktok.hs-dashboard.json (no rw_head_start, rw_revive cooldown 0); domain list needs games.wafflescouts.com; GLB is a data URL (base64 decode at boot) — a file load would shave more on Android.
+- Later the same day: weekly-board rank panel, softer coins, ad places renamed (car_run-life / car_run-end / car_run-free-coin / car-run-int — the phone log said "not configured": the HS dashboard Ads Config must be pasted with these labels), dust streaks (plan 1 + 2), Western reward popups, HUD BEATEN/NEXT, Home prewarm + 1.2 s loading minimum, offline check.
 - Not pushed (owner: push only when asked).
 
 ## 2026-10-25 — v4.0.1 (branch `v4.0`): Gold Rush window + iPhone first load

@@ -862,3 +862,8 @@ html, body { background: var(--bg); }
 #ui #runrank.up .rp-trail { background: linear-gradient(to bottom, rgba(95,224,138,.8), rgba(95,224,138,0)); }
 #ui #runrank.down .rp-trail { background: linear-gradient(to top, rgba(255,122,106,.8), rgba(255,122,106,0)); }
 #ui #runrank .rp-foot { margin-top: 8px; font: 800 11.5px var(--font-body); color: #c9ad80; }
+
+/* v4.0.2 HUD: "BEST BEATEN!" never runs into "NEXT" */
+#ui #hud .scorebox .hbest b { white-space: nowrap; }
+#ui #hud .scorebox .hnext { margin-left: auto; padding-left: 10px; white-space: nowrap; }
+#ui #hud .scorebox .hbest.beat i { display: none; }

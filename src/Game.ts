@@ -32,7 +32,7 @@ import { ObstacleViews } from './render/ObstacleViews.ts';
 import { PickupViews, POWER_COLORS } from './render/PickupViews.ts';
 import { READABILITY, COMFORT } from './render/Readability.ts';
 import { setObstacleContrast, OBSTACLE_FX } from './render/ObstacleViews.ts';
-import { Particles, SpeedLines, RingPulses, Debris, makePortal } from './render/Effects.ts';
+import { DustStreaks, Particles, SpeedLines, RingPulses, Debris, makePortal } from './render/Effects.ts';
 import { COLLISION_DEBUG, DebugCollision } from './render/DebugCollision.ts';
 import { PerfRecorder } from './core/perf.ts';
 import { Audio } from './audio/Audio.ts';
@@ -154,6 +154,8 @@ export class Game {
   particles: Particles;
   /** soft (non-glowing) smoke & dust */
   smoke: Particles;
+  /** v4.0.2 thin dust streaks behind the tyres */
+  private streaks = new DustStreaks();
   speedLines = new SpeedLines();
   rings = new RingPulses();
   debris = new Debris();
@@ -298,6 +300,7 @@ export class Game {
     this.smoke = new Particles(this.renderer.pixelRatio, false);
     this.particles.density = this.smoke.density = GRAPHICS[this.renderer.quality].particles;
     this.renderer.scene.add(this.smoke.points);
+    this.renderer.scene.add(this.streaks.mesh);
     scene.add(this.bonusTunnels.group);
     scene.add(this.particles.points, this.speedLines.lines, this.rings.group, this.debris.group, this.shatter.group, this.vehicle.crash.group, this.portal.group, this.startArch, this.finishArch);
 
@@ -669,12 +672,27 @@ export class Game {
       }
     }
     bootMark('prewarm frame');
+    // v4.0.2 (owner: the first Home frame stalled ~1.4 s on iPhone): draw Home once under the loading screen
+    // so its shaders and textures are ready before the player sees it
+    try {
+      this.homeView.attach(this.vehicle.root);
+      this.renderer.render();
+    } catch (e) {
+      console.warn('[boot] home prewarm', e);
+    } finally {
+      this.homeView.active = false;
+      this.renderer.scene.add(this.vehicle.root);
+      this.vehicle.root.rotation.set(0, 0, 0);
+      this.vehicle.root.position.x = this.world.player.x;
+    }
+    bootMark('home prewarm');
     this.ui.setLoading(0.92);
     // let the loading key art be seen (≥1.6 s from page start), never a blank flash; the bar keeps
     // running and only reaches 100 % right before the menu (v4.6 owner: "Loading", never "Ready")
-    await new Promise((r) => window.setTimeout(r, Math.max(0, 2200 - performance.now())));
+    // v4.0.2: boot is fast now — the key art only needs a short look
+    await new Promise((r) => window.setTimeout(r, Math.max(0, 1200 - performance.now())));
     this.ui.setLoading(1);
-    await new Promise((r) => window.setTimeout(r, 350));
+    await new Promise((r) => window.setTimeout(r, 150));
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.installPrompt = e as unknown as { prompt(): Promise<void> };
@@ -1428,6 +1446,7 @@ export class Game {
     const t0 = performance.now();
     let ok = false;
     try {
+      this.adLoadingToast();
       ok = await this.ads.rewarded('continue');
     } finally {
       this.holdContinue = hold;
@@ -1491,6 +1510,7 @@ export class Game {
 
   private async adFreeCoins() {
     if (this.freeCoinsLeft() <= 0) return;
+    this.adLoadingToast();
     const ok = await this.ads.rewarded('free_coins');
     if (!ok) return this.noAdToast();
     this.save.adFreeCount = (this.save.adFreeCount ?? 0) + 1;
@@ -2230,6 +2250,7 @@ export class Game {
     this.shatter.clear();
     this.particles.clear();
     this.smoke.clear();
+    this.streaks.clear();
     this.debris.clear();
     this.vehicle.crash.clear();
     this.portal.group.visible = false;
@@ -2286,22 +2307,24 @@ export class Game {
       this.sprayAcc = 0;
       return;
     }
-    const k = clamp((speed - DUST.from) / (SPEED.max - DUST.from), 0, 1);
-    const nitro = this.run?.turboT ? 1.6 : 1;
-    this.sprayAcc += dt * DUST.rate * (0.35 + 0.65 * k) * nitro;
-    const col = DUST.color[this.scenery.world] ?? DUST.color.city!;
+    // v4.0.2 (owner, plan 1 + 2): thin streaks along the road, only at speed, longer and denser with speed
+    const k = clamp((speed - DUST.from) / (SPEED.max * LEVELS[this.runLevel].speed - DUST.from), 0, 1);
+    const nitro = this.run?.turboT ? 1.7 : 1;
+    this.sprayAcc += dt * DUST.rate * (0.4 + 0.6 * k) * nitro * GRAPHICS[this.renderer.quality].particles;
+    this.streaks.setColor(DUST.color[this.scenery.world] ?? DUST.color.city!);
     while (this.sprayAcc >= 1) {
       this.sprayAcc -= 1;
       for (const side of [-1, 1] as const) {
         const q = this.vehicle.rearTyreWorld(side, this.sprayPos);
-        this.smoke.emit(
-          q.x + side * 0.15 + (Math.random() - 0.5) * 0.2, q.y + 0.05, q.z + 0.3,
-          side * (0.25 + Math.random() * 0.5), 0.3 + Math.random() * 0.5, 2 + Math.random() * 2,
-          col, DUST.size * (0.85 + Math.random() * 0.3), DUST.life * (0.8 + Math.random() * 0.4),
-          { locked: true, drag: 2.6, grow: 2.8 },
-        );
+        const len = (DUST.lenMin + (DUST.lenMax - DUST.lenMin) * k) * (nitro > 1 ? 1.3 : 1) * (0.8 + Math.random() * 0.4);
+        this.streaks.emit(q.x + side * 0.08 + (Math.random() - 0.5) * 0.14, 0.03 + Math.random() * 0.03, q.z + 0.25, len, DUST.width * (0.8 + Math.random() * 0.4), DUST.life * (0.8 + Math.random() * 0.4));
       }
     }
+  }
+  /** a short, soft dust puff off the tyres (lane change, touch-down) */
+  private dustPuff(x: number, z: number, n: number, push: number) {
+    const col = DUST.color[this.scenery.world] ?? DUST.color.city!;
+    for (let i = 0; i < n; i++) this.smoke.emit(x + (Math.random() - 0.5) * 0.5, 0.1, z + Math.random() * 0.6, push * (0.6 + Math.random() * 0.8), 0.4 + Math.random() * 0.4, 1.5 + Math.random(), col, 0.34, 0.45, { drag: 3, grow: 1.8, locked: true });
   }
 
 
@@ -2455,11 +2478,9 @@ export class Game {
           }
         } else {
           // on the road: a light tyre spray off the outside wheels
-          for (const i of [0, 1, 2, 3]) {
-            const w = this.vehicle.contactWorld(i, this.tmpV);
-            if (Math.sign(w.x - p.x) !== -dir) continue;
-            for (let k = 0; k < 4; k++) this.particles.emit(w.x, 0.08, w.z, -dir * (1.5 + Math.random() * 2), 0.6 + Math.random(), 1, 0xbcd6ff, 0.12, 0.3, { drag: 3, locked: true, grow: 1.2 });
-          }
+          // v4.0.2: a short dust puff off the outside rear tyre
+          const w = this.vehicle.rearTyreWorld(-dir as -1 | 1, this.tmpV);
+          this.dustPuff(w.x, w.z, 3, -dir * 1.6);
         }
         this.rig.fovKick += 1;
       },
@@ -3636,6 +3657,7 @@ export class Game {
       return;
     }
     if (this.lastResult.doubled) return;
+    this.adLoadingToast();
     const ok = await this.ads.rewarded('double_coins');
     if (!ok) return this.noAdToast();
     const run = this.run;
@@ -3648,6 +3670,11 @@ export class Game {
     this.ui.refreshProfile(this.save);
     this.ui.toast(`${ICON.coin} ×2 · +${fmtInt(extra)} coins`, 'var(--gold)');
     this.audio.play('mission');
+  }
+
+  /** v4.0.2 (owner: the first ad "freezes"): say at once that the ad is on its way (TikTok loads it for up to 8 s) */
+  private adLoadingToast() {
+    if (platform.native) this.ui.toastNow(`${ICON.play} Loading ad…`, '#ffc848');
   }
 
   /** v4.0.2: an ad that did not play says so (with HSGame's reason on the phone) */
@@ -3730,6 +3757,7 @@ export class Game {
       this.pickupViews.update(w.pickups, this.time, this.rig.camera.quaternion);
       this.particles.update(dt, 0);
       this.smoke.update(dt, 0);
+      this.streaks.update(dt, 0);
       this.rings.update(dt, 0);
       this.updateTrails(dt, 9, 0);
       return;
@@ -3762,6 +3790,7 @@ export class Game {
     const scroll = this.state === 'countdown' ? 0 : w.speed;
     this.particles.update(dt, scroll);
     this.smoke.update(dt, scroll);
+    this.streaks.update(dt, scroll);
     this.rings.update(dt, scroll);
     this.debris.update(dt, this.state === 'run' ? this.world.speed : 0);
     this.shatter.update(dt);

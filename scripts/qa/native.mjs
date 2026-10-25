@@ -267,7 +267,7 @@ try {
       await b.click();
     };
     if (st2 === 'continue') {
-      check(true, 'last crash → revive offer (rewarded ad place rw_revive)');
+      check(true, 'last crash → revive offer (rewarded ad place car_run-life)');
       // 1) the ad closed early → no revive, the offer stays (countdown resumes)
       await tap('contad');
       await adAnswer('Closed early');

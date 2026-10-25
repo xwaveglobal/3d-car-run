@@ -2,7 +2,7 @@
   "iaa_config": {
     "placements": [
       {
-        "label": "rw_revive",
+        "label": "car_run-life",
         "ads": [
           {
             "id": "ad7699423177315469319",
@@ -13,7 +13,7 @@
         ]
       },
       {
-        "label": "rw_end_bonus",
+        "label": "car_run-end",
         "ads": [
           {
             "id": "ad7699414834114840594",
@@ -24,7 +24,7 @@
         ]
       },
       {
-        "label": "rw_free_coins",
+        "label": "car_run-free-coin",
         "ads": [
           {
             "id": "ad7699414196535052296",
@@ -35,7 +35,7 @@
         ]
       },
       {
-        "label": "int_race_end",
+        "label": "car-run-int",
         "ads": [
           {
             "id": "ad7699420040583989266",

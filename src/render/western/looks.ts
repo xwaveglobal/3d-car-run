@@ -154,11 +154,16 @@ export const ROAD_STYLE: Record<WorldId, RoadStyle> = {
  * per tyre at full speed (× the preset's particle density), size, life, and the dust colour per place.
  */
 export const DUST = {
-  from: 14,
-  // v4.0.2 (owner: "khói sau xe xấu ko mượt, làm nhẹ hơn"): more, smaller, softer puffs → a smooth light trail
-  rate: 24,
+  // v4.0.2 (owner, plan 1 + 2): thin streaks that only appear at speed (≈ 120 km/h and up) and thicken
+  // towards top speed / Nitro; a short puff on lane changes and landings
+  from: 33,
+  rate: 9,
   size: 0.42,
-  life: 1.0,
+  life: 0.5,
+  /** streak length (m) at the start of the range and at top speed, width (m) */
+  lenMin: 0.8,
+  lenMax: 3.2,
+  width: 0.34,
   landColor: 0xd8b88a,
   color: {
     city: 0xdcc090, cloud: 0xd0a078, mega: 0xd8b890, harbor: 0xc8b8a0, solar: 0xe0c898, tunnel: 0x8a6a4a,

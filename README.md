@@ -200,6 +200,12 @@ Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder M
 - **Layout**: More badge inside its tile; Check-in Day 7 is a double-width prize (600 + Launcher); page titles next to Back; Launch / Share / Entry spaced out in the wood + brass style; HUD special buttons on a deep leather disc with a bigger glowing icon.
 - **XWAVE wordmark** (owner's white logo): the car's rear badge (bigger plate), roadside boards (every third on the right), "by XWAVE" on loading, the Settings footer, the share card.
 - Softer coins (less mirror metal, slower spin, faint halo, soft pickup sparkle); lighter, smoother tyre dust; LOW preset lighter for old phones (1× pixels); Head Start ad removed.
+- **Ad places renamed** (owner): `car_run-life` (revive), `car_run-end` (×2 race coins), `car_run-free-coin` (free coins), `car-run-int` (interstitial) — the HS dashboard's Ads Config must use exactly these labels. A tap on an ad says "Loading ad…" at once.
+- **Dust, plan 1 + 2**: thin streaks lying on the road behind the rear tyres, stretched along the travel direction, only from ≈ 120 km/h, longer and denser with speed / Nitro (`DustStreaks`, one instanced draw call); a short soft puff on lane changes and touch-downs.
+- **Reward popups** (Launch / Share / Entry) in the Western style: wood step rows with gold number plates, gold GO, brass share card; GO shows "Opening TikTok…" right away.
+- HUD: "BEST BEATEN!" never runs into "NEXT" (short ✓ when tight).
+- First load: Home is drawn once under the loading screen (no first-frame stall), the key art's minimum time is 1.2 s.
+- Offline: nothing waits on the network (local save, HS starts in the background); tested race → panels → Restart / Home / Share with the network cut.
 - Ads: a reward ad that does not play says why (HSGame.lastAdError) and the hidden test info (tap the version 5×) lists every ad place's state.
 - iPhone: `suspend()` / `resume()` guarded (TikTok iOS returns nothing); the save on leaving the app runs first.
 - Boot: the world's shaders are compiled for the target they are drawn into (110 → 70 programs at boot; Android "prewarm" was 4.6 s).

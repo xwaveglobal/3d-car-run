@@ -129,7 +129,13 @@ export function drawHud(ui: UI, g: Gfx) {
       g.text('YOU', ix, fy, { size: 8.5, color: C.muted, font: 'b', weight: 800, noTr: true, shadow: null });
       shieldBadge(g, ui.hudMe, ix + 22, fy - 7, 14);
       g.text('BEST', ix + 42, fy, { size: 8.5, color: C.muted, font: 'b', weight: 800, noTr: true, shadow: null });
-      g.text(beat ? 'BEATEN!' : fmt(ui.hudBest), ix + 67, fy, { size: 11, color: beat ? C.gold : '#fff', font: 'b', weight: 900, noTr: true, shadow: null });
+      // v4.0.2 (owner: "BEATEN!" ran into NEXT): keep a gap before the NEXT group, else a short ✓
+      let bt = beat ? 'BEATEN!' : fmt(ui.hudBest);
+      if (showNext && nx) {
+        const nextLeft = rx - g.measure(fmt(CLASS_MIN[nx] - exp), { size: 11, font: 'b', weight: 900 }) - 22 - g.measure('NEXT', { size: 8.5, font: 'b', weight: 800 });
+        if (ix + 67 + g.measure(bt, { size: 11, font: 'b', weight: 900 }) + 10 > nextLeft) bt = beat ? '✓' : bt;
+      }
+      g.text(bt, ix + 67, fy, { size: 11, color: beat ? C.gold : '#fff', font: 'b', weight: 900, noTr: true, shadow: null });
     }
     if (showNext && nx) {
       const need = fmt(CLASS_MIN[nx] - exp);

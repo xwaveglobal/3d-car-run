@@ -1176,22 +1176,24 @@ function popupOv(ui: UI, g: Gfx) {
   const close = () => ui.closePopup();
   const head = (art: string, title: string, x: number, y: number, w: number) => {
     g.icon(art, x, y - 4, 40);
-    g.text(title, x + 48, y + 16, { size: 18, italic: true, maxW: w - 96 });
+    // v4.0.2 (owner): the Western title (Rye, upright, dark outline) like every other panel
+    g.text(title, x + 48, y + 16, { size: 19, font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: w - 96 });
     iconBtn(g, 'pop-x', x + w - 32, y, 34, ICON.close, close);
     return y + 48;
   };
   const coinBig = (n: number, x: number, y: number, w: number, pre = 'x') => {
     g.icon(coinPile(230, 126), x + w / 2 - 90, y, 180, '#fff', 98);
-    g.text(`${pre}${fmt(n)}`, x + w / 2, y + 112, { size: 28, align: 'center', italic: true, color: C.gold, stroke: '#4a2a00', strokeW: 4, noTr: true });
+    g.text(`${pre}${fmt(n)}`, x + w / 2, y + 112, { size: 28, align: 'center', color: C.gold, stroke: '#4a2a00', strokeW: 4, noTr: true });
     return y + 134;
   };
   const steps = (list: [string, boolean][], x: number, y: number, w: number) => {
     list.forEach(([t, done], i) => {
-      card(g, x, y, w, 40, 10, done ? C.green : 'rgba(167,123,255,.4)');
-      g.circle(x + 20, y + 20, 12, done ? C.green : '#8a3dff');
+      // v4.0.2 (owner): wood rows with a brass rim and gold number plates (no purple)
+      g.rr(x, y, w, 40, 10, 'rgba(36,20,8,.74)', done ? C.green : 'rgba(217,168,90,.55)', 1.2);
+      g.circle(x + 20, y + 20, 12, done ? C.green : g.lin(0, y + 8, 0, y + 32, [[0, '#ffd77a'], [1, '#d98c22']]), done ? null : '#7a4a14', 1.2);
       if (done) g.icon(ICON.check, x + 12, y + 12, 16, '#fff');
-      else g.text(String(i + 1), x + 20, y + 20.5, { size: 12, align: 'center', noTr: true });
-      g.text(t, x + 42, y + 20, { size: 12, font: 'b', maxW: w - 50 });
+      else g.text(String(i + 1), x + 20, y + 20.5, { size: 12, align: 'center', color: '#3a1c04', shadow: null, noTr: true });
+      g.text(t, x + 42, y + 20, { size: 12, font: 'b', color: '#fff1d0', maxW: w - 50 });
       y += 46;
     });
     return y;
@@ -1232,7 +1234,7 @@ function popupOv(ui: UI, g: Gfx) {
         });
         y += 4;
         if (claimed) button(g, 'pd-claim', x, y, w, 50, `${ICON.check} Come back tomorrow`, () => {}, { style: 'ghost', disabled: true });
-        else button(g, 'pd-claim', x, y, w, 50, 'CLAIM', () => ui.h.popAction('claimdaily'), { style: 'blue', size: 20 });
+        else button(g, 'pd-claim', x, y, w, 50, 'CLAIM', () => ui.h.popAction('claimdaily'), { style: 'gold', size: 20 });
         y += 58;
         g.text(`Streak ${Number(d.streak)} / 7 · missing a day restarts at Day 1`, x + w / 2, y + 4, { size: 10, align: 'center', font: 'b', color: C.muted, noTr: true });
         return y + 14;
@@ -1267,7 +1269,8 @@ function popupOv(ui: UI, g: Gfx) {
         y = steps([['Go to your TikTok profile', done], ['Open "TikTok Minis"', done], ['Open 3D Car Run from there', done], ['Come back and get the reward', done]], x, y, w);
         y = coinBig(rewardOf(hs.entryReward(), 300), x, y + 4, w, '+');
         if (done) button(g, 'pe-go', x, y, w, 50, `${ICON.check} Reward claimed`, () => {}, { style: 'ghost', disabled: true });
-        else button(g, 'pe-go', x, y, w, 54, 'GO', once('entry', () => hs.entryStart()), { style: 'blue', size: 22 });
+        else if (Date.now() - (tapAt.entry ?? 0) < 2500) button(g, 'pe-go', x, y, w, 54, `${ICON.clock} Opening TikTok…`, () => {}, { style: 'gold', size: 17, disabled: true });
+        else button(g, 'pe-go', x, y, w, 54, 'GO', once('entry', () => (ui.dirty = true, hs.entryStart())), { style: 'gold', size: 22 });
         return y + 58;
       }
       case 'launch':
@@ -1277,7 +1280,8 @@ function popupOv(ui: UI, g: Gfx) {
         y = steps([['Tap "Go"', done], ['Add the game to your home screen', done], ['Open the game from the new icon', done], ['Get the reward', done]], x, y, w);
         y = coinBig(rewardOf(hs.launchReward(), 300), x, y + 4, w, '+');
         if (done) button(g, 'pl-go', x, y, w, 50, `${ICON.check} Reward claimed`, () => {}, { style: 'ghost', disabled: true });
-        else button(g, 'pl-go', x, y, w, 54, 'GO', once('launch', () => hs.launchStart()), { style: 'blue', size: 22 });
+        else if (Date.now() - (tapAt.launch ?? 0) < 2500) button(g, 'pl-go', x, y, w, 54, `${ICON.clock} Opening TikTok…`, () => {}, { style: 'gold', size: 17, disabled: true });
+        else button(g, 'pl-go', x, y, w, 54, 'GO', once('launch', () => (ui.dirty = true, hs.launchStart())), { style: 'gold', size: 22 });
         return y + 58;
       }
       case 'share': {
@@ -1286,10 +1290,10 @@ function popupOv(ui: UI, g: Gfx) {
         g.text('Share the game with friends', x + w / 2, y + 4, { size: 14, align: 'center' });
         y += 20;
         const key = 'ps-card';
-        g.rr(x, y, w, 120, 14, g.isPressed(key) ? 'rgba(255,200,90,.22)' : 'rgba(46,28,12,.86)', 'rgba(130,190,255,.35)');
+        g.rr(x, y, w, 120, 14, g.isPressed(key) ? 'rgba(255,200,90,.22)' : 'rgba(46,28,12,.86)', 'rgba(217,168,90,.6)', 1.4);
         g.img(carImage(String(d.vehicle ?? 'zenith')), x + 10, y + 8, w - 20, 84, 'contain');
         g.icon(avatarSvg(Number(d.avatar ?? 0)), x + 12, y + 10, 40);
-        g.rich(`${ICON.share} Tap to share`, x, y + 96, w, { size: 12, align: 'center', color: C.cyan });
+        g.rich(`${ICON.share} Tap to share`, x, y + 96, w, { size: 12, align: 'center', color: '#ffd36a' });
         const share = () => {
           if (shareBusy) return; // the share sheet is already open
           shareBusy = true;
