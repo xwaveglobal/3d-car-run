@@ -19,6 +19,7 @@ import type { RunRewards } from '../../ui/UI.ts';
 import { hs } from '../hs.ts';
 import xwaveWhiteUrl from '../../assets/images/xwave-white.png';
 import { askText } from '../text.ts';
+import { LEVELS } from '../../config.ts';
 
 type Close = 'modal' | 'ov' | 'none';
 interface ModalOpts {
@@ -685,7 +686,22 @@ function settingsOv(ui: UI, g: Gfx) {
         g.hit(bx - 1, ty + 6, 44, 36, `q-${v}`, () => (on ? undefined : ui.h.toggleQuality(v)));
       });
     }
-    y += 228;
+    // v4.0.2 (owner): road level EASY / NORMAL / HARD here too (same setting as the Tracks screen)
+    {
+      const tx = x,
+        ty = y + 224;
+      card(g, tx, ty, w, 48, 12);
+      g.text('★', tx + 19, ty + 24, { size: 16, align: 'center', color: C.gold, noTr: true });
+      g.text('Level', tx + 36, ty + 24, { size: 11.5, maxW: w - 220 });
+      (['easy', 'normal', 'hard'] as const).forEach((v, i) => {
+        const bx = tx + w - 186 + i * 62;
+        const on = s.settings.speed === v;
+        g.rr(bx, ty + 12, 58, 24, 8, on ? g.lin(0, ty + 12, 0, ty + 36, [[0, '#ffd77a'], [1, '#d98c22']]) : 'rgba(255,255,255,.1)', on ? '#7a4a14' : 'rgba(255,255,255,.25)');
+        g.text(LEVELS[v].label, bx + 29, ty + 24, { size: 10.5, align: 'center', color: on ? '#3a1c04' : '#fff', shadow: on ? null : undefined, maxW: 54 });
+        g.hit(bx - 1, ty + 6, 60, 36, `sl-${v}`, () => (on ? undefined : ui.h.setSpeed(v)));
+      });
+    }
+    y += 284;
     const row = (key: string, ic: string, label: string, val: string, fn: () => void) => {
       g.rr(x, y, w, 44, 12, g.isPressed(key) ? 'rgba(255,200,90,.18)' : 'rgba(46,28,12,.82)', 'rgba(190,150,100,.4)');
       g.text(ic, x + 18, y + 22, { size: 16, align: 'center', noTr: true });

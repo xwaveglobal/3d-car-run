@@ -358,6 +358,15 @@ function onMove(e: any) {
   }
 }
 function onEnd(e: any) {
+  // v4.0.2 (owner, iPhone: "no sound on the first play until Settings is tapped"): WebKit only accepts
+  // touchEND as the user activation that starts audio — touchstart created the context suspended, and only
+  // the Settings switches (they run on touch end) resumed it. Unlock / resume on every touch end too.
+  try {
+    const a = (game as any)?.audio;
+    if (a && !a.running) a.unlock();
+  } catch {
+    /* ignore */
+  }
   const list = e?.changedTouches ?? [];
   let mine = !list.length;
   for (const t of list) if ((t.identifier ?? 0) === touchId) mine = true;

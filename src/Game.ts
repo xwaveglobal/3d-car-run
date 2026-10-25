@@ -1,4 +1,4 @@
-import { bootFrame, bootMark } from './core/bootMark.ts';
+import { bootFrame, bootMark, watchStart } from './core/bootMark.ts';
 import { countryName, detectCountry, flagOf, guessCountry } from './meta/Country.ts';
 import { WORLD_THEME } from './western/themes.ts';
 import { ITEM_LABEL, ITEM_SUB } from './western/items.ts';
@@ -653,10 +653,18 @@ export class Game {
       // v3.0.9: compile the pooled (hidden) obstacle / pickup meshes too — compile() skips invisible
       // objects, so their shaders were built on the first race frames (the hitch at race start)
       const hidden: THREE.Object3D[] = [];
+      // v4.0.2 (owner: "bấm GO bị lâu"): compile() builds the programs but uploads nothing — pooled objects
+      // sit off-camera, so their geometry and textures went to the GPU on the first race frames (a ~1 s
+      // hitch right after GO). Draw everything once here, culling off, so the upload happens under loading.
+      const culled: THREE.Object3D[] = [];
       this.renderer.scene.traverse((o) => {
         if (!o.visible) {
           hidden.push(o);
           o.visible = true;
+        }
+        if (o.frustumCulled) {
+          culled.push(o);
+          o.frustumCulled = false;
         }
       });
       try {
@@ -669,6 +677,7 @@ export class Game {
         console.warn('[boot] prewarm', e);
       } finally {
         for (const o of hidden) o.visible = false;
+        for (const o of culled) o.frustumCulled = true;
       }
     }
     bootMark('prewarm frame');
@@ -2059,9 +2068,11 @@ export class Game {
     }
     if (id !== 'track2') id = 'endless'; // v2: the old 20 courses are retired
     this.variant = id === 'track2' ? 'track2' : 'endless';
+    watchStart('GO');
     this.save.track = id;
     this.course = null;
     this.persist();
+    bootMark('save');
     this.startRun();
   }
 
@@ -2086,11 +2097,13 @@ export class Game {
   }
 
   startRun() {
+    watchStart('run');
     this.returnTo = null;
     this.runStartT = this.time;
     this.audio.unlock();
     this.audio.startMusic();
     this.audio.play('click');
+    bootMark('audio');
     this.clearRunVisuals();
     const level = this.runLevel;
     // test shortcut: ?rank=B starts Endless just before the B rank gate (that run's EXP is not saved)
@@ -2143,6 +2156,7 @@ export class Game {
     this.ui.trainHud = this.tutorialMode;
     // fresh race: redraw the HUD at once (never a frame of the previous race's numbers)
     this.ui.updateHud(this.run, this.world.speed, SPEED.max * SPEED.turboMul * LEVELS[level].speed, null);
+    bootMark('world reset + hud');
     this.obstacleViews.setWorld(this.world.world);
     this.xRun = null;
     const xr = !this.tutorialMode && !this.course?.bonus ? arsenalById(this.save.specialX) : null;
@@ -2196,6 +2210,7 @@ export class Game {
     this.pickHudQuest();
     if (!this.course && !this.tutorialMode && !this.debugStart) this.noteWorld('city');
     this.runMissionsDone = [];
+    bootMark('missions');
     this.applySkin(this.save.vehicle);
     this.vehicle.resetPose();
     this.airDashGuard.reset();
@@ -2208,6 +2223,7 @@ export class Game {
     this.startArch.visible = this.finishArch.visible = !!this.course;
     this.startArch.position.z = -14;
     this.finishArch.visible = false;
+    bootMark('car + scenery');
     this.speedScale = 1;
     this.turboK = 0;
     this.setState('countdown');
@@ -2222,6 +2238,7 @@ export class Game {
     this.ui.trackHud(c && !c.bonus ? { section: c.sections[0].name, dist: 0, length: c.length, marks: c.sections.slice(1).map((s) => s.from) } : null); // Gold Rush: the timer plate instead
     if (c) this.ui.banner(c.bonus ? 'GOLD RUSH · 3 MIN' : `TRACK ${COURSES.indexOf(c) + 1} · ${(c.length / 1000).toFixed(1)} KM`, c.name.toUpperCase());
     else if (this.tutorialMode) this.ui.banner(this.trainWorld ? 'ADVANCED TRAINING' : this.tut.title ? 'SPECIAL TRAINING' : 'FIRST RIDE', this.trainWorld ? WORLD_LESSONS[this.trainWorld].name.toUpperCase() : this.tut.title ?? 'DRIVER TRAINING');
+    bootMark('ui');
   }
 
   pause() {

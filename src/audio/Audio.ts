@@ -180,6 +180,11 @@ export class Audio {
       if (this.ctx.state !== 'running') {
         safeCall(this.ctx, 'resume');
         this.prime();
+        // v4.0.2: some runtimes fire no 'statechange' — start the music once the resume has landed
+        const c0 = this.ctx;
+        setTimeout(() => {
+          if (c0.state === 'running') this.onRunning?.();
+        }, 120);
       }
       return;
     }

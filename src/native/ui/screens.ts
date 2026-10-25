@@ -295,14 +295,15 @@ function tracks(ui: UI, g: Gfx) {
   const tw = 104;
   const tx = row.right - tw;
   {
+    // v4.0.2: Training as a brass pill (Western style)
     const k = 'tr-training';
     const pr = g.isPressed(k);
-    g.rr(tx, hy + 3, tw, 34, 17, pr ? 'rgba(255,200,90,.3)' : g.lin(0, hy, 0, hy + 34, [[0, '#2a4fb8'], [1, '#14286e']]), 'rgba(140,190,255,.6)', 1.2);
-    g.icon(ICON.hand, tx + 10, hy + 10, 20, '#ffffff');
-    g.text('Training', tx + 34, hy + 20.5, { size: 13, maxW: tw - 42 });
+    g.rr(tx, hy + 3, tw, 34, 17, g.lin(0, hy, 0, hy + 34, pr ? [[0, '#ffe3a0'], [1, '#e0a040']] : [[0, '#ffd77a'], [1, '#d98c22']]), '#7a4a14', 1.4);
+    g.icon(ICON.hand, tx + 10, hy + 10, 20, '#3a1c04');
+    g.text('Training', tx + 34, hy + 20.5, { size: 13, maxW: tw - 42, color: '#3a1c04', shadow: null });
     g.hit(tx - 4, hy - 2, tw + 8, 44, k, () => ui.h.help());
   }
-  g.text('SELECT TRACK', 62, hy + 20, { size: 18, italic: true, maxW: tx - 62 - 10 });
+  g.text('SELECT TRACK', 62, hy + 20, { size: 19, font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: tx - 62 - 10 });
   const top = Math.max(hy + 50, safeTop(g) + 4);
   const col = column(g);
   const rank = playerRank(s.expBest, s.exp2Best);
@@ -311,6 +312,27 @@ function tracks(ui: UI, g: Gfx) {
   const x = col.x + 12,
     w = col.w - 24;
   scrollList(g, 'tracks', 0, top, g.W, g.H - top - safeBottom(g), (y) => {
+    // ---- v4.0.2 (owner): difficulty before the track — Easy / Normal / Hard (was missing in the native build)
+    {
+      const lvls = ['easy', 'normal', 'hard'] as const;
+      const gap = 8;
+      const bw = (w - gap * 2) / 3;
+      lvls.forEach((k, i) => {
+        const on = s.settings.speed === k;
+        const bx = x + i * (bw + gap);
+        const key = `lv-${k}`;
+        const pr = g.isPressed(key);
+        g.rr(bx, y, bw, 62, 14, on ? g.lin(0, y, 0, y + 62, [[0, '#ffd77a'], [1, '#d98c22']]) : pr ? 'rgba(140,92,50,.75)' : 'rgba(46,28,12,.86)', on ? '#7a4a14' : 'rgba(217,168,90,.55)', on ? 2 : 1.2);
+        const tc = on ? '#3a1c04' : '#f6e3b4';
+        g.text('★'.repeat(i + 1), bx + bw / 2, y + 13, { size: 11, align: 'center', color: on ? '#7a3a08' : '#ffd36a', shadow: null, noTr: true });
+        g.text(LEVELS[k].label, bx + bw / 2, y + 32, { size: 15, align: 'center', color: tc, shadow: null });
+        g.text(`EXP ×${['1.0', '1.05', '1.7'][i]}`, bx + bw / 2, y + 50, { size: 10, align: 'center', font: 'b', color: on ? '#5a2e08' : C.muted, shadow: null, noTr: true });
+        g.hit(bx, y, bw, 62, key, () => ui.h.setSpeed(k));
+      });
+      y += 70;
+      g.text(LEVELS[s.settings.speed].desc, x + w / 2, y + 4, { size: 10.5, align: 'center', font: 'b', color: C.muted, maxW: w });
+      y += 20;
+    }
     const tcard = (key: string, img: string, title: string, sub: string, meta: string, num: string, sel: boolean, locked: boolean, fn: () => void, h = 112) => {
       const pr = g.isPressed(key);
       g.rr(x, y, w, h, 16, '#3a2210', sel ? C.gold : 'rgba(190,150,100,.5)', sel ? 2 : 1);
@@ -319,8 +341,8 @@ function tracks(ui: UI, g: Gfx) {
         g.img(img, x + 1, y + 1, w - 2, h - 2, 'cover', 15);
         g.alpha(1);
       }
-      g.rr(x + 1, y + 1, w - 2, h - 2, 15, g.lin(x, 0, x + w, 0, [[0, 'rgba(4,8,26,.92)'], [0.6, 'rgba(4,8,26,.45)'], [1, 'rgba(4,8,26,0)']]));
-      g.text(title, x + 16, y + 26, { size: 19, italic: true, maxW: w * 0.6 });
+      g.rr(x + 1, y + 1, w - 2, h - 2, 15, g.lin(x, 0, x + w, 0, [[0, 'rgba(26,13,4,.92)'], [0.6, 'rgba(26,13,4,.45)'], [1, 'rgba(26,13,4,0)']]));
+      g.text(title, x + 16, y + 26, { size: 19, font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: w * 0.6 });
       g.rich(sub, x + 16, y + 40, w * 0.62, { size: 11, font: 'b', color: C.muted });
       g.rich(meta, x + 16, y + h - 34, w * 0.75, { size: 13 });
       g.circle(x + w - 24, y + 24, 14, 'rgba(0,0,0,.5)', 'rgba(255,255,255,.5)');
@@ -331,18 +353,18 @@ function tracks(ui: UI, g: Gfx) {
     };
     tcard('tr-endless', thEndless, 'Endless', `<b>${lv}</b> · The rank road · D → AAA`, `${BOLT} <b>${fmt(s.expBest)}</b> <span class="clsb" style="--cc:${CLASS_COLOR[classFor(s.expBest)]}">${CLASSES[Math.min(5, CLASSES.indexOf(classFor(s.expBest)))]}</span>`, '1', s.track !== 'track2', false, () => ui.h.pickTrack('endless'));
     if (aaa)
-      tcard('tr-t2', thMega, 'Mega Rush', `<b>${lv}</b> · Harder · EXP ×1.25 · ranks S+`, `${BOLT} <b>${fmt(s.exp2Best)}</b> ${['S', 'SS', 'SSS'].map((r) => `<span class="clsb" style="--cc:${CLASS_COLOR[r as RankClass]}">${r}</span>`).join(' ')}`, '2', s.track === 'track2', false, () => ui.h.pickTrack('track2'));
-    else tcard('tr-t2', thMega, 'Mega Rush', 'Harder road · ranks S+', `${ICON.lock} Reach rank <span class="clsb" style="--cc:${CLASS_COLOR.AAA}">AAA</span>`, ICON.lock, false, true, () => ui.rankGuide());
+      tcard('tr-t2', thMega, 'Outlaw Rush', `<b>${lv}</b> · Harder · EXP ×1.25 · ranks S+`, `${BOLT} <b>${fmt(s.exp2Best)}</b> ${['S', 'SS', 'SSS'].map((r) => `<span class="clsb" style="--cc:${CLASS_COLOR[r as RankClass]}">${r}</span>`).join(' ')}`, '2', s.track === 'track2', false, () => ui.h.pickTrack('track2'));
+    else tcard('tr-t2', thMega, 'Outlaw Rush', 'Harder road · ranks S+', `${ICON.lock} Reach rank <span class="clsb" style="--cc:${CLASS_COLOR.AAA}">AAA</span>`, ICON.lock, false, true, () => ui.rankGuide());
     (['S', 'SS', 'SSS'] as RankClass[]).forEach((r, i) => {
       const key = `soon-${r}`;
       const h = 70;
-      g.rr(x, y, w, h, 16, 'rgba(20,14,50,.85)', 'rgba(220,140,60,.35)');
+      g.rr(x, y, w, h, 16, 'rgba(36,20,8,.85)', 'rgba(220,140,60,.35)');
       g.text('?', x + w - 70, y + h / 2 + 1, { size: 40, align: 'center', color: 'rgba(220,140,60,.35)', shadow: null });
-      g.text(['Ocean Drive', 'Volcano Run', 'Aurora Peak'][i], x + 16, y + 24, { size: 17, italic: true, maxW: w - 120 });
+      g.text(['Ocean Drive', 'Volcano Run', 'Aurora Peak'][i], x + 16, y + 24, { size: 17, font: 't', color: '#e9d2a6', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: w - 120 });
       g.rich(`${ICON.lock} Reach rank <span class="clsb" style="--cc:${CLASS_COLOR[r]}">${r}</span>`, x + 16, y + 38, w - 120, { size: 11, font: 'b', color: C.muted });
       g.circle(x + w - 24, y + 24, 14, 'rgba(0,0,0,.5)', 'rgba(255,255,255,.5)');
       g.text(String(i + 3), x + w - 24, y + 24.5, { size: 13, align: 'center', noTr: true });
-      g.hit(x, y, w, h, key, () => ui.toast(`${ICON.lock} Reach rank ${r} on Mega Rush to open this track`, '#e8c890'));
+      g.hit(x, y, w, h, key, () => ui.toast(`${ICON.lock} Reach rank ${r} on Outlaw Rush to open this track`, '#e8c890'));
       y += h + 10;
     });
     return y;
