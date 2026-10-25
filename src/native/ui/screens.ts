@@ -3,7 +3,7 @@
 import { perkVisible } from '../../meta/Perks.ts';
 import { C, Gfx, bar, button, card, fmt, iconBtn, panel, rankBadge, rankBadgeW, toggle } from './gfx.ts';
 import type { UI } from './NativeUI.ts';
-import { BAG_ICON, BOLT, ICON, ITEM_ICON, RARITY_COLOR, ROCKET_W, SPECIAL_SHORT } from './consts.ts';
+import { BAG_ICON, BOLT, ICON, ITEM_ICON, RARITY_COLOR, ROCKET_G, SPECIAL_SHORT } from './consts.ts';
 import { capRow, column, safeBottom, safeTop } from './layout.ts';
 import { drawOverlay } from './popups.ts';
 import { avatarSvg, avatarForName } from '../../ui/avatars.ts';
@@ -16,6 +16,7 @@ import { CHECKIN, ITEM_PRICE, SPECIALS, type ItemKey } from '../../meta/Daily.ts
 import { fmtLeft, localTime } from '../../meta/Events.ts';
 import { hs } from '../hs.ts';
 import loadingUrl from '../../assets/images/loading.webp';
+import xwaveWhiteUrl from '../../assets/images/xwave-white.png';
 import thEndless from '../../assets/images/tracks/desert-valley.jpg';
 import thMega from '../../assets/images/tracks/canyon-arch.jpg';
 import { carShadow } from '../../ui/shared.ts';
@@ -76,9 +77,10 @@ export function pageHead(ui: UI, g: Gfx, title: string, back = () => ui.h.home()
   g.rr(0, y + 47, g.W, 2.5, 0, '#ad8a58');
   iconBtn(g, 'back', 12, y, 40, ICON.chevL, back);
   const ww = wallet(ui, g, row.right, y + 4);
-  const l = 60,
-    r = row.right - ww - 8;
-  g.text(title.toUpperCase(), (l + r) / 2, y + 21, { size: 20, align: 'center', font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: Math.max(60, r - l) });
+  // v4.0.2: the title starts after Back, the wallet keeps to the right edge of the row (left of TikTok's capsule)
+  const l = 64,
+    r = row.right - ww - 10;
+  g.text(title.toUpperCase(), l, y + 21, { size: 20, font: 't', color: '#f6e3b4', stroke: '#2a1204', strokeW: 3, shadow: null, maxW: Math.max(60, r - l) });
   return Math.max(y + 56, safeTop(g) + 4);
 }
 
@@ -131,6 +133,9 @@ function loading(ui: UI, g: Gfx) {
   ui.loadShown = Math.min(1, ui.loadShown);
   bar(g, (g.W - w) / 2, y, w, 8, ui.loadShown, g.lin(0, 0, g.W, 0, [[0, '#ffc848'], [1, '#ff4fd8']]), 'rgba(0,0,0,.5)');
   g.text(`Loading… ${Math.floor(ui.loadShown * 100)}%`, g.W / 2, y + 26, { size: 13, align: 'center', font: 'b' });
+  // v4.0.2 (owner): "by XWAVE" under the bar
+  g.text('by', g.W / 2 - 52, y + 50, { size: 10.5, align: 'center', font: 'b', color: '#e8d2a8' });
+  g.img(xwaveWhiteUrl, g.W / 2 - 42, y + 44, 92, 11, 'contain');
 }
 
 // ------------------------------------------------------------------ home
@@ -243,7 +248,7 @@ function start(ui: UI, g: Gfx) {
   // ---- Launch · Share · Entry (small round buttons under More)
   const pst = hs.perkState();
   const perks = [
-    { key: 'pk-launch', kind: 'launch' as const, icon: ROCKET_W, label: 'LAUNCH', on: pst.hasMissions },
+    { key: 'pk-launch', kind: 'launch' as const, icon: ROCKET_G, label: 'LAUNCH', on: pst.hasMissions },
     { key: 'pk-share', kind: 'share' as const, icon: ICON.share, label: 'SHARE', on: pst.hasShare },
     { key: 'pk-entry', kind: 'entry' as const, icon: ICON.gift, label: 'ENTRY', on: pst.hasMissions },
   ].filter((p) => p.on || !pst.started);
@@ -254,12 +259,14 @@ function start(ui: UI, g: Gfx) {
       cx = r.x + rr,
       cy = r.y + rr;
     const pr = g.isPressed(p.key);
-    g.circle(cx, cy, rr, g.rad(cx, cy - rr * 0.3, rr * 0.1, rr * 1.1, [[0, pr ? '#8a5a30' : '#6a4424'], [1, '#3a2210']]), '#ad8a58', Math.max(2, 3 * st.s + 1));
-    g.circle(cx, cy, rr + 1.5, null, '#2a1204', 1.5);
-    g.icon(p.icon, cx - rr * 0.56, cy - rr * 0.56, rr * 1.12, '#ffe3a0');
+    // v4.0.2 (owner): the same wood + brass as the gear / menu plaques, one icon colour for all three
+    g.circle(cx, cy, rr + 1.5, null, '#2a1204', 2);
+    g.circle(cx, cy, rr, g.rad(cx, cy - rr * 0.35, rr * 0.1, rr * 1.15, [[0, pr ? '#a06a38' : '#8a5a30'], [0.6, '#5e3a1c'], [1, '#3a2210']]), '#d9a85a', Math.max(2, 3 * st.s + 1));
+    g.circle(cx, cy, rr * 0.8, null, 'rgba(255,220,150,.22)', 1);
+    g.icon(p.icon, cx - rr * 0.52, cy - rr * 0.52, rr * 1.04, '#ffd27a');
     const lw = g.measure(p.label, { size: 9.5 }) + 12;
-    g.rr(cx - lw / 2, r.y + r.w + 2, lw, 15, 6, '#2a1406', '#ad8a58', 1);
-    g.text(p.label, cx, r.y + r.w + 9.5, { size: 9.5, align: 'center', color: '#fff1d0', shadow: null, noTr: true });
+    g.rr(cx - lw / 2, r.y + r.w + 3, lw, 15, 6, '#3a1d08', '#d9a85a', 1);
+    g.text(p.label, cx, r.y + r.w + 10.5, { size: 9.5, align: 'center', color: '#fff1d0', shadow: null, noTr: true });
     const open = perkVisible(p.kind, pst);
     if (open) dot(g, cx + rr * 0.78, cy - rr * 0.8, st.s);
     else if (pst.started && p.kind !== 'share') {
@@ -583,21 +590,31 @@ function daily(ui: UI, g: Gfx) {
     card(g, x, y, w, 254, 16);
     g.text('Check-in', x + 14, y + 18, { size: 15 });
     g.text(`Streak ${o.streak} / 7`, x + w - 14, y + 18, { size: 11, align: 'right', font: 'b', color: C.muted, noTr: true });
-    // 4 + 3 grid
+    // v4.0.2 (owner): one tile size for every day — Day 1–4 on top, Day 5–6 + a double-width Day 7 (the big prize)
     const gw = (w - 28 - 18) / 4;
     CHECKIN.forEach((r, i) => {
       const got = i < o.slot || (o.claimedToday && i === o.slot);
       const today = i === o.slot && !o.claimedToday;
       const row = i < 4 ? 0 : 1;
       const ci = i < 4 ? i : i - 4;
-      const cw = row ? (w - 28 - 12) / 3 : gw;
-      const cx = x + 14 + ci * (cw + 6);
+      const big = i === 6;
+      const cw = big ? gw * 2 + 6 : gw;
+      const cx = x + 14 + ci * (gw + 6);
       const cy = y + 36 + row * 80;
-      g.rr(cx, cy, cw, 72, 10, today ? 'rgba(255,194,26,.22)' : got ? 'rgba(47,211,107,.15)' : 'rgba(255,255,255,.05)', today ? C.gold : got ? C.green : 'rgba(255,255,255,.12)', today ? 2 : 1);
-      g.text(`Day ${i + 1}`, cx + cw / 2, cy + 11, { size: 9.5, align: 'center', font: 'b', color: C.muted, noTr: true });
+      const fill = today ? 'rgba(255,194,26,.22)' : got ? 'rgba(47,211,107,.15)' : big ? g.lin(cx, 0, cx + cw, 0, [[0, 'rgba(200,120,40,.42)'], [1, 'rgba(120,60,20,.32)']]) : 'rgba(255,255,255,.05)';
+      g.rr(cx, cy, cw, 72, 10, fill, today ? C.gold : got ? C.green : big ? '#d9a85a' : 'rgba(255,255,255,.12)', today || big ? 2 : 1);
+      g.text(`Day ${i + 1}`, cx + cw / 2, cy + 11, { size: 9.5, align: 'center', font: 'b', color: big ? '#ffd36a' : C.muted, noTr: true });
       const item = Object.entries(r.items ?? {}).find(([, n]) => n) as [ItemKey, number] | undefined;
-      g.icon(item ? ITEM_ICON[item[0]] : ICON.coin, cx + cw / 2 - 13, cy + 20, 26);
-      g.text(fmt(r.coins ?? 0), cx + cw / 2, cy + 59, { size: 12, align: 'center', noTr: true });
+      if (big && item) {
+        // coins + the special, side by side
+        g.icon(ICON.coin, cx + cw / 2 - 40, cy + 20, 26);
+        g.text('+', cx + cw / 2, cy + 33, { size: 16, align: 'center', color: '#ffd36a', noTr: true });
+        g.icon(ITEM_ICON[item[0]], cx + cw / 2 + 14, cy + 20, 26);
+        g.text(`${fmt(r.coins ?? 0)} + ${(SPECIAL_SHORT as Record<string, string>)[item[0]] ?? 'Special'}`, cx + cw / 2, cy + 59, { size: 11.5, align: 'center', noTr: true, maxW: cw - 10 });
+      } else {
+        g.icon(item ? ITEM_ICON[item[0]] : ICON.coin, cx + cw / 2 - 13, cy + 20, 26);
+        g.text(fmt(r.coins ?? 0), cx + cw / 2, cy + 59, { size: 12, align: 'center', noTr: true });
+      }
       if (got) g.icon(ICON.check, cx + cw - 18, cy + 4, 14, C.green);
     });
     button(g, 'checkin', x + 14, y + 200, w - 28, 44, o.claimedToday ? `${ICON.check} Come back tomorrow` : `${ICON.gift} Claim day ${o.slot + 1}`, () => ui.h.checkIn(), { style: o.claimedToday ? 'ghost' : 'gold', disabled: o.claimedToday });

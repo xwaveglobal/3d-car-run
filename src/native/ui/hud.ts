@@ -249,7 +249,7 @@ export function drawHud(ui: UI, g: Gfx) {
     const urgent = dg === 'sos';
     const s = urgent ? 1 + 0.06 * Math.sin(t / 90) : 1;
     const sx = rockets > 0 ? bx2 - SP - 8 : bx2;
-    roundBtn(g, 'sos', sx, byy, SP * s, '#e0502a', ICON.sos, 'RESCUE', String(run.escapes), () => ui.h.sos());
+    roundBtn(g, 'sos', sx, byy, SP * s, '#ff7a52', ICON.sos, 'RESCUE', String(run.escapes), () => ui.h.sos());
     hudPos.sos = { x: sx + 38, y: byy + SP / 2 };
   }
   if (rockets > 0) {
@@ -259,7 +259,7 @@ export function drawHud(ui: UI, g: Gfx) {
     const wait = t - ui.hud.rocketWaitT < 600 ? Math.sin((t - ui.hud.rocketWaitT) / 40) * 4 : 0;
     const s = ready ? 1 + 0.07 * Math.sin(t / 110) : 1;
     if (ready) g.circle(bx2 + 38 + wait, byy + SP / 2, SP * 0.66, withAlpha(hyper ? '#ffc21a' : '#c86a2a', 0.25 + 0.15 * Math.sin(t / 110)));
-    roundBtn(g, 'rocket', bx2 + wait, byy, SP * s, hyper ? '#d99a1a' : '#d9822e', hyper ? ICON.hyper : ICON.rocket, ready ? 'TAP!' : hyper ? HUD_EAGLE : HUD_LAUNCH, String(rockets), () => ui.h.rocket());
+    roundBtn(g, 'rocket', bx2 + wait, byy, SP * s, hyper ? '#ffd24a' : '#ffad4a', hyper ? ICON.hyper : ICON.rocket, ready ? 'TAP!' : hyper ? HUD_EAGLE : HUD_LAUNCH, String(rockets), () => ui.h.rocket());
     hudPos.rocket = { x: bx2 + 38, y: byy + SP / 2 };
   }
   // ---- mission (bottom)
@@ -302,11 +302,18 @@ function roundBtn(g: Gfx, key: string, x: number, y: number, s: number, col: str
   const r = s / 2 - 6;
   const pr = g.isPressed(key);
   const rr = pr ? r * 0.92 : r;
-  g.circle(cx, cy, rr + 5, '#3a1a06');
-  g.circle(cx, cy, rr + 3.2, null, '#d9a24a', 2.2);
-  g.circle(cx, cy, rr, g.rad(cx - rr * 0.2, cy - rr * 0.36, rr * 0.1, rr * 1.15, [[0, '#fffaf0'], [0.48, '#f6e3bc'], [1, '#d9b47a']]));
-  g.circle(cx, cy, rr, null, '#3a1a06', 2.4);
-  g.icon(icon, cx - rr * 0.5, cy - rr * 0.5, rr, col);
+  // v4.0.2 (owner: "màu ở trong vẫn hơi mờ"): a deep leather disc in a bright brass ring, a bigger icon with a
+  // soft glow in its own colour — reads clearly over the bright desert sky
+  g.circle(cx, cy, rr + 5.5, '#2a1204');
+  g.circle(cx, cy, rr + 3.4, null, g.lin(0, cy - rr, 0, cy + rr, [[0, '#ffe08a'], [1, '#c8801e']]), 2.8);
+  g.circle(cx, cy, rr, g.rad(cx - rr * 0.25, cy - rr * 0.4, rr * 0.08, rr * 1.2, [[0, '#8a5a2c'], [0.55, '#5a3416'], [1, '#2e1808']]));
+  g.circle(cx, cy - rr * 0.35, rr * 0.62, 'rgba(255,230,170,.10)');
+  g.circle(cx, cy, rr, null, '#1e0e04', 1.6);
+  if (!g.dry) {
+    g.shadow(col, 10);
+    g.icon(icon, cx - rr * 0.62, cy - rr * 0.62, rr * 1.24, col);
+    g.shadow(null);
+  }
   const lab = label.toUpperCase();
   const lw = Math.max(rr * 1.4, g.measure(lab, { size: 9 }) + 14);
   g.rr(cx - lw / 2, cy + rr + 4, lw, 15, 6, g.lin(0, cy + rr + 4, 0, cy + rr + 19, [[0, '#5a3618'], [1, '#2e1a09']]), '#ad8a58', 1.2);

@@ -52,16 +52,16 @@ import type { Box, PickupKind, RowSpec } from './gameplay/types.ts';
 import { Meta, type EventResult, type RunSummary } from './meta/Meta.ts';
 import { schedule, fmtLeft, localTime, prizesFor, cupFor } from './meta/Events.ts';
 import { classBadge, classFor, classProgress, CLASSES, BASE_CLASSES, CLASS_COLOR, CLASS_MIN, XPT as XPT_ICON, playerRank, rankAtLeast, rankIdx, toBase, type RankClass } from './meta/Rank.ts';
-import type { RunRewards } from './ui/UI.ts';
+import type { RunRankData, RunRewards } from './ui/UI.ts';
 import { crashTip, type CrashTip } from './gameplay/CrashTip.ts';
 import { createStore, weekBoard, type PlayerStore } from './net/PlayerStore.ts';
-import { aroundYou, hashStr } from './meta/Leaderboard.ts';
+import { hashStr } from './meta/Leaderboard.ts';
 import { classForScore } from './meta/Rank.ts';
 import { avatarForName, avatarSvg } from './ui/avatars.ts';
 import { productBySku, DemoStore, type Store } from './meta/Shop.ts';
 import type { ItemKey, QuestStat, Reward } from './meta/Daily.ts';
 import { careerDefaults, settleCareer } from './meta/Career.ts';
-import { arsenalById, isArsenalId, type ArsenalItem } from './western/arsenal.ts';
+import { ARSENAL, arsenalById, isArsenalId, type ArsenalItem } from './western/arsenal.ts';
 import { Cloud } from './net/Cloud.ts';
 import type { SetPiece } from './gameplay/Spawner.ts';
 import { BonusTunnels } from './render/BonusTunnels.ts';
@@ -92,7 +92,8 @@ function cleanName(n: string) {
   return out.trim().slice(0, 14);
 }
 
-const VERSION = 'v4.0.1';
+const fmtInt = (n: number) => Math.round(n).toLocaleString('en-US');
+const VERSION = 'v4.0.2';
 /** coins for one Roadster Jump bought on the spot (training / blockade) */
 /** welcome-back gift after this many hours away */
 const WELCOME_AFTER_H = 12;
@@ -276,7 +277,7 @@ export class Game {
     this.vehicle.onModelReady = () => {
       this.rig.car3d = !this.vehicle.usesSprite;
       // compile the 3D car's effect variants now (ghost, shield, thrust, crash) — never mid-race
-      this.vehicle.prewarm(this.renderer.renderer, this.renderer.scene, this.rig.camera);
+      this.renderer.withWorldTarget(() => this.vehicle.prewarm(this.renderer.renderer, this.renderer.scene, this.rig.camera));
     };
     const scene = this.renderer.scene;
     // v1.0.2 Home: the owner's key art + the 3D car (drawn instead of the world while Home is open)
@@ -367,23 +368,16 @@ export class Game {
       home: () => {
         const back = this.returnTo;
         this.returnTo = null;
-        // quitting a race half-way: the race ends and counts → its own result screen (never an old one)
-        if (this.state === 'paused' || this.state === 'run' || this.state === 'respawn' || this.state === 'continue') {
-          if (this.tutorialMode) return this.goHome();
-          this.timeScale = this.timeScaleTarget = 1;
-          return this.gameOver();
+        // v4.0.2 (owner): Home always goes straight Home. Quitting a race half-way still ends it and counts
+        // it (EXP, board position), silently — no result card, no rank panel.
+        if (this.midRace()) {
+          if (!this.tutorialMode) {
+            this.timeScale = this.timeScaleTarget = 1;
+            this.gameOver(true);
+          }
+          return this.goHome();
         }
         if (this.state === 'countdown') return this.goHome();
-        // v4.0 (owner): the weekly rank board comes when the player leaves the result for Home — and only after a
-        // race that beat the best EXP; otherwise straight Home
-        if (this.pendingRank && (this.state === 'gameover' || this.state === 'finish') && !this.ui.isShown('runrank')) {
-          const pr = this.pendingRank;
-          this.pendingRank = null;
-          this.ui.runRank(pr);
-          if (pr.board.you.rank < pr.before) window.setTimeout(() => this.audio.play('combo'), 1500);
-          return;
-        }
-        this.pendingRank = null;
         if (back) return back();
         this.afterResults(() => this.goHome());
       },
@@ -496,36 +490,31 @@ export class Game {
       },
       pause: () => this.pause(),
       resume: () => this.resume(),
-      retry: () =>
-        this.afterResults(() => {
-          // Bonus roads: up to BONUS.maxPlays plays per event (Restart = another play while any are left)
-          if (this.course?.bonus) {
-            // Restart in the middle of a Gold Rush run: pay what was collected first (same as Home / an early end)
-            if (this.state === 'paused' || this.state === 'run' || this.state === 'respawn' || this.state === 'continue') {
-              const s = this.settleGoldRush(false);
-              if (s.fresh) this.save.totalRuns++;
-              this.persist();
-              if (s.fresh && s.pay.total > 0) this.ui.toast(`${ICON.coin} +${s.pay.total.toLocaleString('en-US')} coins banked`, '#ffc21a');
-            }
-            const bs = bonusState();
-            if (bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) < BONUS.maxPlays) return this.startBonus();
-            this.ui.toast(`${ICON.check} Gold Rush plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
-            return this.goHome();
+      // v4.0.2 (owner): Restart = straight into a new race (no card, no special picker: the last special or
+      // the next one in the bag). Mid-race it ends + counts the current race first.
+      retry: () => {
+        if (this.midRace()) {
+          if (!this.tutorialMode) {
+            this.timeScale = this.timeScaleTarget = 1;
+            this.gameOver(true);
           }
-          // v2: every EXP race starts with the special choice (Retry too)
-          if (!this.course && !this.tutorialMode) return this.openSpecialPick(this.variant === 'track2' ? 'track2' : 'endless');
-          this.startRun();
-        }),
+          return this.quickRestart();
+        }
+        this.afterResults(() => this.quickRestart());
+      },
       continueAd: () => void this.continueByAd(),
       continueCoins: () => this.continueByCoins(),
       continueNo: () => this.gameOver(),
-      // v4.0 (owner): the revive screen offers Retry too — the race ends (counted, as "end race"), then a new one
+      // v4.0.2: the revive panel's Restart (the race is counted, then a new one at once)
       continueRetry: () => {
         if (this.state !== 'continue') return;
-        this.gameOver();
-        this.pendingRank = null;
         this.ui.h.retry();
       },
+      rrDetails: () => {
+        this.audio.play('click');
+        this.ui.show('gameover');
+      },
+      rrAd: () => void this.rrAd(),
       adDouble: () => void this.adDouble(),
       adFreeCoins: () => void this.adFreeCoins(),
       adBoost: () => void this.adBoost(),
@@ -583,10 +572,19 @@ export class Game {
     window.visualViewport?.addEventListener('resize', resize);
     document.addEventListener('visibilitychange', () => {
       if (document.hidden && this.state === 'run') this.pause();
-      this.audio.setHidden(document.hidden);
-      if (document.hidden) void this.pushSave(); // leaving the app: save to the cloud right away
-      else if (this.cloud.enabled) void this.cloudSync();
-      if (!document.hidden) this.bonusTick(); // back in the app: Gold Rush follows the clock
+      // v4.0.2: save / refresh first — the audio call below once threw on TikTok iOS and skipped them
+      if (document.hidden) {
+        this.persist();
+        void this.pushSave(); // leaving the app: save to the cloud right away
+      } else {
+        if (this.cloud.enabled) void this.cloudSync();
+        this.bonusTick(); // back in the app: Gold Rush follows the clock
+      }
+      try {
+        this.audio.setHidden(document.hidden);
+      } catch (e) {
+        console.warn('[audio] setHidden', e);
+      }
     });
     window.setInterval(() => this.bonusTick(), 5000);
     // cloud save: hear back from Google / Apple sign-in, then line this device up with the account
@@ -659,7 +657,7 @@ export class Game {
         }
       });
       try {
-        this.renderer.renderer.compile(this.renderer.scene, this.rig.camera);
+        this.renderer.compileWorld(this.rig.camera);
         bootMark('compile');
         // v4.0: Home now shows the key art, not the world — draw ONE full world frame here (under the loading
         // screen) so the post-processing passes and render targets are built now, not on the first race frame
@@ -1247,7 +1245,12 @@ export class Game {
     const rank = ofRun && run && !this.course ? classFor(run.exp) : this.rank;
     const sub = ofRun && run && !this.course ? `${(run.distance / 1000).toFixed(1)} km · ${LEVELS[this.runLevel].label} · ${this.variant === 'track2' ? 'Outlaw Rush' : 'Endless'}` : `${this.meta.name} · best race`;
     void sub;
-    if (platform.share) return platform.share(`Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in Sky Roadster! Can you beat me?`);
+    if (platform.share) {
+      // v4.0.2: say something when the platform did not share (it used to look like a dead button)
+      const ok = await platform.share(`Rank ${rank} · ${exp.toLocaleString('en-US')} EXP in 3D Car Run! Can you beat me?`);
+      if (!ok) this.ui.toast(`${ICON.share} Not shared — try again in a moment`, '#ffb02e');
+      return ok;
+    }
     const ready = this.cardCache?.key === this.cardKey(ofRun);
     if (!ready) this.ui.toast(`${ICON.share} Making your card…`, '#ffb02e');
     const blob = await this.prepareCard(ofRun);
@@ -2293,9 +2296,9 @@ export class Game {
         const q = this.vehicle.rearTyreWorld(side, this.sprayPos);
         this.smoke.emit(
           q.x + side * 0.15 + (Math.random() - 0.5) * 0.2, q.y + 0.05, q.z + 0.3,
-          side * (0.4 + Math.random() * 0.8), 0.4 + Math.random() * 0.8, 2 + Math.random() * 3,
-          col, DUST.size * (0.75 + Math.random() * 0.5), DUST.life * (0.7 + Math.random() * 0.6),
-          { locked: true, drag: 2.4, grow: 2.2 },
+          side * (0.25 + Math.random() * 0.5), 0.3 + Math.random() * 0.5, 2 + Math.random() * 2,
+          col, DUST.size * (0.85 + Math.random() * 0.3), DUST.life * (0.8 + Math.random() * 0.4),
+          { locked: true, drag: 2.6, grow: 2.8 },
         );
       }
     }
@@ -3360,9 +3363,6 @@ export class Game {
     if (!revived) this.ui.toast(`${ICON.heart} RESPAWN · ${this.run.lives} ${this.run.lives === 1 ? 'life' : 'lives'} left`, 'var(--red)');
   }
 
-  /** v4.0: the post-race rank board, shown on the Home tap after a new best */
-  private pendingRank: { before: number; board: ReturnType<Meta['weekly']>; rows: ReturnType<typeof aroundYou>; clsUp: RankClass | null } | null = null;
-
   /** unused Roadster / HYPER / SOS charges at the finish line → bonus points (shown on the result) */
   private leftover: { pts: number; items: string } | null = null;
   private cashLeftovers() {
@@ -3530,7 +3530,12 @@ export class Game {
     this.ads.runEnded();
   }
 
-  private gameOver() {
+  /**
+   * End of a race. v4.0.2 (owner): after a death the rank panel comes first (position up / down, one ad,
+   * Details · Restart · Home); the Finish card only behind Details. `silent` = the race ended from Pause /
+   * the revive panel (Restart / Home): it is counted the same way, nothing is shown.
+   */
+  private gameOver(silent = false) {
     this.ui.clearBanner();
     this.holdContinue = false;
     this.returnTo = null;
@@ -3563,21 +3568,129 @@ export class Game {
       const pct = Math.max(1, Math.ceil((r / wb.total) * 100));
       pos = r <= 999 ? `#${r.toLocaleString('en-US')} this week` : pct <= 50 ? `Top ${pct}% this week` : ''; // a weak run shows no position
     }
+    if (silent) {
+      this.ads.runEnded();
+      this.lastResult = { coins: run.coins, reward: 0, doubled: false };
+      return;
+    }
     this.ui.gameOver({ score: isBonus ? run.coins : run.exp, best: this.variant === 'track2' ? this.save.exp2Best : this.save.expBest, isBest: !!rewards && rewards.exp > 0 && rewards.to > rewards.from, dist: run.distance, length: this.course?.length, coins: run.coins, near: run.nearMiss, missions: this.runMissionsDone, rewards, speedBonus, level: lvg.label, tip: this.lastTip, runRank: isBonus || run.expRate <= 0 ? null : this.runRank, pos, car: this.save.vehicle, bonus: isBonus });
     if (!isBonus) window.setTimeout(() => void this.prepareCard(true), 400); // ready before the Share tap
     this.lastResult = { coins: run.coins, reward: 0, doubled: false };
-    this.ui.adButton('ad2x', run.coins > 0 ? 'ready' : 'used', 'No coins to double');
-    this.ui.hideEl('ad2x', run.coins <= 0); // nothing to double → no button
     this.ads.runEnded();
-    this.ui.show('gameover');
-    if (rewards && rewards.to > rewards.from) this.audio.play('mission');
-    // v4.0 (owner): the weekly rank board waits for the Home tap, and only after a new best EXP (else skipped)
-    this.pendingRank = null;
-    if (!isBonusRun && !this.tutorialMode && rewards && rewards.to > rewards.from) {
+    if (!isBonusRun && !this.tutorialMode && rewards) {
+      // ---- the rank panel (owner mock-up): position before → after, NEW BEST / RACE OVER
       const board = this.meta.weekly();
-      const clsUp = rewards.clsAfter !== rewards.clsBefore ? rewards.clsAfter : null;
-      this.pendingRank = { before: wkBefore, board, rows: aroundYou(board, 2), clsUp };
+      const after = run.exp > 0 || this.meta.rankScoreWeek > 0 ? board.you.rank : 0;
+      const before = wkBefore;
+      const best = rewards.from;
+      const up = after && before ? after < before || (after === before && rewards.exp > best) : rewards.exp > best;
+      const cls = rewards.clsAfter;
+      const ci = CLASSES.indexOf(cls);
+      const clsNext = CLASSES[ci + 1] ?? null;
+      const coinsWon = run.coins + speedBonus;
+      const ad = this.rrAdOffer(coinsWon);
+      this.rrAdKind = ad?.kind ?? null;
+      this.ui.runRank({
+        up: !!up,
+        before,
+        after,
+        total: board.total,
+        exp: rewards.exp,
+        best,
+        bestNow: rewards.to,
+        cls,
+        clsNext,
+        clsLo: CLASS_MIN[cls],
+        clsHi: clsNext ? CLASS_MIN[clsNext] : CLASS_MIN[cls],
+        clsUp: rewards.clsAfter !== rewards.clsBefore ? rewards.clsAfter : null,
+        ad,
+      });
+      this.audio.play(up ? 'mission' : 'click');
+      if (up && after && before && after < before) window.setTimeout(() => this.audio.play('combo'), 1400);
+    } else {
+      this.ui.show('gameover');
+      if (rewards && rewards.to > rewards.from) this.audio.play('mission');
     }
+  }
+
+  /** v4.0.2: the rank panel's ad — ×2 this race's coins when it won 100+, else free coins (5 a day) */
+  private rrAdKind: 'x2' | 'free' | null = null;
+  private rrAdOffer(coinsWon: number): RunRankData['ad'] {
+    if (this.save.noAds) return null;
+    if (coinsWon >= 100) return { kind: 'x2', amount: coinsWon };
+    if (this.freeCoinsLeft() > 0) return { kind: 'free', amount: ADS.freeCoinsAmount };
+    if (coinsWon > 0) return { kind: 'x2', amount: coinsWon };
+    return null;
+  }
+  private async rrAd() {
+    const kind = this.rrAdKind;
+    if (!kind || this.ads.showing) return;
+    if (kind === 'free') {
+      const before = this.save.wallet;
+      await this.adFreeCoins();
+      if (this.save.wallet > before) {
+        this.rrAdKind = null;
+        this.ui.adButton('ad2x', 'used', `+${fmtInt(this.save.wallet - before)} coins added`);
+      }
+      return;
+    }
+    if (this.lastResult.doubled) return;
+    const ok = await this.ads.rewarded('double_coins');
+    if (!ok) return;
+    const run = this.run;
+    const extra = Math.max(1, run ? run.coins + Math.round(run.coins * (LEVELS[this.runLevel].reward - 1)) : this.lastResult.coins);
+    this.lastResult.doubled = true;
+    this.rrAdKind = null;
+    this.save.wallet += extra;
+    this.persist();
+    this.ui.adButton('ad2x', 'used', `+${fmtInt(extra)} coins added`);
+    this.ui.refreshProfile(this.save);
+    this.ui.toast(`${ICON.coin} ×2 · +${fmtInt(extra)} coins`, 'var(--gold)');
+    this.audio.play('mission');
+  }
+
+  /** mid-race (racing, paused, reviving): Restart / Home end the race first */
+  private midRace() {
+    return this.state === 'paused' || this.state === 'run' || this.state === 'respawn' || this.state === 'continue' || this.state === 'dying';
+  }
+
+  /**
+   * v4.0.2 (owner): the special carried by a Restart — the last one picked; if it ran out, the next one in
+   * the bag (Canyon Launcher → Eagle Jump → Last Stand, then unlocked Arsenal specials); empty bag: none.
+   */
+  private restartSpecial() {
+    const s = this.save;
+    if (s.specialX) {
+      if ((s.arsenal ?? []).includes(s.specialX) && (s.arsenalItems?.[s.specialX] ?? 0) > 0) return;
+      s.specialX = null;
+    }
+    if (s.special && s.items[s.special] > 0) return;
+    const k = (['super', 'hyper', 'escape'] as SpecialKey[]).find((q) => s.items[q] > 0) ?? null;
+    s.special = k;
+    if (!k) {
+      const x = ARSENAL.find((a) => (s.arsenal ?? []).includes(a.id) && (s.arsenalItems?.[a.id] ?? 0) > 0);
+      if (x) s.specialX = x.id;
+    }
+  }
+
+  /** v4.0.2: Restart from anywhere — the same road again, at once */
+  private quickRestart() {
+    this.ui.clearBanner();
+    if (this.tutorialMode) return this.lastPractice ? this.startBoostTraining(this.lastPractice) : this.startTutorial(this.trainWorld);
+    // Gold Rush: up to BONUS.maxPlays plays per event (Restart = another play while any are left)
+    if (this.course?.bonus) {
+      const bs = bonusState();
+      if (bs.live && bonusPlaysUsed(this.save.bonusPlays, bs.live.key) < BONUS.maxPlays) return this.startBonus();
+      this.ui.toast(`${ICON.check} Gold Rush plays used · next one ${localTime(bs.next.start)}`, '#ffc21a');
+      return this.goHome();
+    }
+    if (!this.course) {
+      this.pickTrackId = this.variant === 'track2' ? 'track2' : 'endless';
+      this.restartSpecial();
+      this.persist();
+      return this.startTrack(this.pickTrackId);
+    }
+    this.startRun();
   }
 
   private onWorldChange(id: WorldId) {

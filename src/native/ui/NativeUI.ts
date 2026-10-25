@@ -8,9 +8,9 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SaveData } from '../../core/Save.ts';
-import type { UIHandlers, RunRewards } from '../../ui/UI.ts';
+import type { UIHandlers, RunRankData, RunRewards } from '../../ui/UI.ts';
 import type { Run } from '../../gameplay/Run.ts';
-import type { Board, LbRow } from '../../meta/Leaderboard.ts';
+import type { Board } from '../../meta/Leaderboard.ts';
 import type { ItemKey, Quest, Reward, SpecialKey } from '../../meta/Daily.ts';
 import type { EventInst, Prize } from '../../meta/Events.ts';
 import type { EventResult } from '../../meta/Meta.ts';
@@ -101,7 +101,7 @@ export class UI {
   debugText: string | null = null;
   comfort = true;
   /** v4.6 post-race weekly rank board (over the result card) */
-  rr: { before: number; board: Board; rows: LbRow[]; clsUp: RankClass | null; t0: number } | null = null;
+  rr: (RunRankData & { t0: number }) | null = null;
   /** Step 06.5 / v4.6.1 class promotion celebration */
   cu: { cls: string; color: string; sub: string; car: { id: string; name: string } | null; reward?: { coins: number; item: ItemKey } | null; t0: number } | null = null;
   /** v5: when the Shop's coins → specials exchange was last pointed at (flash) */
@@ -629,11 +629,12 @@ export class UI {
     this.dirty = true;
   }
   /** v4.6: the weekly rows around the player; the player's row climbs to the new rank (glowing frame) */
-  runRank(o: { before: number; board: Board; rows: LbRow[]; clsUp: RankClass | null }) {
+  runRank(o: RunRankData) {
     this.rr = { ...o, t0: this.t() };
-    this.shown.add('runrank');
-    this.dirty = true;
+    this.adState.ad2x = { used: false, text: '' };
+    this.show('runrank');
   }
+
   /** Step 06.5 first-time class promotion: emblem, light sweep, particles; car (AA+) or reward (C / B / A) */
   classUp(o: { cls: string; color: string; sub: string; car: { id: string; name: string } | null; reward?: { coins: number; item: ItemKey } | null }) {
     this.cu = { ...o, t0: this.t() };

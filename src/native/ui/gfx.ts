@@ -144,6 +144,8 @@ export function tokenize(html: string): Tok[] {
     if (/\bgold\b/.test(cls)) e.col = C.gold;
     if (/\blive\b/.test(cls)) e.col = C.green;
     if (/\bsoon\b/.test(cls)) e.col = C.cyan;
+    if (/\bgreen\b/.test(cls)) e.col = '#5fe08a';
+    if (/\bred\b/.test(cls)) e.col = '#ff7a6a';
     const col = /(?:^|;)\s*color:\s*([^;]+)/.exec(style)?.[1];
     if (col) e.col = cssColor(col.trim());
     st.push(e);

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import logoFullUrl from '../assets/images/xwave-logo.png';
 import logoMarkUrl from '../assets/images/xwave-mark.png';
+import xwaveWhiteUrl from '../assets/images/xwave-white.png';
 
 /**
  * Procedural canvas textures. Everything visual is generated at runtime so the
@@ -67,6 +68,81 @@ const logoImgs = (() => {
   };
   return { full: load(logoFullUrl), mark: load(logoMarkUrl) };
 })();
+
+/** v4.0.2: the owner's white XWAVE wordmark (transparent PNG) — car rear badge, roadside boards */
+export const xwaveWhite: Promise<HTMLImageElement> = (() => {
+  const img = new Image();
+  const ready = new Promise<HTMLImageElement>((res) => {
+    img.onload = () => res(img);
+    img.onerror = () => res(img);
+  });
+  img.src = xwaveWhiteUrl;
+  return ready;
+})();
+
+/** the car's rear badge: the white XWAVE wordmark, crisp, centred in the 4:1 badge (redrawn when the image is in) */
+export function xwaveBadgeTexture(onReady: (t: THREE.CanvasTexture) => void) {
+  void xwaveWhite.then((img) => {
+    if (!img.naturalWidth) return;
+    const c = document.createElement('canvas');
+    c.width = 1024;
+    c.height = 256;
+    const g = c.getContext('2d')!;
+    const w = 900;
+    const h = (w * img.naturalHeight) / img.naturalWidth;
+    // a thin dark edge keeps white readable on light paints
+    g.shadowColor = 'rgba(0,0,0,.6)';
+    g.shadowBlur = 5;
+    g.drawImage(img, (1024 - w) / 2, (256 - h) / 2, w, h);
+    g.shadowBlur = 0;
+    g.drawImage(img, (1024 - w) / 2, (256 - h) / 2, w, h);
+    const t = toTex(c, { aniso: 8 });
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    onReady(t);
+  });
+}
+
+/** v4.0.2: a weathered dark-wood roadside board with the white XWAVE wordmark painted on it */
+export function xwaveBoardTexture() {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 256;
+  const g = c.getContext('2d')!;
+  const paint = () => {
+    const gr = g.createLinearGradient(0, 0, 0, 256);
+    gr.addColorStop(0, '#4a2c14');
+    gr.addColorStop(1, '#2a160a');
+    g.fillStyle = gr;
+    g.fillRect(0, 0, 512, 256);
+    // planks + grain
+    g.fillStyle = 'rgba(0,0,0,.28)';
+    for (let y = 64; y < 256; y += 64) g.fillRect(0, y - 2, 512, 3);
+    g.globalAlpha = 0.1;
+    g.fillStyle = '#ffd8a0';
+    for (let i = 0; i < 60; i++) g.fillRect((i * 97) % 512, (i * 53) % 256, 30 + ((i * 13) % 50), 1);
+    g.globalAlpha = 1;
+    // frame
+    g.strokeStyle = '#8a5a2a';
+    g.lineWidth = 10;
+    g.strokeRect(5, 5, 502, 246);
+    g.strokeStyle = 'rgba(0,0,0,.5)';
+    g.lineWidth = 2;
+    g.strokeRect(12, 12, 488, 232);
+  };
+  paint();
+  const t = toTex(c);
+  void xwaveWhite.then((img) => {
+    if (!img.naturalWidth) return;
+    paint();
+    const w = 420;
+    const h = (w * img.naturalHeight) / img.naturalWidth;
+    g.globalAlpha = 0.95;
+    g.drawImage(img, (512 - w) / 2, (256 - h) / 2, w, h);
+    g.globalAlpha = 1;
+    t.needsUpdate = true;
+  });
+  return t;
+}
 
 function drawContain(g: CanvasRenderingContext2D, img: HTMLImageElement, x: number, y: number, w: number, h: number) {
   if (!img.naturalWidth) return;

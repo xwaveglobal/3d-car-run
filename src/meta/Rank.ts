@@ -16,6 +16,22 @@ export const toBase = (c: RankClass): BaseClass => (CLASSES.indexOf(c) > 5 ? 'AA
 export const rankIdx = (c: RankClass) => CLASSES.indexOf(c);
 export const rankAtLeast = (c: RankClass, need: RankClass) => rankIdx(c) >= rankIdx(need);
 
+/**
+ * v4.0.2 (owner): the leaderboard position moves up AND down. A pilot's rank score is the average EXP of
+ * their last RANK_WINDOW EXP races (bots are scored the same way); the Class (D … SSS) still comes from the
+ * best run and never drops. Same rule on the server (server/core.mjs rankScore).
+ */
+export const RANK_WINDOW = 5;
+export function rankScore(recent: readonly number[] | undefined) {
+  const l = (recent ?? []).slice(-RANK_WINDOW);
+  if (!l.length) return 0;
+  return Math.floor(l.reduce((a, b) => a + Math.max(0, b), 0) / l.length);
+}
+/** the list after one more EXP race (keeps the last RANK_WINDOW) */
+export function pushRecent(recent: readonly number[] | undefined, exp: number) {
+  return [...(recent ?? []), Math.max(0, Math.floor(exp))].slice(-RANK_WINDOW);
+}
+
 /** EXP needed to reach each rank */
 export const CLASS_MIN: Record<RankClass, number> = EXP.rank;
 export const CLASS_COLOR: Record<RankClass, string> = { D: '#9fb3dd', C: '#2fd36b', B: '#4fc3ff', A: '#9b6bff', AA: '#ffc21a', AAA: '#ff4fd8', S: '#ff7a2e', SS: '#ff3b5c', SSS: '#ffe9a8' };

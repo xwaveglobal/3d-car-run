@@ -341,6 +341,10 @@ export const RENDER = {
   ledGlow: 3.6,
   markerGlow: 2.6,
   badgeGlow: 1.4,
+  /** v4.0.2: the white XWAVE wordmark on the rear — bright and readable, below the bloom threshold */
+  badgeWhite: 0.85,
+  /** v4.0.2: rear badge plate size (× the modelled one) */
+  badgeScale: 1.6,
   /** headlight LED emissive strength (slim signature, no blooming blob) */
   headGlow: 1.4,
   /** nitro flame length (m) at full boost */
@@ -527,7 +531,8 @@ export interface GraphicsPreset {
   roadTex: number;
 }
 export const GRAPHICS: Record<GraphicsQuality, GraphicsPreset> = {
-  low: { dprCap: 1.25, bloom: false, speedBlur: false, cityDensity: 0.55, cityExtras: false, roadDetail: false, anisotropy: 2, particles: 0.5, roadTex: 256 },
+  // v4.0.2 (owner): LOW is for old phones — 1× pixels, no post effects, a lighter city and fewer particles
+  low: { dprCap: 1, bloom: false, speedBlur: false, cityDensity: 0.45, cityExtras: false, roadDetail: false, anisotropy: 1, particles: 0.4, roadTex: 256 },
   medium: { dprCap: 1.5, bloom: true, speedBlur: false, cityDensity: 0.8, cityExtras: true, roadDetail: true, anisotropy: 4, particles: 0.8, roadTex: 512 },
   high: { dprCap: 2, bloom: true, speedBlur: true, cityDensity: 1, cityExtras: true, roadDetail: true, anisotropy: 8, particles: 1, roadTex: 512 },
 };

@@ -13,7 +13,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import { verifyRun, clampSave, summary, normEmail, validEmail, rankOf, RANKS } from './core.mjs';
+import { verifyRun, clampSave, summary, normEmail, validEmail, rankOf, RANKS, rankScore, pushRecent } from './core.mjs';
 
 /** most EXP a pre-cloud (unverified) save may bring in once */
 const LEGACY_CAP = { endless: RANKS.AAA + 6000, track2: RANKS.SSS };
@@ -298,15 +298,19 @@ http
           if (a.verified.week !== wk) {
             a.verified.week = wk;
             a.verified.expWeek = 0;
+            a.verified.recentWeek = [];
           }
           if (run.variant === 'track2') a.verified.exp2Best = Math.max(a.verified.exp2Best, v.exp);
           else a.verified.expBest = Math.max(a.verified.expBest, v.exp);
           a.verified.expWeek = Math.max(a.verified.expWeek, v.exp);
+          // v4.0.2: the board position is the average of the last races — it moves up and down
+          a.verified.recent = pushRecent(a.verified.recent, v.exp);
+          a.verified.recentWeek = pushRecent(a.verified.recentWeek, v.exp);
           // boards use the verified numbers
           const pid = run.playerId ? String(run.playerId) : a.id;
-          for (const [board, score] of [['all', a.verified.expBest], [`week:${wk}`, a.verified.expWeek]]) {
+          for (const [board, score] of [['all', rankScore(a.verified.recent)], [`week:${wk}`, rankScore(a.verified.recentWeek)]]) {
             const k = `${board}|${pid}`;
-            if (!db.scores[k] || score > db.scores[k].score) db.scores[k] = { board, playerId: pid, score, at: Date.now() };
+            db.scores[k] = { board, playerId: pid, score, at: Date.now() };
           }
         }
         touch();

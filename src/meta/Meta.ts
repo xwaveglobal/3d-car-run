@@ -6,7 +6,7 @@ import { flagOf } from './Country.ts';
 import { dayKey, weekKey, type SaveData } from '../core/Save.ts';
 import { CHECKIN, CHESTS, questsFor, type ItemKey, type QuestStat, type Reward } from './Daily.ts';
 import { cupFor, eventBoard, prizeFor, schedule, type EventInst, type Prize } from './Events.ts';
-import { BASE_CLASSES as CLASSES, playerRank, toBase, type RankClass } from './Rank.ts';
+import { BASE_CLASSES as CLASSES, playerRank, pushRecent, rankScore, toBase, type RankClass } from './Rank.ts';
 import { allTimeBoard, avatarColor, weeklyBoard } from './Leaderboard.ts';
 
 export interface RunSummary {
@@ -88,6 +88,7 @@ export class Meta {
       this.s.weekKey = wk;
       this.s.weekBest = 0;
       this.s.expWeek = 0;
+      this.s.expRecentWeek = [];
     }
   }
 
@@ -191,6 +192,11 @@ export class Meta {
     this.s.weekBest = Math.max(this.s.weekBest, Math.floor(r.score));
     this.s.expBest = Math.max(this.s.expBest, Math.floor(r.exp));
     this.s.expWeek = Math.max(this.s.expWeek, Math.floor(r.exp));
+    // v4.0.2: every EXP race moves the board position (average of the last races), up or down
+    if (r.track === 'endless' || r.track === 'track2') {
+      this.s.expRecent = pushRecent(this.s.expRecent, r.exp);
+      this.s.expRecentWeek = pushRecent(this.s.expRecentWeek, r.exp);
+    }
     if (r.track === 'track2') this.s.exp2Best = Math.max(this.s.exp2Best, Math.floor(r.exp));
     const cup = this.myCup();
     if (cup && cup.cup.track === r.track) {
@@ -209,12 +215,19 @@ export class Meta {
   }
 
   // ------------------------------------------------------------- boards
+  /** v4.0.2: board scores = rank score (average EXP of the last races), not the best run */
+  get rankScoreAll() {
+    return rankScore(this.s.expRecent);
+  }
+  get rankScoreWeek() {
+    return rankScore(this.s.expRecentWeek);
+  }
   allTime() {
-    return allTimeBoard(this.me(this.s.expBest));
+    return allTimeBoard(this.me(this.rankScoreAll));
   }
   weekly() {
     this.rollover();
-    return weeklyBoard(this.s.weekKey, this.me(this.s.expWeek));
+    return weeklyBoard(this.s.weekKey, this.me(this.rankScoreWeek));
   }
   cupBoard(e: EventInst) {
     return eventBoard(e, this.me(this.s.events[e.key]?.best ?? 0));

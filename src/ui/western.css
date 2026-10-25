@@ -743,3 +743,87 @@ html, body { background: var(--bg); }
 #start.home2 .hmini .mic { width: 56%; height: 56%; }
 #start.home2 .hmini .mic svg * { fill: #ffe3a0 !important; stroke: none !important; }
 #start.home2 .hmini .mlb { font-size: 9.5px; }
+
+/* ===================================================================== v4.0.2 revive panel (owner mock-up) */
+#ui #continue .cr { width: min(100%, 350px); padding: 22px 18px 18px !important; gap: 0 !important; text-align: center; align-items: stretch; }
+#ui #continue .cr-title { font-family: var(--font-title); font-size: 38px; line-height: 1.05; color: #ffd36a; text-shadow: 0 3px 0 #6b3a12, 0 6px 14px rgba(0,0,0,.6); }
+#ui #continue .cr-sub { margin-top: 6px; font: 700 14px/1.3 var(--font-body); color: #e8cfa0; }
+#ui #continue .cr-go { position: relative; margin-top: 20px; height: 80px; border-radius: 20px !important; display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 16px !important; }
+#ui #continue .cr-play { width: 42px; height: 42px; flex: none; border-radius: 50%; background: #3a1d06; display: grid; place-items: center; color: #ffd36a; }
+#ui #continue .cr-play svg { width: 20px; height: 20px; margin-left: 3px; }
+#ui #continue .cr-lbl { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; }
+#ui #continue .cr-lbl b { font-size: 26px; letter-spacing: .5px; }
+#ui #continue .cr-lbl small { margin-top: 5px; font: 800 13px var(--font-body); opacity: .85; }
+#ui .cr-ad { position: absolute; top: -11px; right: 14px; display: inline-flex; align-items: center; gap: 3px; background: #2f7a2a; color: #fff; font: 800 11px var(--font-body); padding: 3px 9px; border-radius: 10px; border: 2px solid #ffe08a; letter-spacing: .5px; }
+#ui .cr-ad svg { width: 10px; height: 10px; }
+#ui #continue .cr-bar { margin: 16px 6px 0; height: 6px; border-radius: 3px; background: rgba(0,0,0,.45); overflow: hidden; }
+#ui #continue .cr-bar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #ffd36a, #f2a83a); border-radius: 3px; transition: width .2s linear; }
+#ui #continue .cr-sec { margin-top: 5px; font: 800 11px var(--font-body); color: #c9ad80; }
+#ui #continue .cr-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+#ui #continue .cr-row .btn { height: 50px; font-size: 17px; justify-content: center; }
+
+/* ===================================================================== v4.0.2 rank panel after a death */
+#ui #runrank .rp { position: relative; width: min(100%, 360px); padding: 20px 16px 16px !important; gap: 0 !important; text-align: center; align-items: stretch; }
+#ui #runrank .rp-x { position: absolute; left: 12px; top: 12px; }
+#ui #runrank .rp-title { font-family: var(--font-title); font-size: 32px; line-height: 1.1; padding: 0 40px; color: #ffd36a; text-shadow: 0 3px 0 #6b3a12, 0 6px 14px rgba(0,0,0,.6); }
+#ui #runrank.down .rp-title { color: #e9d2a6; }
+#ui #runrank .rp-sub { margin-top: 4px; font: 700 13px var(--font-body); color: #e3c999; }
+#ui #runrank .rp-hex { position: relative; width: 92px; height: 102px; margin: 14px auto 0; }
+#ui #runrank .rp-plate { position: absolute; inset: 0; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--cc, #9fb3dd); color: #fff; font: 400 44px var(--font-title); text-shadow: 0 3px 0 rgba(0,0,0,.35); box-shadow: inset 0 0 0 10px rgba(0,0,0,.16); }
+#ui #runrank.up .rp-hex::before { content: ''; position: absolute; inset: -30px; border-radius: 50%; background: repeating-conic-gradient(rgba(255,211,106,.14) 0 8deg, transparent 8deg 30deg); animation: rpSpin 9s linear infinite; }
+@keyframes rpSpin { to { transform: rotate(1turn); } }
+#ui #runrank .rp-arrow { position: absolute; right: -32px; top: 22px; font-style: normal; font-size: 24px; }
+#ui #runrank.up .rp-arrow { color: #5fe08a; } #ui #runrank.down .rp-arrow { color: #ff7a6a; }
+#ui #runrank .rp-pos { margin-top: 10px; font: 800 13.5px var(--font-body); color: #f3dcb0; display: flex; align-items: center; justify-content: center; gap: 5px; }
+#ui #runrank .rp-pos svg { width: 16px; height: 16px; }
+#ui #runrank .rp-pos i { font-style: normal; } #ui #runrank .rp-pos .g { color: #5fe08a; } #ui #runrank .rp-pos .r { color: #ff7a6a; }
+#ui #runrank .rp-exp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+#ui #runrank .rp-exp div { background: rgba(0,0,0,.32); border: 1px solid rgba(217,168,90,.35); border-radius: 12px; padding: 7px 6px; }
+#ui #runrank .rp-exp small { display: block; font: 800 10px var(--font-body); color: #c9ad80; }
+#ui #runrank .rp-exp b { font-size: 19px; }
+#ui #runrank.up .rp-exp div:first-child b { color: #ffd36a; } #ui #runrank.down .rp-exp div:first-child b { color: #ffb0a4; }
+#ui #runrank .rp-track { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+#ui #runrank .rp-c { width: 30px; height: 28px; flex: none; display: grid; place-items: center; border: 2px solid var(--c); color: var(--c); border-radius: 8px; background: rgba(0,0,0,.4); font: 400 14px var(--font-title); }
+#ui #runrank .rp-bar { position: relative; flex: 1; height: 12px; border-radius: 6px; background: rgba(0,0,0,.5); border: 1px solid rgba(255,220,150,.15); overflow: hidden; }
+#ui #runrank .rp-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #c88a2c, #ffd36a); }
+#ui #runrank .rp-bar em { position: absolute; top: 0; bottom: 0; border-radius: 6px; transition: width 1.4s .3s cubic-bezier(.2,.8,.2,1); }
+#ui #runrank.up .rp-bar em { background: repeating-linear-gradient(45deg, #9cf0b4 0 6px, #5fe08a 6px 12px); box-shadow: 0 0 10px #5fe08a; }
+#ui #runrank.down .rp-bar em { background: repeating-linear-gradient(45deg, rgba(255,122,106,.55) 0 6px, rgba(255,122,106,.25) 6px 12px); }
+#ui #runrank .rp-note { margin-top: 6px; font: 800 12px var(--font-body); color: #c9ad80; }
+#ui #runrank .rp-ad { position: relative; margin-top: 16px; height: 54px; font-size: 19px; gap: 8px; justify-content: center; }
+#ui #runrank .rp-ad .cr-ad { background: #3a1d06; color: #ffd36a; border-color: #ffd36a; }
+#ui #runrank .rp-ad.used { opacity: .7; }
+#ui #runrank .rp-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+#ui #runrank .rp-btns .btn { height: 50px; font-size: 15px; padding: 0 6px !important; justify-content: center; gap: 4px; min-width: 0; }
+
+/* ===================================================================== v4.0.2 pause: 3 equal toggles + Camera under them */
+#ui #pause .toggles { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+#ui #pause .toggles .toggle { justify-content: center; white-space: nowrap; padding: 10px 6px; min-width: 0; }
+#ui #pause .pcam { width: 100%; justify-content: center; gap: 8px; padding: 10px 12px; white-space: nowrap; }
+#ui #pause .pcam b { color: #ffd36a; }
+
+/* ===================================================================== v4.0.2 Finish card: room around the logo, corner buttons inside, big race rank */
+#ui #gameover .res-top { padding: 2px 2px 4px; align-items: flex-start; }
+#ui #gameover .res-top .icon-btn { margin: 2px; flex: none; }
+#ui #gameover .res-logo { width: 116px !important; margin: 6px 0 4px; }
+#ui #gameover .result .title { margin-top: 2px; }
+#ui #gameover .endrow { flex-direction: column; gap: 8px !important; }
+#ui #gameover .endrow .erank { flex-direction: row; padding: 6px 18px 6px 8px !important; gap: 12px !important; }
+#ui #gameover .endrow .erank .rbig { width: 58px; height: 64px; display: grid; place-items: center; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--cc, #9fb3dd); color: #fff; font: normal 400 30px var(--font-title); text-shadow: 0 2px 0 rgba(0,0,0,.35); box-shadow: inset 0 0 0 7px rgba(0,0,0,.16); }
+#ui #gameover .endrow .erank span b { font-size: 30px !important; }
+#ui #gameover .result .btn.retry { background: linear-gradient(180deg, rgba(240,210,140,.92), rgba(204,142,52,.95)), var(--wood-light) center / 260px auto, #e0951e !important; color: #3a1c04 !important; border-color: #7a4a14 !important; }
+
+/* v4.0.2 XWAVE wordmark: loading screen ("by XWAVE") and the Settings footer */
+#ui #loading .by-xw { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: .85; }
+#ui #loading .by-xw small { font: 700 11px var(--font-body); color: #e8d2a8; }
+#ui #loading .by-xw img { width: 92px; height: auto; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+#ui #settings .sfoot-xw { display: block; width: 72px; height: auto; margin: 2px auto 0; opacity: .7; }
+
+/* v4.0.2 More: two equal columns, even margins, the red dot inside the tile */
+#more .mgrid { width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+#more .mitem { min-width: 0; width: 100%; }
+#more .mitem .badge { top: 8px !important; right: 8px !important; }
+/* v4.0.2 Check-in: Day 7 is the big prize (double width) */
+#ui .ckgrid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+#ui .ckt.big { grid-column: span 2 !important; border: 2px solid #d9a85a !important; background: linear-gradient(90deg, rgba(200,120,40,.45), rgba(120,60,20,.35)) !important; }
+#ui .ckt.big small { color: #ffd36a !important; }

@@ -15,6 +15,21 @@ export const MAX_SPEED = 130;
 /** rank thresholds — must equal EXP.rank in src/config.ts */
 export const RANKS = { D: 0, C: 3000, B: 8000, A: 15000, AA: 26000, AAA: 40000, S: 65000, SS: 85000, SSS: 110000 };
 
+/**
+ * Board position (v4.0.2): the average EXP of a pilot's last RANK_WINDOW verified races — it goes up AND
+ * down. Must equal RANK_WINDOW / rankScore / pushRecent in src/meta/Rank.ts (tests/server.test.ts).
+ * The Class (rankOf) still comes from the best run and never drops.
+ */
+export const RANK_WINDOW = 5;
+export function rankScore(recent) {
+  const l = (Array.isArray(recent) ? recent : []).slice(-RANK_WINDOW);
+  if (!l.length) return 0;
+  return Math.floor(l.reduce((a, b) => a + Math.max(0, Number(b) || 0), 0) / l.length);
+}
+export function pushRecent(recent, exp) {
+  return [...(Array.isArray(recent) ? recent : []), Math.max(0, Math.floor(Number(exp) || 0))].slice(-RANK_WINDOW);
+}
+
 export function rankOf(expBest, exp2Best = 0) {
   let r = 'D';
   for (const [k, v] of Object.entries(RANKS)) {
@@ -54,6 +69,9 @@ export function clampSave(save, verified) {
   s.expBest = Math.min(Number(s.expBest) || 0, verified.expBest);
   s.exp2Best = Math.min(Number(s.exp2Best) || 0, verified.exp2Best);
   s.expWeek = Math.min(Number(s.expWeek) || 0, Math.max(verified.expWeek ?? 0, verified.expBest));
+  // the board's recent-race lists are the server's own (never the client's)
+  if (Array.isArray(verified.recent)) s.expRecent = verified.recent.slice(-RANK_WINDOW);
+  if (Array.isArray(verified.recentWeek)) s.expRecentWeek = verified.recentWeek.slice(-RANK_WINDOW);
   return s;
 }
 

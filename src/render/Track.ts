@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { glowTexture } from './textures.ts';
+import { glowTexture, xwaveBoardTexture } from './textures.ts';
 import type { RoadStyle } from './western/looks.ts';
 import { propMaterial } from './western/atlas.ts';
 import { billboard as billboardGeo, route66 as route66Geo } from './western/props.ts';
@@ -377,6 +377,14 @@ export class Track {
         board.scale.setScalar(0.55);
         board.position.set(side * 1.4, -0.42, 0);
         g.add(shield, board);
+        // v4.0.2 (owner): every third board on the right is an XWAVE board (white wordmark on dark wood)
+        if (i % 6 === 1) {
+          const xb = new THREE.Mesh(new THREE.PlaneGeometry(6.3, 3.0), this.xwaveBoardMat());
+          xb.name = 'xwaveboard';
+          xb.position.set(side * 1.4, -0.42 + 5 * 0.55, 0.03);
+          xb.scale.setScalar(0.55);
+          g.add(xb);
+        }
         g.position.x = side * SIGN_X;
         g.rotation.y = side * 0.32; // turned slightly toward the driver
         this.group.add(g);
@@ -465,6 +473,14 @@ export class Track {
       }
   }
   private signsOn = true;
+  private xbMat: THREE.MeshBasicMaterial | null = null;
+  private xwaveBoardMat() {
+    if (!this.xbMat) {
+      this.xbMat = new THREE.MeshBasicMaterial({ map: xwaveBoardTexture(), color: 0xd8d0c8 });
+      addFarFade(this.xbMat, ROAD_NEAR - this.signRange);
+    }
+    return this.xbMat;
+  }
   private preset: GraphicsPreset | null = null;
   private openAir = true;
   private sideGlowMat: THREE.MeshBasicMaterial;

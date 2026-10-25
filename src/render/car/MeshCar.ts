@@ -7,6 +7,7 @@ import { ease, spoilerUpdate, wheelStep, type SpoilerState } from './carMotion.t
 import { ShieldAura, installCarFx, makeCarFxUniforms } from './CarFx.ts';
 import { CAR_HALF } from '../../config.ts';
 import { x1BadgeCanvas, x1CarbonCanvas, x1FlakeCanvas, x1TreadCanvas } from './x1Textures.ts';
+import { xwaveBadgeTexture } from '../textures.ts';
 import x1Url from '../../assets/models/xwave-x1.glb';
 
 /** what the 3D car needs from a colourway (subset of VehicleSkin) */
@@ -181,6 +182,28 @@ export class MeshCar {
       badge.transparent = true;
       badge.alphaTest = 0.05;
       badge.emissiveIntensity = RENDER.badgeGlow;
+      // v4.0.2 (owner): the rear badge is the white XWAVE wordmark — crisp, no amber glow, and bigger
+      // (the badge plate is scaled around its own centre so the wordmark reads at phone size)
+      model.traverse((o) => {
+        const me = o as THREE.Mesh;
+        if (!me.isMesh || (me.material as THREE.Material)?.name !== 'X1_Badge') return;
+        const geo = me.geometry.clone();
+        geo.computeBoundingBox();
+        const c = geo.boundingBox!.getCenter(new THREE.Vector3());
+        geo.translate(-c.x, -c.y, -c.z);
+        geo.scale(RENDER.badgeScale, RENDER.badgeScale, 1);
+        geo.translate(c.x, c.y, c.z + 0.002);
+        me.geometry = geo;
+      });
+      xwaveBadgeTexture((t) => {
+        badge.map = t;
+        badge.emissiveMap = t;
+        badge.color.set('#ffffff');
+        badge.emissive.set('#ffffff');
+        badge.emissiveIntensity = RENDER.badgeWhite;
+        badge.needsUpdate = true;
+        bt.dispose();
+      });
     }
     const carbon = this.mats.get('X1_Carbon');
     if (carbon) carbon.map = tex(x1CarbonCanvas());
@@ -462,10 +485,11 @@ export class MeshCar {
     this.root.visible = true;
     const show = [...this.flames, ...this.nozzles, this.aura.mesh, this.turboAura.mesh, this.hover];
     for (const o of show) o.visible = true;
+    // v4.0.2: only the car (lit by the world's lights), not the whole world a second time
     this.setFade(0.5);
-    renderer.compile(scene, camera);
+    renderer.compile(this.root, camera, scene as THREE.Scene);
     this.setFade(1);
-    renderer.compile(scene, camera);
+    renderer.compile(this.root, camera, scene as THREE.Scene);
     for (const o of show) o.visible = false;
     this.root.visible = was;
   }

@@ -4,6 +4,13 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-25 — v4.0.2 (branch `v4.0`): race end rebuilt, board position moves, 21-item owner list
+
+- Done: see README v4.0.2 (revive panel, rank panel + one ad, 5-race average board position on client + server, instant Restart / Home, Finish card, Pause camera, More / Check-in / header / perk buttons, HUD specials, XWAVE wordmark, dust, LOW preset, Head Start ad removed, iOS audio guard, 110 → 70 boot shader programs).
+- Owner rules settled: Class never drops; board position = average of last 5 EXP races; Restart = last special else next in bag; interstitial only from the race-end panels; revive ad cooldown 0; free coins also in Shop.
+- Next: the HS dashboard must mirror tiktok.hs-dashboard.json (no rw_head_start, rw_revive cooldown 0); domain list needs games.wafflescouts.com; GLB is a data URL (base64 decode at boot) — a file load would shave more on Android.
+- Not pushed (owner: push only when asked).
+
 ## 2026-10-25 — v4.0.1 (branch `v4.0`): Gold Rush window + iPhone first load
 
 - Gold Rush: arriving at hh:15 still plays this hour's event until hh:30 (arithmetic slot, HH:MM without Intl, Home/popup refresh every 5 s + on resume). Test in `tests/bonus.test.ts`.

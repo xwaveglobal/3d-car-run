@@ -1,6 +1,7 @@
 // Share image: a 1080×1350 "brag card" drawn on a canvas (rank shield, EXP, car, pilot),
 // then handed to the native share sheet — with a visible fallback when sharing is blocked
 // (e.g. inside an iframe): a preview the player can long-press / download.
+import xwaveWhiteUrl from '../assets/images/xwave-white.png';
 import { CLASS_COLOR, type RankClass } from '../meta/Rank.ts';
 
 export interface ShareCardData {
@@ -196,6 +197,17 @@ export async function drawShareCard(d: ShareCardData): Promise<Blob | null> {
   g.fillStyle = '#ffd27a';
   g.font = '700 34px system-ui, -apple-system, Segoe UI, sans-serif';
   g.fillText('Can you beat me?', W - 40, H - 44);
+  // v4.0.2 (owner): the publisher's white wordmark in the top-right corner
+  const xw = await load(xwaveWhiteUrl);
+  if (xw && xw.naturalWidth) {
+    const lw = 200;
+    g.globalAlpha = 0.9;
+    g.shadowColor = 'rgba(0,0,0,.55)';
+    g.shadowBlur = 8;
+    g.drawImage(xw, W - lw - 40, 44, lw, (lw * xw.naturalHeight) / xw.naturalWidth);
+    g.shadowBlur = 0;
+    g.globalAlpha = 1;
+  }
   return new Promise((res) => c.toBlob((b) => res(b), 'image/png'));
 }
 

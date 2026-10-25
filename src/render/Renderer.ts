@@ -61,6 +61,25 @@ export type Quality = GraphicsQuality;
 export class Renderer {
   renderer: THREE.WebGLRenderer;
   scene = new THREE.Scene();
+  /**
+   * v4.0.2: compile the world's shaders for the target they are really drawn into. With post effects the
+   * scene goes into the composer's (linear) target — compiling for the screen (sRGB) built a second,
+   * never-used copy of every program at boot (≈ half of the 110 programs, seconds on Android).
+   */
+  compileWorld(camera: THREE.Camera) {
+    this.withWorldTarget(() => this.renderer.compile(this.scene, camera));
+  }
+  /** run fn with the render target the world is drawn into (the composer's, or the screen) */
+  withWorldTarget(fn: () => void) {
+    const r = this.renderer;
+    const prev = r.getRenderTarget();
+    if (this.composer) r.setRenderTarget(this.composer.readBuffer);
+    try {
+      fn();
+    } finally {
+      r.setRenderTarget(prev);
+    }
+  }
   private composer: EffectComposer | null = null;
   private bloom: UnrealBloomPass | null = null;
   private speedBlur: ShaderPass | null = null;

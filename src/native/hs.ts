@@ -103,7 +103,7 @@ export const hs = {
       case 'free_coins':
         return !!HSGame.canShowAd('rw_free_coins');
       case 'head_start':
-        return !!HSGame.canShowAd('rw_head_start');
+        return false; // v4.0.2 (owner): the Head Start ad is gone
       default:
         return !!HSGame.canShowAd('int_race_end');
     }
@@ -121,11 +121,8 @@ export const hs = {
       case 'free_coins':
         r = await HSGame.showAd('rw_free_coins');
         break;
-      case 'head_start':
-        r = await HSGame.showAd('rw_head_start');
-        break;
       default:
-        r = null;
+        r = null; // (head_start: removed in v4.0.2)
     }
     return r !== null && r !== undefined;
   },

@@ -9,6 +9,20 @@
  * `loadOverride(name, url)` (assets/manifest.ts).
  */
 import { platform } from '../platform.ts';
+
+/**
+ * v4.0.2: AudioContext.suspend() / resume() return a Promise in browsers but nothing on TikTok iOS
+ * ("undefined is not an object (evaluating 'c2.suspend().catch')"), and may even throw. Never let that
+ * break the caller (the visibility handler that also saves the game).
+ */
+function safeCall(c: { suspend?: () => unknown; resume?: () => unknown } | null | undefined, k: 'suspend' | 'resume') {
+  try {
+    const r = c?.[k]?.() as { catch?: (f: () => void) => void } | undefined;
+    if (r && typeof r.catch === 'function') r.catch(() => undefined);
+  } catch {
+    /* ignore */
+  }
+}
 import { campPlan, ridePlan, renderBell, renderPluck, renderStrum, type Plan } from './westernSynth.ts';
 
 /** render rate of the music / SFX buffers (guitar, whistle, drums sound complete at 24 kHz) */
@@ -164,7 +178,7 @@ export class Audio {
   unlock() {
     if (this.ctx) {
       if (this.ctx.state !== 'running') {
-        this.ctx.resume().catch(() => undefined);
+        safeCall(this.ctx, 'resume');
         this.prime();
       }
       return;
@@ -188,7 +202,7 @@ export class Audio {
     (c as unknown as { addEventListener?: (t: string, f: () => void) => void }).addEventListener?.('statechange', () => {
       if (c.state === 'running') this.onRunning?.();
     });
-    if (c.state !== 'running') c.resume().catch(() => undefined);
+    if (c.state !== 'running') safeCall(c, 'resume');
     if (this.baked) this.sr = Math.min(48000, Math.max(22050, Math.round(c.sampleRate || 44100)));
     this.master = c.createGain();
     this.master.gain.value = this.baked ? NATIVE_MASTER : 0.8;
@@ -252,8 +266,8 @@ export class Audio {
     const c = this.ctx;
     if (!c) return;
     if (hidden) {
-      if (c.state === 'running') c.suspend().catch(() => undefined);
-    } else if (c.state !== 'running') c.resume().catch(() => undefined);
+      if (c.state === 'running') safeCall(c, 'suspend');
+    } else if (c.state !== 'running') safeCall(c, 'resume');
   }
 
   async loadOverride(name: string, url: string) {

@@ -7,7 +7,7 @@
           {
             "id": "ad7699423177315469319",
             "config": {
-              "cooldown": 30
+              "cooldown": 0
             }
           }
         ]
@@ -28,17 +28,6 @@
         "ads": [
           {
             "id": "ad7699414196535052296",
-            "config": {
-              "cooldown": 30
-            }
-          }
-        ]
-      },
-      {
-        "label": "rw_head_start",
-        "ads": [
-          {
-            "id": "ad7699406374372427783",
             "config": {
               "cooldown": 30
             }

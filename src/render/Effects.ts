@@ -28,7 +28,10 @@ export class Particles {
   private geo: THREE.BufferGeometry;
 
   /** @param additive true = glowing sparks/energy; false = soft smoke and dust */
+  /** v4.0.2: soft smoke fades IN as well as out (no puff popping into view) and stays lighter */
+  private soft: boolean;
   constructor(pixelRatio: number, additive = true) {
+    this.soft = !additive;
     this.geo = new THREE.BufferGeometry();
     this.geo.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     this.geo.setAttribute('color', new THREE.BufferAttribute(this.col, 3).setUsage(THREE.DynamicDrawUsage));
@@ -117,7 +120,7 @@ export class Particles {
       this.pos[i3 + 1] += this.vel[i3 + 1] * dt;
       this.pos[i3 + 2] += (this.vel[i3 + 2] + (this.locked[i] ? worldSpeed : 0)) * dt;
       const k = Math.max(0, this.life[i] / this.maxLife[i]);
-      this.alpha[i] = k * k;
+      this.alpha[i] = this.soft ? k * k * Math.min(1, (1 - k) * 5) * 0.7 : k * k;
       this.size[i] = this.baseSize[i] * (1 + this.grow[i] * (1 - k));
     }
     const a = this.geo.attributes;

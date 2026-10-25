@@ -189,6 +189,20 @@ When `window.adBreak` exists the game uses it automatically (remove `data-adbrea
 
 Garage: 9 cars in 5 body styles (GT Coupe ×4 colourways, Hyper Wedge, Thunder Muscle, Orbit Pod, Cyber Blade, Gold Legend); locked cars are faded in the car strip and shown as a dark silhouette in 3D. Profile: random pilot-helmet avatar (24 designs, change or re-roll in Settings) with a skill-tier badge in the corner (Rookie → Bronze 1k → Silver 3k → Gold 7k → Platinum 15k → Diamond 30k → Legend 50k best score), also shown on leaderboards. Missions (3 active, rewards in coins, pilot rank), Settings (sound, music, danger arrows, graphics, pilot name), Garage (4 colourways, Engine / Shield / Magnet upgrades, 5 levels each), best score and everything else persisted in `localStorage`.
 
+## v4.0.2 (native, branch `v4.0`) — new race end, moving board position, polish
+
+- **Revive panel** (owner mock-up): CRASHED! · CONTINUE (revive ad `rw_revive`, cooldown 0) · countdown bar · Restart · Home. Also in Gold Rush.
+- **Rank panel after a death**: NEW BEST! (position climbs) / RACE OVER (position drops), big Class plate, weekly position before → after, this race vs best, Class bar. One ad: ×2 this race's coins (`rw_end_bonus`, 100+ coins) or free coins (`rw_free_coins`). Details (the Finish card) · Restart · Home; × = Home.
+- **Board position = average EXP of the last 5 races** (`RANK_WINDOW`, `rankScore` in src/meta/Rank.ts and server/core.mjs, tested) — it moves up and down; the Class still comes from the best run and never drops. Rival curves scaled to averages.
+- **Restart anywhere** = straight into a new race (no card, no special picker): the last special picked, else the next one in the bag. **Home anywhere** = straight Home (a race quit half-way is still counted). Interstitial only on Restart / Home from the race-end panels.
+- **Finish card**: big race-rank plate, logo with room around it, corner buttons inside the frame, Restart · Home · Tracks · Garage, no ad. Share says when nothing was shared.
+- **Pause**: LO / MED / HI labels, Camera (Motion / Fixed) under the three toggles.
+- **Layout**: More badge inside its tile; Check-in Day 7 is a double-width prize (600 + Launcher); page titles next to Back; Launch / Share / Entry spaced out in the wood + brass style; HUD special buttons on a deep leather disc with a bigger glowing icon.
+- **XWAVE wordmark** (owner's white logo): the car's rear badge (bigger plate), roadside boards (every third on the right), "by XWAVE" on loading, the Settings footer, the share card.
+- Lighter, smoother tyre dust; LOW preset lighter for old phones (1× pixels); Head Start ad removed.
+- iPhone: `suspend()` / `resume()` guarded (TikTok iOS returns nothing); the save on leaving the app runs first.
+- Boot: the world's shaders are compiled for the target they are drawn into (110 → 70 programs at boot; Android "prewarm" was 4.6 s).
+
 ## v4.0.1 (native, branch `v4.0`) — Gold Rush window, faster first load on iPhone
 
 - **Gold Rush window**: the hourly event is open from hh:00 to hh:30. Arriving at 1:15 plays the 1:00 event until 1:30 (it never says "wait until 2:00"). The slot is computed with plain clock arithmetic (no multi-argument `Date` constructor, no `toLocaleTimeString`). The Home strip and the Bonus popup refresh with the clock and when the app comes back. Covered by `tests/bonus.test.ts`.

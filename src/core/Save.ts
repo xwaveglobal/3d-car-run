@@ -52,6 +52,9 @@ export interface SaveData {
   expBest: number;
   /** v2: best run EXP this week (weekly board) */
   expWeek: number;
+  /** v4.0.2: EXP of the last races (all time / this week) — the board position is their average (Rank.rankScore) */
+  expRecent?: number[];
+  expRecentWeek?: number[];
   /** v2: best run EXP on Track 2 (the only road to S / SS / SSS) */
   exp2Best: number;
   /** v2: old save already converted (retired items/upgrades refunded as coins) */
@@ -253,6 +256,9 @@ function loadSaveRaw(): SaveData {
       ...(p.settingsRev !== SETTINGS_REV ? { settingsRev: SETTINGS_REV } : {}),
       // a save written by v1 has no v2 flag → Game converts it once
       v2: p.v2 === true,
+      // v4.0.2: older saves start their rank score from their best runs (no sudden drop on update)
+      expRecent: Array.isArray(p.expRecent) ? p.expRecent.slice(-5) : (p.expBest ?? 0) > 0 ? [p.expBest as number] : [],
+      expRecentWeek: Array.isArray(p.expRecentWeek) ? p.expRecentWeek.slice(-5) : (p.expWeek ?? 0) > 0 ? [p.expWeek as number] : [],
     };
   } catch {
     return d;

@@ -155,9 +155,10 @@ export const ROAD_STYLE: Record<WorldId, RoadStyle> = {
  */
 export const DUST = {
   from: 14,
-  rate: 16,
-  size: 0.55,
-  life: 0.85,
+  // v4.0.2 (owner: "khói sau xe xấu ko mượt, làm nhẹ hơn"): more, smaller, softer puffs → a smooth light trail
+  rate: 24,
+  size: 0.42,
+  life: 1.0,
   landColor: 0xd8b88a,
   color: {
     city: 0xdcc090, cloud: 0xd0a078, mega: 0xd8b890, harbor: 0xc8b8a0, solar: 0xe0c898, tunnel: 0x8a6a4a,
