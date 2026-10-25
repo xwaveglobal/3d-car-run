@@ -1410,6 +1410,21 @@ export class Game {
 
   openGarage() {
     this.audio.play('click');
+    // v4.0.2 (owner): the garage shows the car alone — no crash shards / flying wheel, no obstacles or items
+    // left over from the last race
+    if (this.run || this.world.obstacles.length || this.world.pickups.length) {
+      this.clearRunVisuals();
+      this.world.reset(Math.floor(Math.random() * 1e9));
+      this.world.player.reset(1);
+      this.bonusTunnels.set([], null);
+      this.setPiece = null;
+      this.showcaseK = null;
+      this.showcaseT = 0;
+    }
+    this.vehicle.resetFx();
+    this.vehicle.resetPose();
+    this.applySkin(this.save.vehicle);
+    this.vehicle.visibleBlink = true;
     this.setState('garage');
     this.rig.mode = 'garage';
     this.ui.garageSync(this.save, this.save.vehicle);

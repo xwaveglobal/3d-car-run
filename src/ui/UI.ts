@@ -2106,6 +2106,11 @@ export class UI {
           if (trail) {
             trail.style.transition = 'opacity .6s .35s';
             trail.style.opacity = '1';
+            // v4.0.2 (owner): the streak never stays across the rows — it fades once the row has arrived
+            window.setTimeout(() => {
+              trail.style.transition = 'opacity .45s';
+              trail.style.opacity = '0';
+            }, 1950);
           }
         }),
       );

@@ -327,7 +327,13 @@ function runrankOv(ui: UI, g: Gfx) {
       // the trail from the old place to the row
       const t0 = Math.min(ghostY, meY) + RH / 2,
         t1 = Math.max(ghostY, meY) + RH / 2;
-      if (t1 - t0 > 2) g.rr(x + 14, t0, 20, t1 - t0, 10, g.lin(0, up ? t0 : t1, 0, up ? t1 : t0, [[0, up ? 'rgba(95,224,138,.8)' : 'rgba(255,122,106,.8)'], [1, 'rgba(0,0,0,0)']]));
+      // v4.0.2 (owner: the green streak stayed across the rows): only while the row slides, then it fades out
+      const fade = 1 - Math.min(1, Math.max(0, (g.time - o.t0 - 350 - 1600) / 450));
+      if (t1 - t0 > 2 && fade > 0) {
+        g.alpha(fade);
+        g.rr(x + 14, t0, 20, t1 - t0, 10, g.lin(0, up ? t0 : t1, 0, up ? t1 : t0, [[0, up ? 'rgba(95,224,138,.8)' : 'rgba(255,122,106,.8)'], [1, 'rgba(0,0,0,0)']]));
+        g.alpha(1);
+      }
     }
     const drawRow = (r: (typeof rows)[number], yy: number, me: boolean) => {
       const cls = r.you ? ui.myClass : classFor(r.score);
