@@ -4,6 +4,21 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
 
 ---
 
+## 2026-10-25 — v4.0.2 later (branch `v4.0`, not pushed): load size, rides, owner fixes
+- **Load size (TikTok):** game.js 2.84 MB → 1.23 MB. The X1 GLB is no longer base64 inside game.js: it ships as
+  `tiktok/assets/xwave-x1-*.bin`, read through `setPackageReader(hs.packageReader())` (TikTok Minis file system;
+  the Android app / preview fall back to fetch). After the ES2017 downlevel the bundle is minified again (names
+  too); `require("./hs-game.js")`, `.HSGame.share(` and `.HSGame.has('share')` are kept literal for hs-check.
+- **GLB packing:** `scripts/car/pack-x1.mjs` also stores POSITION / TEXCOORD_0 as int16 normalized + `extras.dq`
+  (read by glbParse) — 783 → 645 KB, error 0.03 mm. Lock test + fingerprint (`packedSha256`) updated.
+- **Loading art:** web `loading.webp` 540×960 / 49 KB; TikTok `loading.jpg` 540×960 / 44 KB baseline JPEG.
+  Hand-tuned native files live in `assets-src/native-tuned/` (copied by scripts/native-images.py last);
+  the 600×1066 master is `assets-src/loading/loading-master-600x1066.webp`.
+- Rides: Mine Run drives the tunnel crown; Wall Ride = car at 90° on a timber wall through slotted gates
+  (`BonusTunnels.setSlotGates`, `SHOWCASE_RIDE` in config.ts). Level picker on Tracks + Settings, Saddle Bag,
+  white Zenith, boards (all time = best EXP, weekly = average), iPhone audio unlock on touch end, `[go]` log.
+- Next: owner's iPhone `[go]` log for the GO hitch; optional logo downsizes (owner comparing zips).
+
 ## 2026-10-25 — v4.0.2 (branch `v4.0`): race end rebuilt, board position moves, 21-item owner list
 
 - Done: see README v4.0.2 (revive panel, rank panel + one ad, 5-race average board position on client + server, instant Restart / Home, Finish card, Pause camera, More / Check-in / header / perk buttons, HUD specials, XWAVE wordmark, dust, LOW preset, Head Start ad removed, iOS audio guard, 110 → 70 boot shader programs).

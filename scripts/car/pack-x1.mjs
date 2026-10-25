@@ -61,6 +61,25 @@ j.accessors.forEach((a, i) => {
   if (r === 'TEXCOORD_0' && a.componentType === 5126 && read(a).every((x) => x === 0)) {
     saved += a.count * 8; delete a.bufferView; delete a.byteOffset; return;
   }
+  // v4.0.2: POSITION / TEXCOORD_0 float32 → int16 normalized + a per-accessor range (extras.dq: value = q·s + o,
+  // read by glbParse.ts). 0.1 mm on the car, invisible; positions keep a 4-byte-aligned stride (8 bytes)
+  if ((r === 'POSITION' || r === 'TEXCOORD_0') && a.componentType === 5126 && (a.type === 'VEC3' || a.type === 'VEC2')) {
+    const v = read(a);
+    const n = SZ[a.type];
+    const lo = [], hi = [];
+    for (let c = 0; c < n; c++) { lo[c] = Infinity; hi[c] = -Infinity; }
+    for (let k = 0; k < a.count; k++) for (let c = 0; c < n; c++) { const x = v[k * n + c]; if (x < lo[c]) lo[c] = x; if (x > hi[c]) hi[c] = x; }
+    const s = lo.map((l, c) => Math.max(1e-9, (hi[c] - l) / 2));
+    const o = lo.map((l, c) => (hi[c] + l) / 2);
+    const stride = n === 3 ? 8 : 4;
+    const buf = Buffer.alloc(a.count * stride);
+    for (let k = 0; k < a.count; k++) for (let c = 0; c < n; c++) buf.writeInt16LE(Math.max(-32767, Math.min(32767, Math.round(((v[k * n + c] - o[c]) / s[c]) * 32767))), k * stride + c * 2);
+    saved += a.count * n * 4 - buf.length;
+    a.bufferView = push(buf, stride, 34962); a.componentType = 5122; a.normalized = true; delete a.byteOffset;
+    a.extras = { ...(a.extras ?? {}), dq: { s, o } };
+    a.min = lo; a.max = hi;
+    return;
+  }
   // copy the accessor's data as a tight view
   const bv = j.bufferViews[a.bufferView];
   const n = SZ[a.type], el = EL[a.componentType], stride = bv.byteStride ?? n * el;

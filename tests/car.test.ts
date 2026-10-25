@@ -177,7 +177,8 @@ check(gameW < CAR_HALF.x * 2 * 1.35, `in-game width ${gameW.toFixed(2)} m vs hit
     const d = (x: string) => { const p = ga.getAttribute(x), q = gb?.getAttribute(x); let e = 0; if (!p || !q || p.count !== q.count) return 9; for (let k = 0; k < p.array.length; k++) e = Math.max(e, Math.abs(p.array[k] - q.array[k])); return e; };
     posErr = Math.max(posErr, d('position')); nrmErr = Math.max(nrmErr, d('normal')); uvErr = Math.max(uvErr, d('uv'));
   });
-  check(a.length === b.length && posErr === 0 && uvErr === 0 && nrmErr < 0.012, `packed GLB = master geometry (${b.length} meshes, positions exact, uv exact, normals ±${nrmErr.toFixed(4)})`);
+  // v4.0.2: positions / UVs are int16-quantized (0.03 mm on the car, invisible)
+  check(a.length === b.length && posErr < 1e-4 && uvErr < 5e-4 && nrmErr < 0.012, `packed GLB = master geometry (${b.length} meshes, positions ±${posErr.toExponential(1)} m, uv ±${uvErr.toExponential(1)}, normals ±${nrmErr.toFixed(4)})`);
 }
 
 console.log(fails ? `${fails} FAILED` : 'ALL PASSED');

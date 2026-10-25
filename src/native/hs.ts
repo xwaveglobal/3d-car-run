@@ -89,7 +89,10 @@ export const hs = {
     return started;
   },
   /** is a platform feature on here, now? — ask every time a button is drawn */
-  hasShare: () => !!HSGame.has('share'),
+  hasShare: () => {
+    const root: any = typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis;
+    return root.HSGame ? !!root.HSGame.has('share') : !!HSGame.has('share'); // literal for hs-check after minify
+  },
   hasAds: () => !!HSGame.has('ads'),
   hasMissions: () => !!HSGame.has('tiktok_missions'),
   /** v4.0.2: why the last ad did not play (HSGame.lastAdError: 'not configured', 'unavailable', 'busy', …) */
@@ -135,13 +138,36 @@ export const hs = {
     if (!ok) console.warn(`[ads] ${place}: no ad (${hs.adError() || 'no reason'})`);
     return ok;
   },
+  /** v4.0.2: package files (the car model) — TikTok Minis has a file system; the Android app's web tt reads by fetch */
+  packageReader(): ((path: string) => Promise<ArrayBuffer>) | null {
+    if (HSGame.platform !== 'minis') return null;
+    const G: any = typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis;
+    const fs = G.tt && typeof G.tt.getFileSystemManager === 'function' ? G.tt.getFileSystemManager() : null;
+    if (!fs) return null;
+    return async (path: string) => {
+      // package paths: relative first, then the ./ and / spellings some runtimes want
+      let last: unknown = null;
+      for (const p of [path, `./${path}`, `/${path}`]) {
+        try {
+          const data = await new Promise<ArrayBuffer>((res, rej) => fs.readFile({ filePath: p, success: (r: { data: ArrayBuffer }) => res(r.data), fail: rej }));
+          if (data && data.byteLength) return data;
+        } catch (e) {
+          last = e;
+        }
+      }
+      throw last ?? new Error('empty file');
+    };
+  },
   async interstitial(): Promise<void> {
     await HSGame.showAd('car-run-int');
   },
 
   // ---- share (reward of key "share", once a day, added to the profile by HSGame)
   async share(title: string, subtitle: string, imageUrl?: string): Promise<'shared' | 'none'> {
-    const r = await HSGame.share({ title, subtitle, ...(imageUrl ? { imageUrl } : {}) });
+    const args = { title, subtitle, ...(imageUrl ? { imageUrl } : {}) };
+    // (written as root.HSGame.share so the call stays readable for hs-check after minification)
+    const root: any = typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis;
+    const r = root.HSGame ? await root.HSGame.share(args) : await HSGame.share(args);
     return r ? 'shared' : 'none';
   },
   shareReward(): Record<string, number> | null {

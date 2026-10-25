@@ -16,6 +16,7 @@ import { COLOR_MODES, applyColor, color, colorLine, measure } from './color.ts';
 import { setAdProvider, type RewardPlacement } from '../ads/Ads.ts';
 import { platform } from '../platform.ts';
 import { Game } from '../Game.ts';
+import { setPackageReader } from '../render/car/glbParse.ts';
 import type { UI } from './ui/NativeUI.ts';
 import { Gfx, setFonts } from './ui/gfx.ts';
 import alfaTtf from './fonts/alfa-slab-one.ttf';
@@ -135,6 +136,11 @@ platform.onRenderer = (r) => {
 };
 bootMark('native main');
 try {
+  try {
+    setPackageReader(hs.packageReader()); // v4.0.2: the car model is a package file (TikTok Minis file system)
+  } catch (e) {
+    console.warn('[asset] package reader', e);
+  }
   game = new Game(container);
   bootMark('game constructed');
   ui = (game as any).ui as UI;

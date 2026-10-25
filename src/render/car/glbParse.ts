@@ -27,7 +27,7 @@ interface GltfJson {
     doubleSided?: boolean;
     extensions?: Record<string, Record<string, number>>;
   }[];
-  accessors: { bufferView?: number; byteOffset?: number; componentType: number; count: number; type: string; normalized?: boolean }[];
+  accessors: { bufferView?: number; byteOffset?: number; componentType: number; count: number; type: string; normalized?: boolean; extras?: { dq?: { s: number[]; o: number[] } } }[];
   bufferViews: { byteOffset?: number; byteLength: number; byteStride?: number }[];
 }
 
@@ -79,10 +79,13 @@ export function parseGlb(data: ArrayBuffer): THREE.Group {
       const t = a.componentType;
       const get = (o: number) =>
         t === 5126 ? view.getFloat32(o, true) : t === 5125 ? view.getUint32(o, true) : t === 5123 ? view.getUint16(o, true) : t === 5122 ? view.getInt16(o, true) : t === 5120 ? view.getInt8(o) : view.getUint8(o);
+      // v4.0.2: quantized POSITION / TEXCOORD_0 (scripts/car/pack-x1.mjs) carry their range: value = q·s + o
+      const dq = a.extras?.dq;
       for (let k = 0; k < a.count; k++)
         for (let c = 0; c < n; c++) {
           const v = get(base + k * stride + c * el);
-          out[k * n + c] = norm ? Math.max(-1, v / norm) : v;
+          const q = norm ? Math.max(-1, v / norm) : v;
+          out[k * n + c] = dq ? q * dq.s[c] + dq.o[c] : q;
         }
       return { array: out, itemSize: n };
     }
@@ -178,10 +181,30 @@ function utf8(b: Uint8Array): string {
   return s;
 }
 
-/** bytes of a bundled asset: a data: URL is decoded in place (no fetch / atob needed), anything else is fetched */
+/** v4.0.2: reads a file of the game package (TikTok Minis: tt file system) — set by the native entry */
+let packageReader: ((path: string) => Promise<ArrayBuffer>) | null = null;
+export function setPackageReader(fn: ((path: string) => Promise<ArrayBuffer>) | null) {
+  packageReader = fn;
+}
+
+/**
+ * bytes of a bundled asset: a data: URL is decoded in place (no fetch / atob needed); a package file in the
+ * TikTok mini game is read with the package reader (v4.0.2: the car model is a separate file there, not
+ * 1 MB of base64 inside game.js); anything else is fetched
+ */
 export async function assetBytes(url: string): Promise<ArrayBuffer> {
   const m = /^data:[^,]*;base64,/.exec(url);
-  if (!m) return (await fetch(url)).arrayBuffer();
+  if (!m) {
+    if (packageReader && !/^(https?:|blob:)/.test(url)) {
+      try {
+        const data = await packageReader(url);
+        if (data && data.byteLength) return data;
+      } catch (e) {
+        console.warn('[asset] package read', url, e);
+      }
+    }
+    return (await fetch(url)).arrayBuffer();
+  }
   const b64 = url.slice(m[0].length);
   const T = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
   const map = new Uint8Array(128);

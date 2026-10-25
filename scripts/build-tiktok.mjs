@@ -57,8 +57,9 @@ const common = {
   bundle: true,
   target: 'es2018',
   define: { 'process.env.NODE_ENV': '"production"', __NATIVE__: 'true' },
-  // the approved 3D car (GLB) is read by our own parser from a data URL (no fetch in the mini game)
-  loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.json': 'json', '.glb': 'dataurl', '.ttf': 'file' },
+  // v4.0.2: the 3D car (GLB) ships as its own file (assets/*.bin) and is read with tt.getFileSystemManager()
+  // (glbParse.assetBytes) — it used to sit inside game.js as 1 MB of base64 the phone had to parse at launch
+  loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.json': 'json', '.glb': 'file', '.ttf': 'file' },
   assetNames: 'assets/[name]-[hash]',
   publicPath: '',
 };
@@ -88,7 +89,7 @@ async function buildBun() {
     target: 'browser',
     minify: { whitespace: true, syntax: true, identifiers: false },
     define: common.define,
-    loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.glb': 'dataurl' },
+    loader: { '.png': 'file', '.jpg': 'file', '.jpeg': 'file', '.glb': 'file' },
     publicPath: '',
     plugins: [
       {
@@ -142,8 +143,22 @@ else await buildEsbuild();
       reportDiagnostics: false,
     });
     // keep the bundle's own (sloppy) mode: TypeScript adds a "use strict" of its own
-    writeFileSync(f, r.outputText.replace(/^\s*"use strict";\s*/, ''));
+    let code = r.outputText.replace(/^\s*"use strict";\s*/, '');
     console.log(`game.js downlevelled to ES2017 in ${Date.now() - t1} ms`);
+    // v4.0.2: TypeScript re-prints the bundle (indentation, long names): minify it again — whitespace,
+    // syntax AND local names — at ES2017 (≈ −30 % game.js: less to download and parse on the phone)
+    try {
+      const { transformSync } = await import('esbuild');
+      const kb = code.length;
+      code = transformSync(code, { minify: true, target: 'es2017', legalComments: 'none' }).code;
+      // the HS kit is loaded by the mini game's own require(): keep that call literal (hs-check greps for it;
+      // esbuild's __require shim got a short name above and only forwards to require anyway)
+      code = code.replace(/(^|[^\w$.])[A-Za-z_$][\w$]*\((["'])\.\/hs-game\.js\2\)/g, (m, pre, q) => `${pre}require(${q}./hs-game.js${q})`);
+      console.log(`game.js minified ${(kb / 1024) | 0} → ${(code.length / 1024) | 0} KB`);
+    } catch (e) {
+      console.warn('⚠ esbuild minify skipped', e?.message ?? e);
+    }
+    writeFileSync(f, code);
     // regex features older mini-game engines reject at load (TikTok Android: "Invalid regular expression")
     const sf = ts.createSourceFile('game.js', readFileSync(f, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
     const bad = [];
@@ -159,6 +174,20 @@ else await buildEsbuild();
     walk(sf);
     if (bad.length) throw new Error(`game.js has regex features older engines reject (\\p{…}, lookbehind, named groups, s/d/v flags):\n  ${bad.join('\n  ')}`);
   } else console.warn('⚠ typescript not found: game.js left at the bundler output level');
+}
+
+// v4.0.2: the car model ships as assets/<name>.bin (mini-game packages accept .bin; .glb is not on every list)
+{
+  const f = join(out, 'game.js');
+  let code = readFileSync(f, 'utf8');
+  for (const n of readdirSync(assetsOut)) {
+    if (!n.endsWith('.glb')) continue;
+    const bin = n.replace(/\.glb$/, '.bin');
+    const { renameSync } = await import('node:fs');
+    renameSync(join(assetsOut, n), join(assetsOut, bin));
+    code = code.split(n).join(bin);
+  }
+  writeFileSync(f, code);
 }
 
 // TikTok refuses 0-byte files; report sizes against the 4 MB main-package limit
