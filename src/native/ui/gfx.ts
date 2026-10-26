@@ -10,6 +10,8 @@ import { CLASS_COLOR, type RankClass } from '../../meta/Rank.ts';
 import { getLang, tr as tr0 } from '../../ui/i18n.ts';
 /** translate a known label (English stays exactly as written) */
 const tr = (s: string) => (getLang() === 'en' ? s : tr0(s));
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const GameGlobal: any;
 
 // v4.0 (3D Car Run): Western faces — Alfa Slab One for display text, Rye (capitals only) for titles. The native
 // main registers the bundled TTFs (tt.loadFont) and fills in their family names; until then the fallbacks draw.
@@ -208,7 +210,8 @@ export class Gfx {
   dry = 0;
   private tf: { tx: number; ty: number; k: number }[] = [{ tx: 0, ty: 0, k: 1 }];
   private clips: [number, number, number, number][] = [];
-  images = new Map<string, any>();
+  /** v4.0.2: pictures native/early.ts started decoding before the game was set up (the loading art) */
+  images = new Map<string, any>(Object.entries(((typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis) as any).__preImages ?? {}));
   onImageLoad: () => void = () => {};
   makeImage: () => any = () => null;
 

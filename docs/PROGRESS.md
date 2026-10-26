@@ -29,6 +29,11 @@ Newest entry on top. Every AI session adds a short entry: what was done, what is
   first training countdown at "2"); a countdown that keeps failing starts the race; `Audio.play` never throws;
   boot continues past a failing asset, a failed boot still opens Home; native watchdog restarts a stopped loop
   (3 s without a frame while visible); bgWork caps 64 steps per tick. Loading art back to the normal files.
+- **No grey / black start (owner video):** tiktok/game.js = the bundle wrapped as `__runGame` + `src/native/boot-loader.js`
+  first: it takes the screen canvas, paints the art's warm tone, draws the loading art with a tiny WebGL pass
+  (context handed to three.js clean), then starts the game (≤ 700 ms). Preview: art on screen at ~0.24 s.
+- **Network badge:** `src/native/net.ts` tracks ads / share / TikTok missions / sign-in; the canvas UI shows a small
+  spinning "Loading ad… / Connecting…" pill under the top bar while one waits; nothing waits on it.
 - `NOMIN=1 node scripts/build-tiktok.mjs` = readable game.js for profiling (never ship it).
 - Next: owner's iPhone `[go]` log for the GO hitch; optional logo downsizes (owner comparing zips).
 

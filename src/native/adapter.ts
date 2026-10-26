@@ -29,7 +29,7 @@ const info = (() => {
 })();
 
 /** THE on-screen canvas: the first tt.createCanvas() call (TikTok rule). */
-export const screenCanvas: any = T.createCanvas();
+export const screenCanvas: any = G.__screenCanvas ?? T.createCanvas(); // (native/early.ts takes it first)
 export const DPR = Math.min(3, info.pixelRatio || 2);
 export let viewW: number = info.windowWidth || 390;
 export let viewH: number = info.windowHeight || 844;

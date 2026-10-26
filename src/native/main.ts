@@ -269,7 +269,7 @@ if (ui && game) {
     if (booted) return;
     try {
       r3.setRenderTarget(null);
-      r3.setClearColor(0x04071a, 1);
+      r3.setClearColor(0x9e6b38, 1); // v4.0.2: the loading art's warm tone (never a dark / empty screen)
       r3.clear();
       renderer.uiPass(r3);
     } catch {

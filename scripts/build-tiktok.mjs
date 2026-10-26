@@ -190,6 +190,20 @@ else await buildEsbuild();
   writeFileSync(f, code);
 }
 
+// v4.0.2 (owner video / TikTok review: ~1 s of grey before the loading art): the game is wrapped as
+// __runGame and src/native/boot-loader.js runs first — it paints the screen and draws the loading art with a
+// tiny WebGL pass right away, then starts the game under it.
+{
+  const f = join(out, 'game.js');
+  const code = readFileSync(f, 'utf8');
+  const art = readdirSync(assetsOut).find((n) => /^loading-[\w-]+\.(jpg|png)$/.test(n));
+  if (!art) throw new Error('boot loader: no assets/loading-*.jpg in the build');
+  const url = `./assets/${art}`;
+  if (!code.includes(url)) throw new Error(`boot loader: game.js does not reference ${url}`);
+  const loader = readFileSync(join(root, 'src/native/boot-loader.js'), 'utf8').replace('__LOADING_ART__', url);
+  writeFileSync(f, `(typeof GameGlobal!=="undefined"?GameGlobal:globalThis).__runGame=function(){\n${code}\n};\n${loader}`);
+}
+
 // TikTok refuses 0-byte files; report sizes against the 4 MB main-package limit
 let total = 0;
 const walk = (d) => {

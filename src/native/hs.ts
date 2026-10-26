@@ -19,6 +19,7 @@ import { perkVisible, type PerkKind, type PerkState } from '../meta/Perks.ts';
 declare const require: (p: string) => any;
 
 declare const GameGlobal: any;
+import { netTrack } from './net.ts';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const hsModule = require('./hs-game.js');
 /** the kit also sets GameGlobal.HSGame (used when a loader hands back an empty module object) */
@@ -73,7 +74,7 @@ export const profile = HSGame.profile(
 let started = false;
 /** v3.0.11: start() finished either way (offline too) — reward buttons wait for this, never flash */
 let settled = false;
-export const hsReady: Promise<void> = HSGame.start({ gameId: GAME_ID, sdkKey: SDK_KEY, defaults: DEFAULTS })
+export const hsReady: Promise<void> = netTrack(Promise.resolve(HSGame.start({ gameId: GAME_ID, sdkKey: SDK_KEY, defaults: DEFAULTS })), 'sign-in', 2500, 20000)
   .then(() => {
     started = true;
   })
@@ -123,13 +124,13 @@ export const hs = {
     let r: unknown = null;
     switch (place) {
       case 'continue':
-        r = await HSGame.showAd('car_run-life');
+        r = await netTrack(HSGame.showAd('car_run-life'), 'ad');
         break;
       case 'double_coins':
-        r = await HSGame.showAd('car_run-end');
+        r = await netTrack(HSGame.showAd('car_run-end'), 'ad');
         break;
       case 'free_coins':
-        r = await HSGame.showAd('car_run-free-coin');
+        r = await netTrack(HSGame.showAd('car_run-free-coin'), 'ad');
         break;
       default:
         r = null; // (head_start: removed in v4.0.2)
@@ -159,7 +160,7 @@ export const hs = {
     };
   },
   async interstitial(): Promise<void> {
-    await HSGame.showAd('car-run-int');
+    await netTrack(HSGame.showAd('car-run-int'), 'ad');
   },
 
   // ---- share (reward of key "share", once a day, added to the profile by HSGame)
@@ -167,7 +168,7 @@ export const hs = {
     const args = { title, subtitle, ...(imageUrl ? { imageUrl } : {}) };
     // (written as root.HSGame.share so the call stays readable for hs-check after minification)
     const root: any = typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis;
-    const r = root.HSGame ? await root.HSGame.share(args) : await HSGame.share(args);
+    const r = await netTrack(root.HSGame ? root.HSGame.share(args) : HSGame.share(args), 'share');
     return r ? 'shared' : 'none';
   },
   shareReward(): Record<string, number> | null {
@@ -176,10 +177,12 @@ export const hs = {
 
   // ---- TikTok review missions (Entry Reward / Launch Reward)
   entryStart() {
-    HSGame.tiktokMission.start('profile');
+    const r: any = HSGame.tiktokMission.start('profile');
+    if (r && typeof r.then === 'function') netTrack(r, 'tiktok');
   },
   launchStart() {
-    HSGame.tiktokMission.start('shortcut');
+    const r: any = HSGame.tiktokMission.start('shortcut');
+    if (r && typeof r.then === 'function') netTrack(r, 'tiktok');
   },
   entryDone: () => !!HSGame.tiktokMission.done('profile'),
   launchDone: () => !!HSGame.tiktokMission.done('shortcut'),
