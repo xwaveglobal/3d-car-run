@@ -56,7 +56,7 @@ check(perkVisible('entry', { ...base, entryDone: false }), 'Entry shows again wh
 // ---- v5: Home always keeps its 6 buttons (claimed rewards stay, with a ✓)
 {
   const done: PerkState = { ...base, entryDone: true, launchDone: true, shareAvailable: false };
-  check(PERK_ORDER.every((k) => perkOnHome(k, done)), 'v5 TikTok: Share · Entry · Launch stay on Home after they are claimed');
+  check(perkOnHome('share', done) && !perkOnHome('entry', done) && !perkOnHome('launch', done), 'v4.0.2 TikTok: Entry · Launch leave Home once claimed, Share stays');
   check(PERK_ORDER.every((k) => perkOnHome(k, { ...done, started: false })), 'v5: all three show before HSGame has started');
   const android: PerkState = { ...base, hasMissions: false };
   check(perkOnHome('share', android) && !perkOnHome('entry', android) && !perkOnHome('launch', android), 'v5 Android app: Share only (no TikTok missions there, HS rule 12)');

@@ -74,7 +74,25 @@ export const profile = HSGame.profile(
 let started = false;
 /** v3.0.11: start() finished either way (offline too) — reward buttons wait for this, never flash */
 let settled = false;
-export const hsReady: Promise<void> = netTrack(Promise.resolve(HSGame.start({ gameId: GAME_ID, sdkKey: SDK_KEY, defaults: DEFAULTS })), 'sign-in', 2500, 20000)
+export const hsReady: Promise<void> = netTrack(
+  Promise.resolve(
+    HSGame.start({
+      gameId: GAME_ID,
+      sdkKey: SDK_KEY,
+      defaults: DEFAULTS,
+      // v4.0.2 (owner: "did Entry / Launch pay their coins?"): HS kit 3.2.4 only checks the TikTok missions when
+      // an onGive is set (hs-game.js checkMission: `if (!giveCb …) return false`) — without it the Entry and
+      // Launch rewards were never paid. Our rewards are profile number fields (coins …): the kit credits them
+      // itself, so this only receives non-number items (none today) and the 'given' event updates the UI.
+      onGive: (items: Record<string, number>, from: string) => {
+        console.log('[hs] given', from, JSON.stringify(items));
+      },
+    }),
+  ),
+  'sign-in',
+  2500,
+  20000,
+)
   .then(() => {
     started = true;
   })

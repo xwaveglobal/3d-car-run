@@ -24,7 +24,6 @@ import { drawHud, drawNotices } from './hud.ts';
 import { hs } from '../hs.ts';
 import { bgAdd } from '../../core/bgWork.ts';
 import { netWaiting } from '../net.ts';
-import { safeTop } from './layout.ts';
 
 export { carImage, carRear, logoImg, UPGRADE_MAX, upgradeCost, SAMPLE_BOARD_NOTE, MEGA_ICON } from '../../ui/shared.ts';
 export type { UIHandlers, RunRewards, UpgradeKey } from '../../ui/UI.ts';
@@ -197,7 +196,7 @@ export class UI {
     if (this.shown.has('hud')) g.guard('hud', () => drawHud(this, g));
     drawScreens(this, g, OVERLAYS, 'overlay');
     g.guard('notices', () => drawNotices(this, g));
-    g.guard('net', () => drawNetBadge(g));
+    g.guard('net', () => drawNetBadge(this, g));
     if (this.debugText) g.para(this.debugText, 8, g.H - 120, g.W - 16, { size: 10, font: 'b', color: '#9fffa0' });
     return true;
   }
@@ -753,35 +752,31 @@ export function rewardText(r: Reward) {
 }
 
 /**
- * v4.0.2 (owner): a weak network shows a small spinning badge under the top bar — "Connecting…",
- * "Loading ad…" — while the call waits; the game itself never waits on it.
+ * v4.0.2 (owner, option B): a weak network shows ONE small spinning icon in the middle of the screen while a
+ * call waits (ads, share, TikTok missions, sign-in) — no text. Menus only: never over a race. The game itself
+ * never waits on it.
  */
-function drawNetBadge(g: Gfx) {
-  const why = netWaiting();
-  if (!why || g.dry) return;
-  const label = why === 'ad' ? 'Loading ad…' : why === 'share' ? 'Opening share…' : why === 'tiktok' ? 'Opening TikTok…' : 'Connecting…';
-  const tw = g.measure(label, { size: 11, font: 'b' });
-  const w = 30 + tw + 14,
-    h = 28;
-  const x = (g.W - w) / 2,
-    y = safeTop(g) + 50;
-  g.rr(x, y, w, h, 14, 'rgba(26,13,4,.84)', 'rgba(217,168,90,.75)', 1.2);
+function drawNetBadge(ui: UI, g: Gfx) {
+  if (g.dry || !netWaiting()) return;
+  if (ui.shown.has('hud') || ui.shown.has('countdown') || ui.shown.has('loading')) return;
   const c = g.ctx;
-  const cx = x + 16,
-    cy = y + h / 2;
-  const a = (g.time / 160) % (Math.PI * 2);
+  const cx = g.W / 2,
+    cy = g.H / 2;
+  const a = (g.time / 170) % (Math.PI * 2);
   c.save();
+  c.fillStyle = 'rgba(26,13,4,.68)';
+  c.beginPath();
+  c.arc(cx, cy, 22, 0, Math.PI * 2);
+  c.fill();
   c.lineCap = 'round';
-  c.lineWidth = 2.6;
+  c.lineWidth = 3;
   c.strokeStyle = 'rgba(255,211,106,.25)';
   c.beginPath();
-  c.arc(cx, cy, 7, 0, Math.PI * 2);
+  c.arc(cx, cy, 11, 0, Math.PI * 2);
   c.stroke();
   c.strokeStyle = '#ffd36a';
   c.beginPath();
-  c.arc(cx, cy, 7, a, a + Math.PI * 1.3);
+  c.arc(cx, cy, 11, a, a + Math.PI * 1.3);
   c.stroke();
   c.restore();
-  g.text(label, x + 28, cy + 0.5, { size: 11, font: 'b', color: '#f6e3b4', shadow: null });
 }
-

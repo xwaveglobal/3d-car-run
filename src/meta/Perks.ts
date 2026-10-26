@@ -35,7 +35,9 @@ export function perkVisible(kind: PerkKind, s: PerkState): boolean {
  */
 export function perkOnHome(kind: PerkKind, s: PerkState): boolean {
   if (!s.started) return true;
-  return kind === 'share' ? s.hasShare : s.hasMissions;
+  // v4.0.2 (owner): Entry / Launch leave Home once their reward is paid; Share stays (daily reward)
+  if (kind === 'share') return s.hasShare;
+  return s.hasMissions && !(kind === 'entry' ? s.entryDone : s.launchDone);
 }
 
 /** rail order, top to bottom */

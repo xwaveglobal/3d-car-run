@@ -1,6 +1,6 @@
 /** v3 native UI — full screens (home, tracks, garage, missions, ranks, daily, shop…) */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { perkVisible } from '../../meta/Perks.ts';
+import { perkOnHome, perkVisible } from '../../meta/Perks.ts';
 import { C, Gfx, bar, button, card, fmt, iconBtn, panel, rankBadge, rankBadgeW, toggle } from './gfx.ts';
 import type { UI } from './NativeUI.ts';
 import { BAG_ICON, BOLT, ICON, ITEM_ICON, RARITY_COLOR, ROCKET_G, SPECIAL_SHORT } from './consts.ts';
@@ -249,10 +249,11 @@ function start(ui: UI, g: Gfx) {
   // ---- Launch · Share · Entry (small round buttons under More)
   const pst = hs.perkState();
   const perks = [
-    { key: 'pk-launch', kind: 'launch' as const, icon: ROCKET_G, label: 'LAUNCH', on: pst.hasMissions },
-    { key: 'pk-share', kind: 'share' as const, icon: ICON.share, label: 'SHARE', on: pst.hasShare },
-    { key: 'pk-entry', kind: 'entry' as const, icon: ICON.gift, label: 'ENTRY', on: pst.hasMissions },
-  ].filter((p) => p.on || !pst.started);
+    // v4.0.2 (owner): Entry / Launch disappear once their coins are paid (Share comes back daily)
+    { key: 'pk-launch', kind: 'launch' as const, icon: ROCKET_G, label: 'LAUNCH', on: perkOnHome('launch', pst) },
+    { key: 'pk-share', kind: 'share' as const, icon: ICON.share, label: 'SHARE', on: perkOnHome('share', pst) },
+    { key: 'pk-entry', kind: 'entry' as const, icon: ICON.gift, label: 'ENTRY', on: perkOnHome('entry', pst) },
+  ].filter((p) => p.on);
   const slots = ['pkEntry', 'pkLaunch', 'pkShare'];
   perks.forEach((p, i) => {
     const r = top(slots[i]);

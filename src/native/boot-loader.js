@@ -2,7 +2,7 @@
  * v4.0.2 — the first code in tiktok/game.js (prepended by scripts/build-tiktok.mjs; plain ES2017, no imports).
  * Owner video + TikTok review: a grey / black screen for ~1 s before the loading art. This shows the art at
  * once — before three.js and the game are even set up — then starts the game (wrapped as __runGame):
- *  1. takes THE on-screen canvas (the first tt.createCanvas() call) and paints the art's warm desert tone;
+ *  1. takes THE on-screen canvas (the first tt.createCanvas() call) — no plain colour fill (owner);
  *  2. decodes the loading art and draws it full-screen with a tiny WebGL pass (the same context three.js
  *     then reuses; every GL object made here is deleted and the state reset to defaults);
  *  3. starts the game right after (never more than 700 ms later, even if the art fails).
@@ -71,11 +71,7 @@
     // the same context three.js asks for first (src/render/Renderer.ts makeRenderer) — it gets this one back
     var gl = null;
     try { gl = cv.getContext('webgl2', { alpha: false, depth: true, stencil: false, antialias: true, premultipliedAlpha: true, preserveDrawingBuffer: false, powerPreference: 'high-performance' }); } catch (e) { gl = null; }
-    if (gl) {
-      gl.viewport(0, 0, W, H);
-      gl.clearColor(0.62, 0.42, 0.22, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-    }
+    // (owner: never a plain coloured screen — it reads as an error; only the art itself is drawn)
     var img = typeof T.createImage === 'function' ? T.createImage() : null;
     if (!img) return run();
     img.onload = function () {
